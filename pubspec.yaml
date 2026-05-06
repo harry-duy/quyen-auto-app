@@ -1,0 +1,92 @@
+name: quyen_auto_app
+description: Quyen Auto Mobile System
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+
+  # ─── State Management ───────────────────────────────────────────────────────
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # ─── HTTP & API ─────────────────────────────────────────────────────────────
+  dio: ^5.7.0
+  retrofit: '>=4.4.1 <4.9.0'   # pin below 4.9.x — DartMappable compat
+  json_annotation: ^4.9.0
+
+  # ─── Navigation ─────────────────────────────────────────────────────────────
+  go_router: ^14.6.2
+
+  # ─── Local Storage ──────────────────────────────────────────────────────────
+  hive_flutter: ^1.1.0
+  flutter_secure_storage: ^9.2.2
+
+  # ─── Firebase ───────────────────────────────────────────────────────────────
+  firebase_core: ^3.8.0
+  firebase_messaging: ^15.1.5
+
+  # ─── Realtime ───────────────────────────────────────────────────────────────
+  web_socket_channel: ^3.0.1
+  stomp_dart_client: ^3.0.1
+
+  # ─── Maps ───────────────────────────────────────────────────────────────────
+  google_maps_flutter: ^2.9.0
+
+  # ─── Image ──────────────────────────────────────────────────────────────────
+  image_picker: ^1.1.2
+  cached_network_image: ^3.4.1
+  flutter_svg: ^2.0.10+1
+
+  # ─── UI Components ──────────────────────────────────────────────────────────
+  shimmer: ^3.0.0
+  url_launcher: ^6.3.1
+  smooth_page_indicator: ^1.2.0+3
+  fl_chart: ^0.69.0
+  badges: ^3.1.2
+
+  # ─── Zalo OAuth (WebView flow) ───────────────────────────────────────────────
+  webview_flutter: ^4.10.0
+
+  # ─── Utils ──────────────────────────────────────────────────────────────────
+  flutter_dotenv: ^5.2.1
+  intl: ^0.19.0
+  logger: ^2.4.0
+  connectivity_plus: ^6.1.0
+  package_info_plus: ^8.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+  # ─── Code Generation ─────────────────────────────────────────────────────────
+  build_runner: ^2.4.13
+  retrofit_generator: '>=9.1.5 <9.7.0'  # pin below 9.7.x — matches retrofit <4.9.0
+  riverpod_generator: ^2.6.2
+  json_serializable: ^6.8.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/
+    - assets/images/
+    - assets/icons/
+    - assets/fonts/
+    - .env
+
+  # fonts:
+  #   - family: Roboto
+  #     fonts:
+  #       - asset: assets/fonts/Roboto-Regular.ttf
+  #       - asset: assets/fonts/Roboto-Bold.ttf
+  #         weight: 700

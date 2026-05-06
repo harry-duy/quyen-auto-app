@@ -1,0 +1,502 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import '../../core/constants/app_colors.dart';
+import '../../core/di/providers.dart';
+import '../../domain/entities/order.dart';
+
+class OrderDetailScreen extends ConsumerWidget {
+  final String id;
+  const OrderDetailScreen({super.key, required this.id});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orderAsync = ref.watch(orderDetailProvider(id));
+
+    // Listen for WebSocket status updates
+    ref.listen(orderStatusStreamProvider(id), (_, next) {
+      next.whenData((newStatus) {
+        if (newStatus != null) {
+          ref.invalidate(orderDetailProvider(id));
+          ref.invalidate(orderListProvider);
+        }
+      });
+    });
+
+    return orderAsync.when(
+      data: (order) => _OrderDetailView(order: order, orderId: id),
+      loading: () => Scaffold(
+        appBar: AppBar(title: const Text('Chi tiết đơn hàng')),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Scaffold(
+        appBar: AppBar(title: const Text('Chi tiết đơn hàng')),
+        body: Center(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.error_outline,
+                color: AppColors.errorRed, size: 48),
+            const SizedBox(height: 12),
+            const Text('Không thể tải đơn hàng'),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => ref.invalidate(orderDetailProvider(id)),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Thử lại'),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Detail View ─────────────────────────────────────────────────────────────
+
+class _OrderDetailView extends StatelessWidget {
+  final Order order;
+  final String orderId;
+  const _OrderDetailView({required this.order, required this.orderId});
+
+  @override
+  Widget build(BuildContext context) {
+    final fmt =
+        NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
+    final dateFmt = DateFormat('HH:mm — dd/MM/yyyy');
+    final statusColor = AppColors.forOrderStatus(order.status.name);
+    final statusBg = AppColors.bgForOrderStatus(order.status.name);
+    final canCancel = order.status == OrderStatus.pending;
+
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      appBar: AppBar(
+        title: Text(order.orderCode),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.copy_outlined),
+            tooltip: 'Sao chép mã đơn',
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: order.orderCode));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Đã sao chép mã đơn hàng')),
+              );
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          // Status banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: statusBg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: statusColor.withValues(alpha: 0.3)),
+            ),
+            child: Row(children: [
+              Icon(_statusIcon(order.status), color: statusColor, size: 28),
+              const SizedBox(width: 12),
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Trạng thái đơn hàng',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: statusColor.withValues(alpha: 0.7))),
+                Text(_statusLabel(order.status),
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: statusColor)),
+              ]),
+            ]),
+          ),
+          const SizedBox(height: 16),
+
+          // Timeline
+          _StatusTimeline(current: order.status),
+          const SizedBox(height: 16),
+
+          // Info card
+          _InfoCard(title: 'Thông tin đơn hàng', rows: [
+            ('Mã đơn', order.orderCode),
+            ('Sản phẩm', order.productName),
+            ('Ngày tạo', dateFmt.format(order.createdAt)),
+            if (order.updatedAt != null)
+              ('Cập nhật', dateFmt.format(order.updatedAt!)),
+            if (order.note != null && order.note!.isNotEmpty)
+              ('Ghi chú', order.note!),
+          ]),
+          const SizedBox(height: 12),
+
+          // Amount card
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.borderLight),
+            ),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Tổng thanh toán',
+                      style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark)),
+                  const Divider(height: 20),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Thành tiền',
+                            style: TextStyle(color: AppColors.textGray)),
+                        Text(
+                          order.totalAmount > 0
+                              ? fmt.format(order.totalAmount)
+                              : 'Chờ báo giá',
+                          style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primaryOrange),
+                        ),
+                      ]),
+                ]),
+          ),
+          const SizedBox(height: 80),
+        ]),
+      ),
+      bottomNavigationBar: canCancel
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                child: OutlinedButton.icon(
+                  onPressed: () => _confirmCancel(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.errorRed,
+                    side: const BorderSide(color: AppColors.errorRed),
+                    minimumSize: const Size(double.infinity, 52),
+                  ),
+                  icon: const Icon(Icons.cancel_outlined),
+                  label: const Text('Hủy đơn hàng'),
+                ),
+              ),
+            )
+          : null,
+    );
+  }
+
+  void _confirmCancel(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Xác nhận hủy đơn'),
+        content: Text('Bạn có chắc muốn hủy đơn hàng ${order.orderCode}?'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Không')),
+          ElevatedButton(
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy đơn'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _statusIcon(OrderStatus s) => switch (s) {
+        OrderStatus.pending => Icons.schedule,
+        OrderStatus.confirmed => Icons.thumb_up_outlined,
+        OrderStatus.inProduction => Icons.precision_manufacturing_outlined,
+        OrderStatus.completed => Icons.check_circle_outline,
+        OrderStatus.cancelled => Icons.cancel_outlined,
+      };
+
+  String _statusLabel(OrderStatus s) => switch (s) {
+        OrderStatus.pending => 'Chờ xác nhận',
+        OrderStatus.confirmed => 'Đã xác nhận',
+        OrderStatus.inProduction => 'Đang sản xuất',
+        OrderStatus.completed => 'Hoàn thành',
+        OrderStatus.cancelled => 'Đã hủy',
+      };
+}
+
+// ─── Info Card ───────────────────────────────────────────────────────────────
+
+class _InfoCard extends StatelessWidget {
+  final String title;
+  final List<(String, String)> rows;
+  const _InfoCard({required this.title, required this.rows});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(title,
+            style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark)),
+        const Divider(height: 20),
+        ...rows.map((r) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                        width: 90,
+                        child: Text(r.$1,
+                            style: const TextStyle(
+                                fontSize: 13, color: AppColors.textGray))),
+                    Expanded(
+                        child: Text(r.$2,
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textDark))),
+                  ]),
+            )),
+      ]),
+    );
+  }
+}
+
+// ─── Timeline (8 steps) ──────────────────────────────────────────────────────
+
+class _StatusTimeline extends StatelessWidget {
+  final OrderStatus current;
+  const _StatusTimeline({required this.current});
+
+  static const _steps = [
+    (status: OrderStatus.pending, label: 'Tiếp nhận yêu cầu', icon: Icons.inbox_outlined),
+    (status: OrderStatus.pending, label: 'Xác nhận thông tin', icon: Icons.fact_check_outlined),
+    (status: OrderStatus.confirmed, label: 'Báo giá & Đặt cọc', icon: Icons.request_quote_outlined),
+    (status: OrderStatus.confirmed, label: 'Xác nhận đơn hàng', icon: Icons.thumb_up_outlined),
+    (status: OrderStatus.inProduction, label: 'Bắt đầu sản xuất', icon: Icons.precision_manufacturing_outlined),
+    (status: OrderStatus.inProduction, label: 'Kiểm tra chất lượng', icon: Icons.verified_outlined),
+    (status: OrderStatus.inProduction, label: 'Giao hàng', icon: Icons.local_shipping_outlined),
+    (status: OrderStatus.completed, label: 'Hoàn thành', icon: Icons.check_circle_outline),
+  ];
+
+  static const _statusOrder = [
+    OrderStatus.pending,
+    OrderStatus.confirmed,
+    OrderStatus.inProduction,
+    OrderStatus.completed,
+  ];
+
+  int get _currentMainIndex =>
+      _statusOrder.indexOf(current).clamp(0, _statusOrder.length - 1);
+
+  _StepState _stepState(int index) {
+    final step = _steps[index];
+    final stepMainIndex = _statusOrder.indexOf(step.status);
+
+    if (stepMainIndex < _currentMainIndex) return _StepState.done;
+    if (stepMainIndex > _currentMainIndex) return _StepState.upcoming;
+
+    // Same main status — figure out sub-position
+    final stepsForStatus =
+        _steps.asMap().entries.where((e) => e.value.status == step.status).toList();
+    final lastIndexForStatus = stepsForStatus.last.key;
+    final firstIndexForStatus = stepsForStatus.first.key;
+
+    if (index == firstIndexForStatus && stepMainIndex == _currentMainIndex) {
+      return _StepState.done;
+    }
+    if (index <= lastIndexForStatus && index == firstIndexForStatus + 1) {
+      return _StepState.current;
+    }
+    if (index < firstIndexForStatus + 1) return _StepState.done;
+    return _StepState.upcoming;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (current == OrderStatus.cancelled) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.errorRed.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Row(children: [
+          Icon(Icons.cancel_outlined, color: AppColors.errorRed),
+          SizedBox(width: 12),
+          Text('Đơn hàng đã bị hủy',
+              style: TextStyle(
+                  color: AppColors.errorRed, fontWeight: FontWeight.w600)),
+        ]),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Tiến trình đơn hàng',
+            style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark)),
+        const SizedBox(height: 16),
+        ..._steps.asMap().entries.map((entry) {
+          final i = entry.key;
+          final step = entry.value;
+          final state = _stepState(i);
+          final isLast = i == _steps.length - 1;
+
+          return _TimelineStep(
+            icon: step.icon,
+            label: step.label,
+            state: state,
+            isLast: isLast,
+          );
+        }),
+      ]),
+    );
+  }
+}
+
+enum _StepState { done, current, upcoming }
+
+class _TimelineStep extends StatefulWidget {
+  final IconData icon;
+  final String label;
+  final _StepState state;
+  final bool isLast;
+
+  const _TimelineStep({
+    required this.icon,
+    required this.label,
+    required this.state,
+    required this.isLast,
+  });
+
+  @override
+  State<_TimelineStep> createState() => _TimelineStepState();
+}
+
+class _TimelineStepState extends State<_TimelineStep>
+    with SingleTickerProviderStateMixin {
+  AnimationController? _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.state == _StepState.current) {
+      _pulseController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 1200),
+      )..repeat(reverse: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Color circleColor;
+    final Color iconColor;
+    final Color textColor;
+    final FontWeight textWeight;
+
+    switch (widget.state) {
+      case _StepState.done:
+        circleColor = AppColors.successGreen;
+        iconColor = AppColors.textWhite;
+        textColor = AppColors.successGreen;
+        textWeight = FontWeight.w500;
+      case _StepState.current:
+        circleColor = AppColors.primaryOrange;
+        iconColor = AppColors.textWhite;
+        textColor = AppColors.primaryOrange;
+        textWeight = FontWeight.w700;
+      case _StepState.upcoming:
+        circleColor = AppColors.borderLight;
+        iconColor = AppColors.textGray;
+        textColor = AppColors.textGray.withValues(alpha: 0.5);
+        textWeight = FontWeight.w400;
+    }
+
+    final lineColor = widget.state == _StepState.done
+        ? AppColors.successGreen.withValues(alpha: 0.4)
+        : AppColors.borderLight;
+
+    Widget circleWidget = Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: widget.state == _StepState.upcoming ? Colors.transparent : circleColor,
+        border: widget.state == _StepState.upcoming
+            ? Border.all(color: AppColors.borderLight, width: 2)
+            : null,
+      ),
+      child: Icon(
+        widget.state == _StepState.done ? Icons.check : widget.icon,
+        size: 15,
+        color: iconColor,
+      ),
+    );
+
+    if (widget.state == _StepState.current && _pulseController != null) {
+      circleWidget = AnimatedBuilder(
+        animation: _pulseController!,
+        builder: (_, child) {
+          final scale = 1.0 + _pulseController!.value * 0.15;
+          return Transform.scale(scale: scale, child: child);
+        },
+        child: circleWidget,
+      );
+    }
+
+    return IntrinsicHeight(
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(
+          width: 34,
+          child: Column(children: [
+            circleWidget,
+            if (!widget.isLast)
+              Expanded(
+                child: Container(width: 2, color: lineColor),
+              ),
+          ]),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(bottom: widget.isLast ? 0 : 22),
+            child: Text(
+              widget.label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: textWeight,
+                color: textColor,
+              ),
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+}
