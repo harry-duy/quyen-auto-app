@@ -42,6 +42,38 @@ abstract final class ApiConstants {
   static const String dealerList    = 'dealers';
   static const String dealerNearest = 'dealers/nearest';
 
+  // ─── Staff: Orders ─────────────────────────────────────────────────────────
+  static const String staffOrders       = 'staff/orders';
+  static const String staffOrderDetail  = 'staff/orders/{id}';
+  static const String staffUpdateStatus = 'staff/orders/{id}/status';
+
+  // ─── Staff: Quotations ────────────────────────────────────────────────────
+  static const String staffQuotations    = 'staff/quotations';
+  static const String staffApproveQuote  = 'staff/quotations/{id}/approve';
+
+  // ─── Staff: Warranty ──────────────────────────────────────────────────────
+  static const String staffWarrantyList   = 'staff/warranty';
+  static const String staffWarrantyUpdate = 'staff/warranty/{id}';
+  static const String staffWarrantyAssign = 'staff/warranty/{id}/assign';
+
+  // ─── Staff: Dashboard ─────────────────────────────────────────────────────
+  static const String staffDashboard = 'staff/dashboard';
+
+  // ─── Departments ────────────────────────────────────────────────────────────
+  static const String departments       = 'departments';
+  static const String departmentDetail  = 'departments/{id}';
+
+  // ─── Staff Management (admin/manager) ─────────────────────────────────────
+  static const String staffMembers       = 'admin/staff';
+  static const String staffMemberDetail  = 'admin/staff/{id}';
+  static const String staffMemberCreate  = 'admin/staff';
+  static const String staffMemberUpdate  = 'admin/staff/{id}';
+  static const String staffMemberToggle  = 'admin/staff/{id}/toggle-active';
+
+  // ─── Profile Update ────────────────────────────────────────────────────────
+  static const String updateProfile     = 'auth/me';
+  static const String changePassword    = 'auth/change-password';
+
   // ─── Reports ───────────────────────────────────────────────────────────────
   static const String reportDashboard = 'reports/dashboard';
 

@@ -19,6 +19,7 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     final d = res.data!;
     await _saveTokensIfPresent(d);
+    await _saveRoleIfPresent(d);
     return _mapUser(d);
   }
 
@@ -41,6 +42,7 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     final d = res.data!;
     await _saveTokensIfPresent(d);
+    await _saveRoleIfPresent(d);
     return _mapUser(d);
   }
 
@@ -53,6 +55,7 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     final d = res.data!;
     await _saveTokensIfPresent(d);
+    await _saveRoleIfPresent(d);
     return _mapUser(d);
   }
 
@@ -62,7 +65,9 @@ class AuthRepositoryImpl implements AuthRepository {
       ApiConstants.profile,
       fromData: (json) => json as Map<String, dynamic>,
     );
-    return _mapUser(res.data!);
+    final user = _mapUser(res.data!);
+    await _tokenService.saveUserRole(user.role.name.toUpperCase());
+    return user;
   }
 
   @override
@@ -83,12 +88,24 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  Future<void> _saveRoleIfPresent(Map<String, dynamic> d) async {
+    final role = d['role'] as String?;
+    if (role != null) {
+      await _tokenService.saveUserRole(role);
+    }
+  }
+
   User _mapUser(Map<String, dynamic> j) => User(
-    id:        (j['id'] ?? '').toString(),
-    fullName:  j['fullName']  as String? ?? '',
-    phone:     j['phone']     as String? ?? '',
-    email:     j['email']     as String?,
-    avatarUrl: j['avatarUrl'] as String?,
-    role:      j['role']      as String? ?? '',
+    id:             (j['id'] ?? '').toString(),
+    fullName:       j['fullName']       as String? ?? '',
+    phone:          j['phone']          as String? ?? '',
+    email:          j['email']          as String?,
+    avatarUrl:      j['avatarUrl']      as String?,
+    role:           UserRole.fromString(j['role'] as String?),
+    isActive:       j['isActive']       as bool? ?? true,
+    departmentId:   (j['departmentId'])?.toString(),
+    departmentName: j['departmentName'] as String?,
+    position:       j['position']       as String?,
+    employeeCode:   j['employeeCode']   as String?,
   );
 }

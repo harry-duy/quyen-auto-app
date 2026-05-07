@@ -1,10 +1,9 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Quản lý JWT tokens an toàn bằng flutter_secure_storage.
-/// Keychain (iOS) / EncryptedSharedPreferences (Android).
 class TokenService {
   static const _keyAccess  = 'qa_access_token';
   static const _keyRefresh = 'qa_refresh_token';
+  static const _keyRole    = 'qa_user_role';
 
   static const _androidOptions = AndroidOptions(
     encryptedSharedPreferences: true,
@@ -39,12 +38,15 @@ class TokenService {
     ]);
   }
 
+  Future<void> saveUserRole(String role) =>
+      _storage.write(key: _keyRole, value: role);
+
   // ─── Read ──────────────────────────────────────────────────────────────────
 
   Future<String?> getAccessToken()  => _storage.read(key: _keyAccess);
   Future<String?> getRefreshToken() => _storage.read(key: _keyRefresh);
+  Future<String?> getUserRole()     => _storage.read(key: _keyRole);
 
-  /// Trả về true nếu accessToken đang tồn tại trong storage.
   Future<bool> isLoggedIn() async =>
       (await getAccessToken()) != null;
 
@@ -54,6 +56,7 @@ class TokenService {
     await Future.wait([
       _storage.delete(key: _keyAccess),
       _storage.delete(key: _keyRefresh),
+      _storage.delete(key: _keyRole),
     ]);
   }
 }

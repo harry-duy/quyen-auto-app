@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/config/app_flavor.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/di/providers.dart';
 import '../../core/router/app_router.dart';
 import '../../core/utils/validators.dart';
+import '../../domain/entities/user.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -28,7 +30,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  // ── Submit ─────────────────────────────────────────────────────────────────
+  bool _isRoleAllowed(UserRole role) {
+    if (AppFlavor.isCustomer) return role == UserRole.customer;
+    return role.isStaffOrAbove;
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
@@ -42,7 +48,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     ref.read(authProvider).when(
       data: (user) {
-        if (user != null) context.go(AppRoutes.home);
+        if (user == null) return;
+
+        if (!_isRoleAllowed(user.role)) {
+          ref.read(authProvider.notifier).logout();
+          final appName = AppFlavor.isCustomer
+              ? 'khách hàng'
+              : 'nhân viên';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Tài khoản không có quyền truy cập ứng dụng $appName. '
+                'Vui lòng sử dụng đúng ứng dụng.',
+              ),
+              backgroundColor: AppColors.errorRed,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+          return;
+        }
+
+        if (!user.isActive) {
+          ref.read(authProvider.notifier).logout();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Tài khoản đã bị vô hiệu hóa. Liên hệ quản trị viên.'),
+              backgroundColor: AppColors.errorRed,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+
+        context.go('/home');
       },
       error: (e, _) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -57,9 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  // ── Zalo OAuth ─────────────────────────────────────────────────────────────
   void _loginWithZalo() {
-    // TODO: Mở WebView Zalo OAuth, lấy code rồi gọi authProvider.loginWithZalo(code)
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Zalo OAuth — Coming Soon')),
     );
@@ -81,49 +118,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 const SizedBox(height: 24),
 
-                // ── Logo ──────────────────────────────────────────────────
+                // Logo
                 Center(
                   child: Container(
                     width: 88,
                     height: 88,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryOrange,
+                      color: AppFlavor.isStaff
+                          ? AppColors.primaryNavy
+                          : AppColors.primaryOrange,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Center(
-                      child: Text(
-                        'QA',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1,
-                        ),
+                    child: Center(
+                      child: Icon(
+                        AppFlavor.isStaff
+                            ? Icons.admin_panel_settings
+                            : Icons.local_shipping,
+                        color: Colors.white,
+                        size: 40,
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // ── Title ─────────────────────────────────────────────────
-                const Text(
-                  'Quyen Auto',
+                Text(
+                  AppFlavor.isStaff ? 'Quyen Auto Staff' : 'Quyen Auto',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryNavy,
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Chào mừng trở lại',
+                Text(
+                  AppFlavor.isStaff
+                      ? 'Đăng nhập tài khoản nhân viên'
+                      : 'Chào mừng trở lại',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: AppColors.textGray),
+                  style: const TextStyle(fontSize: 15, color: AppColors.textGray),
                 ),
                 const SizedBox(height: 40),
 
-                // ── SĐT ──────────────────────────────────────────────────
+                // Phone
                 TextFormField(
                   controller: _phoneCtrl,
                   keyboardType: TextInputType.phone,
@@ -138,7 +176,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // ── Password ──────────────────────────────────────────────
+                // Password
                 TextFormField(
                   controller: _passwordCtrl,
                   obscureText: _obscurePass,
@@ -160,19 +198,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
 
-                // ── Quên mật khẩu ─────────────────────────────────────────
+                // Forgot password
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: isLoading ? null : () {
-                      // TODO: navigate to forgot password
-                    },
+                    onPressed: isLoading ? null : () {},
                     child: const Text(AppStrings.forgotPassword),
                   ),
                 ),
                 const SizedBox(height: 8),
 
-                // ── Đăng nhập ─────────────────────────────────────────────
+                // Login button
                 ElevatedButton(
                   onPressed: isLoading ? null : _submit,
                   child: isLoading
@@ -187,45 +223,68 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // ── Divider ───────────────────────────────────────────────
-                Row(children: [
-                  const Expanded(child: Divider()),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('hoặc', style: TextStyle(color: AppColors.textGray, fontSize: 13)),
-                  ),
-                  const Expanded(child: Divider()),
-                ]),
-                const SizedBox(height: 12),
-
-                // ── Đăng nhập Zalo ────────────────────────────────────────
-                OutlinedButton.icon(
-                  onPressed: isLoading ? null : _loginWithZalo,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF0068FF),
-                    side: const BorderSide(color: Color(0xFF0068FF), width: 1.5),
-                    minimumSize: const Size(double.infinity, 52),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                // Customer-only: Zalo + Register
+                if (AppFlavor.isCustomer) ...[
+                  Row(children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text('hoặc', style: TextStyle(color: AppColors.textGray, fontSize: 13)),
+                    ),
+                    const Expanded(child: Divider()),
+                  ]),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: isLoading ? null : _loginWithZalo,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0068FF),
+                      side: const BorderSide(color: Color(0xFF0068FF), width: 1.5),
+                      minimumSize: const Size(double.infinity, 52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(Icons.chat_bubble_outline, size: 20),
+                    label: const Text(
+                      'Đăng nhập bằng Zalo',
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
-                  icon: const Icon(Icons.chat_bubble_outline, size: 20),
-                  label: const Text(
-                    'Đăng nhập bằng Zalo',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    const Text('Chưa có tài khoản?',
+                        style: TextStyle(color: AppColors.textGray)),
+                    TextButton(
+                      onPressed: isLoading ? null : () => context.push(AppRoutes.register),
+                      child: const Text(AppStrings.register),
+                    ),
+                  ]),
+                ],
 
-                // ── Đăng ký ──────────────────────────────────────────────
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Text('Chưa có tài khoản?',
-                      style: TextStyle(color: AppColors.textGray)),
-                  TextButton(
-                    onPressed: isLoading ? null : () => context.push(AppRoutes.register),
-                    child: const Text(AppStrings.register),
+                // Staff-only: contact admin hint
+                if (AppFlavor.isStaff) ...[
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.infoBlue.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Row(children: [
+                      Icon(Icons.info_outline,
+                          color: AppColors.infoBlue, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Tài khoản nhân viên do quản trị viên tạo. '
+                          'Liên hệ quản lý nếu chưa có tài khoản.',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.infoBlue),
+                        ),
+                      ),
+                    ]),
                   ),
-                ]),
+                ],
               ],
             ),
           ),

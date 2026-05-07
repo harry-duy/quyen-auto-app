@@ -18,6 +18,8 @@ void main() {
     mockApi = MockApiService();
     mockToken = MockTokenService();
     repo = AuthRepositoryImpl(mockApi, mockToken);
+
+    when(() => mockToken.saveUserRole(any())).thenAnswer((_) async {});
   });
 
   group('login', () {
@@ -53,7 +55,7 @@ void main() {
       expect(user, isA<User>());
       expect(user.fullName, 'Nguyen Van A');
       expect(user.phone, '0912345678');
-      expect(user.role, 'CUSTOMER');
+      expect(user.role, UserRole.customer);
 
       verify(() => mockToken.saveTokens(
             accessToken: 'access_123',
@@ -88,6 +90,7 @@ void main() {
       final user = await repo.login(phone: '0912345679', password: 'pass');
 
       expect(user.id, '2');
+      expect(user.role, UserRole.admin);
       expect(user.email, isNull);
       expect(user.avatarUrl, isNull);
     });
@@ -125,6 +128,7 @@ void main() {
       );
 
       expect(user.fullName, 'New User');
+      expect(user.role, UserRole.customer);
     });
   });
 
@@ -153,6 +157,7 @@ void main() {
       expect(user.fullName, 'Profile User');
       expect(user.email, 'profile@test.com');
       expect(user.avatarUrl, 'https://example.com/avatar.jpg');
+      expect(user.role, UserRole.customer);
     });
   });
 

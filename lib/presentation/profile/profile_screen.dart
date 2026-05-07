@@ -148,7 +148,7 @@ class _ProfileHeader extends StatelessWidget {
             border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.4)),
           ),
           child: Text(
-            user?.role == 'ADMIN' ? 'Quản trị viên' : 'Khách hàng',
+            user?.role.label ?? 'Khách hàng',
             style: const TextStyle(color: AppColors.textWhite, fontSize: 12, fontWeight: FontWeight.w600),
           ),
         ),

@@ -1,0 +1,86 @@
+package com.quyenauto.order.service;
+
+import com.quyenauto.common.exception.BusinessException;
+import com.quyenauto.order.dto.*;
+import com.quyenauto.order.entity.Quotation;
+import com.quyenauto.order.repository.QuotationRepository;
+import com.quyenauto.product.entity.Product;
+import com.quyenauto.product.repository.ProductRepository;
+import com.quyenauto.user.entity.User;
+import com.quyenauto.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class QuotationService {
+
+    private final QuotationRepository quotationRepository;
+    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+
+    public Page<QuotationResponse> getByCustomer(Long customerId, Pageable pageable) {
+        return quotationRepository.findByCustomerId(customerId, pageable).map(QuotationResponse::from);
+    }
+
+    public Page<QuotationResponse> getByStatus(String status, Pageable pageable) {
+        Quotation.QuotationStatus qs = Quotation.QuotationStatus.valueOf(status.toUpperCase());
+        return quotationRepository.findByStatus(qs, pageable).map(QuotationResponse::from);
+    }
+
+    public Page<QuotationResponse> getAll(Pageable pageable) {
+        return quotationRepository.findAll(pageable).map(QuotationResponse::from);
+    }
+
+    public QuotationResponse getById(Long id) {
+        return QuotationResponse.from(findById(id));
+    }
+
+    @Transactional
+    public QuotationResponse create(Long customerId, CreateQuotationRequest request) {
+        User customer = userRepository.findById(customerId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));
+
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
+
+        Quotation quotation = Quotation.builder()
+                .customer(customer)
+                .product(product)
+                .weightRange(request.getWeightRange())
+                .cargoType(request.getCargoType())
+                .note(request.getNote())
+                .status(Quotation.QuotationStatus.PENDING)
+                .build();
+
+        return QuotationResponse.from(quotationRepository.save(quotation));
+    }
+
+    @Transactional
+    public QuotationResponse approve(Long id, Long staffId, QuoteApprovalRequest request) {
+        Quotation quotation = findById(id);
+
+        if (quotation.getStatus() != Quotation.QuotationStatus.PENDING) {
+            throw new BusinessException("Chỉ có thể báo giá cho yêu cầu đang chờ");
+        }
+
+        User staff = userRepository.findById(staffId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"));
+
+        quotation.setQuotedPrice(request.getQuotedPrice());
+        quotation.setStaffNote(request.getStaffNote());
+        quotation.setStaff(staff);
+        quotation.setStatus(Quotation.QuotationStatus.QUOTED);
+
+        return QuotationResponse.from(quotationRepository.save(quotation));
+    }
+
+    private Quotation findById(Long id) {
+        return quotationRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy yêu cầu báo giá"));
+    }
+}
