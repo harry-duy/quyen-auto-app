@@ -270,7 +270,10 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                 const SizedBox(height: 24),
 
                 // Featured products horizontal list
-                _FeaturedProductsSection(productsAsync: productsAsync),
+                _FeaturedProductsSection(
+                  productsAsync: productsAsync,
+                  onViewAll: () => widget.onSwitchTab(1),
+                ),
                 const SizedBox(height: 24),
 
                 // News & promotions
@@ -474,7 +477,11 @@ class _BannerCard extends StatelessWidget {
 
 class _FeaturedProductsSection extends StatelessWidget {
   final AsyncValue<List<Product>> productsAsync;
-  const _FeaturedProductsSection({required this.productsAsync});
+  final VoidCallback onViewAll;
+  const _FeaturedProductsSection({
+    required this.productsAsync,
+    required this.onViewAll,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -495,7 +502,7 @@ class _FeaturedProductsSection extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () => context.go(AppRoutes.catalogue),
+              onPressed: onViewAll,
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(0, 0),

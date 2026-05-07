@@ -19,8 +19,9 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     final d = res.data!;
     await _saveTokensIfPresent(d);
-    await _saveRoleIfPresent(d);
-    return _mapUser(d);
+    final userJson = _extractUserJson(d);
+    await _saveRoleIfPresent(userJson);
+    return _mapUser(userJson);
   }
 
   @override
@@ -42,8 +43,9 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     final d = res.data!;
     await _saveTokensIfPresent(d);
-    await _saveRoleIfPresent(d);
-    return _mapUser(d);
+    final userJson = _extractUserJson(d);
+    await _saveRoleIfPresent(userJson);
+    return _mapUser(userJson);
   }
 
   @override
@@ -55,8 +57,9 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     final d = res.data!;
     await _saveTokensIfPresent(d);
-    await _saveRoleIfPresent(d);
-    return _mapUser(d);
+    final userJson = _extractUserJson(d);
+    await _saveRoleIfPresent(userJson);
+    return _mapUser(userJson);
   }
 
   @override
@@ -93,6 +96,11 @@ class AuthRepositoryImpl implements AuthRepository {
     if (role != null) {
       await _tokenService.saveUserRole(role);
     }
+  }
+
+  Map<String, dynamic> _extractUserJson(Map<String, dynamic> data) {
+    final user = data['user'];
+    return user is Map<String, dynamic> ? user : data;
   }
 
   User _mapUser(Map<String, dynamic> j) => User(

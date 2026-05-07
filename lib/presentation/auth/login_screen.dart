@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/config/app_flavor.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/di/providers.dart';
 import '../../core/router/app_router.dart';
 import '../../core/utils/validators.dart';
-import '../../domain/entities/user.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -18,10 +16,10 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _formKey       = GlobalKey<FormState>();
-  final _phoneCtrl     = TextEditingController();
-  final _passwordCtrl  = TextEditingController();
-  bool  _obscurePass   = true;
+  final _formKey = GlobalKey<FormState>();
+  final _phoneCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  bool _obscurePass = true;
 
   @override
   void dispose() {
@@ -30,75 +28,53 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  bool _isRoleAllowed(UserRole role) {
-    if (AppFlavor.isCustomer) return role == UserRole.customer;
-    return role.isStaffOrAbove;
-  }
-
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
 
     await ref.read(authProvider.notifier).login(
-      phone:    _phoneCtrl.text.trim(),
-      password: _passwordCtrl.text,
-    );
+          phone: _phoneCtrl.text.trim(),
+          password: _passwordCtrl.text,
+        );
 
     if (!mounted) return;
 
     ref.read(authProvider).when(
-      data: (user) {
-        if (user == null) return;
+          data: (user) {
+            if (user == null) return;
 
-        if (!_isRoleAllowed(user.role)) {
-          ref.read(authProvider.notifier).logout();
-          final appName = AppFlavor.isCustomer
-              ? 'khách hàng'
-              : 'nhân viên';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Tài khoản không có quyền truy cập ứng dụng $appName. '
-                'Vui lòng sử dụng đúng ứng dụng.',
+            if (!user.isActive) {
+              ref.read(authProvider.notifier).logout();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Tai khoan da bi vo hieu hoa.'),
+                  backgroundColor: AppColors.errorRed,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              return;
+            }
+
+            context.go(
+              user.role.isStaffOrAbove ? StaffRoutes.home : AppRoutes.home,
+            );
+          },
+          error: (e, _) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.toString().replaceAll('Exception:', '').trim()),
+                backgroundColor: AppColors.errorRed,
+                behavior: SnackBarBehavior.floating,
               ),
-              backgroundColor: AppColors.errorRed,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-          return;
-        }
-
-        if (!user.isActive) {
-          ref.read(authProvider.notifier).logout();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tài khoản đã bị vô hiệu hóa. Liên hệ quản trị viên.'),
-              backgroundColor: AppColors.errorRed,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          return;
-        }
-
-        context.go('/home');
-      },
-      error: (e, _) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception:', '').trim()),
-            backgroundColor: AppColors.errorRed,
-            behavior: SnackBarBehavior.floating,
-          ),
+            );
+          },
+          loading: () {},
         );
-      },
-      loading: () {},
-    );
   }
 
   void _loginWithZalo() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Zalo OAuth — Coming Soon')),
+      const SnackBar(content: Text('Zalo OAuth - Coming Soon')),
     );
   }
 
@@ -117,23 +93,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 24),
-
-                // Logo
                 Center(
                   child: Container(
                     width: 88,
                     height: 88,
                     decoration: BoxDecoration(
-                      color: AppFlavor.isStaff
-                          ? AppColors.primaryNavy
-                          : AppColors.primaryOrange,
+                      color: AppColors.primaryOrange,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Icon(
-                        AppFlavor.isStaff
-                            ? Icons.admin_panel_settings
-                            : Icons.local_shipping,
+                        Icons.local_shipping,
                         color: Colors.white,
                         size: 40,
                       ),
@@ -141,42 +111,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                Text(
-                  AppFlavor.isStaff ? 'Quyen Auto Staff' : 'Quyen Auto',
+                const Text(
+                  'Quyen Auto',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryNavy,
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  AppFlavor.isStaff
-                      ? 'Đăng nhập tài khoản nhân viên'
-                      : 'Chào mừng trở lại',
+                const Text(
+                  'Dang nhap de tiep tuc',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 15, color: AppColors.textGray),
+                  style: TextStyle(fontSize: 15, color: AppColors.textGray),
                 ),
                 const SizedBox(height: 40),
-
-                // Phone
                 TextFormField(
                   controller: _phoneCtrl,
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
                   enabled: !isLoading,
                   decoration: const InputDecoration(
-                    labelText: 'Số điện thoại',
+                    labelText: 'So dien thoai',
                     hintText: '0901234567',
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
                   validator: Validators.phone,
                 ),
                 const SizedBox(height: 16),
-
-                // Password
                 TextFormField(
                   controller: _passwordCtrl,
                   obscureText: _obscurePass,
@@ -188,17 +151,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePass ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        _obscurePass
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                         color: AppColors.textGray,
                       ),
-                      onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                      onPressed: () =>
+                          setState(() => _obscurePass = !_obscurePass),
                     ),
                   ),
                   validator: Validators.password,
                 ),
                 const SizedBox(height: 8),
-
-                // Forgot password
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -207,13 +171,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-
-                // Login button
                 ElevatedButton(
                   onPressed: isLoading ? null : _submit,
                   child: isLoading
                       ? const SizedBox(
-                          width: 22, height: 22,
+                          width: 22,
+                          height: 22,
                           child: CircularProgressIndicator(
                             strokeWidth: 2.5,
                             color: Colors.white,
@@ -222,69 +185,58 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       : const Text(AppStrings.login),
                 ),
                 const SizedBox(height: 12),
-
-                // Customer-only: Zalo + Register
-                if (AppFlavor.isCustomer) ...[
-                  Row(children: [
+                Row(
+                  children: [
                     const Expanded(child: Divider()),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text('hoặc', style: TextStyle(color: AppColors.textGray, fontSize: 13)),
-                    ),
-                    const Expanded(child: Divider()),
-                  ]),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: isLoading ? null : _loginWithZalo,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF0068FF),
-                      side: const BorderSide(color: Color(0xFF0068FF), width: 1.5),
-                      minimumSize: const Size(double.infinity, 52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(Icons.chat_bubble_outline, size: 20),
-                    label: const Text(
-                      'Đăng nhập bằng Zalo',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    const Text('Chưa có tài khoản?',
-                        style: TextStyle(color: AppColors.textGray)),
-                    TextButton(
-                      onPressed: isLoading ? null : () => context.push(AppRoutes.register),
-                      child: const Text(AppStrings.register),
-                    ),
-                  ]),
-                ],
-
-                // Staff-only: contact admin hint
-                if (AppFlavor.isStaff) ...[
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.infoBlue.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Row(children: [
-                      Icon(Icons.info_outline,
-                          color: AppColors.infoBlue, size: 18),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Tài khoản nhân viên do quản trị viên tạo. '
-                          'Liên hệ quản lý nếu chưa có tài khoản.',
-                          style: TextStyle(
-                              fontSize: 12, color: AppColors.infoBlue),
+                      child: Text(
+                        'hoac',
+                        style: TextStyle(
+                          color: AppColors.textGray,
+                          fontSize: 13,
                         ),
                       ),
-                    ]),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: isLoading ? null : _loginWithZalo,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF0068FF),
+                    side: const BorderSide(
+                      color: Color(0xFF0068FF),
+                      width: 1.5,
+                    ),
+                    minimumSize: const Size(double.infinity, 52),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ],
+                  icon: const Icon(Icons.chat_bubble_outline, size: 20),
+                  label: const Text(
+                    'Dang nhap bang Zalo',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Chua co tai khoan?',
+                      style: TextStyle(color: AppColors.textGray),
+                    ),
+                    TextButton(
+                      onPressed: isLoading
+                          ? null
+                          : () => context.push(AppRoutes.register),
+                      child: const Text(AppStrings.register),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),

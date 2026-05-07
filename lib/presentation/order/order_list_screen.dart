@@ -74,7 +74,8 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen>
               if (filtered.isEmpty) {
                 return _EmptyOrders(
                   isProcessing: tab == _kTabs[0],
-                  onOrder: () => context.go(AppRoutes.catalogue),
+                  onOrder: () =>
+                      ref.read(homeTabIndexProvider.notifier).state = 1,
                 );
               }
 

@@ -9,35 +9,25 @@ import '../../presentation/notification/notification_screen.dart';
 import '../../presentation/order/order_detail_screen.dart';
 import '../../presentation/order/quotation_form_screen.dart';
 import '../../presentation/product/product_detail_screen.dart';
+import '../../presentation/staff/dealer_map_screen.dart';
+import '../../presentation/staff/department_management_screen.dart';
+import '../../presentation/staff/order_detail_staff_screen.dart';
+import '../../presentation/staff/staff_home_screen.dart';
+import '../../presentation/staff/staff_member_management_screen.dart';
 import '../../presentation/warranty/add_vehicle_screen.dart';
 import '../di/providers.dart';
+import '../../domain/entities/user.dart';
+import 'route_paths.dart';
 
-// --- Route constants ---------------------------------------------------------
-
-abstract final class AppRoutes {
-  static const login         = '/login';
-  static const register      = '/register';
-  static const home          = '/home';
-  static const catalogue     = '/home/catalogue';   // handled via tab switch
-  static const orders        = '/home/orders';      // handled via tab switch
-  static const warranty      = '/home/warranty';    // handled via tab switch
-  static const profile       = '/home/profile';     // handled via tab switch
-  static const productDetail = '/product/:id';
-  static const orderDetail   = '/order/:id';
-  static const quotation     = '/quotation-form';
-  static const chat          = '/chat/:roomId';
-  static const notifications = '/notifications';
-  static const addVehicle    = '/vehicle/add';
-
-  static String productOf(String id)   => '/product/$id';
-  static String orderOf(String id)     => '/order/$id';
-  static String chatOf(String roomId)  => '/chat/$roomId';
-}
+export 'route_paths.dart';
 
 // --- Router provider ---------------------------------------------------------
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(routerNotifierProvider);
+
+  String homeFor(UserRole role) =>
+      role.isStaffOrAbove ? StaffRoutes.home : AppRoutes.home;
 
   return GoRouter(
     initialLocation: AppRoutes.home,
@@ -46,12 +36,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
     // Auth guard
     redirect: (context, state) {
-      final isLoggedIn   = ref.read(isAuthenticatedProvider);
-      final loc          = state.matchedLocation;
+      final authState = ref.read(authProvider);
+      final user = authState.valueOrNull;
+      final isLoggedIn = user != null;
+      final loc = state.matchedLocation;
       final onAuthScreen = loc == AppRoutes.login || loc == AppRoutes.register;
+      final onStaffScreen = loc.startsWith('/staff');
 
       if (!isLoggedIn && !onAuthScreen) return AppRoutes.login;
-      if (isLoggedIn  && onAuthScreen)  return AppRoutes.home;
+      if (!isLoggedIn) return null;
+
+      final targetHome = homeFor(user.role);
+      if (onAuthScreen) return targetHome;
+      if (user.role.isStaffOrAbove && !onStaffScreen) return targetHome;
+      if (!user.role.isStaffOrAbove && onStaffScreen) return AppRoutes.home;
       return null;
     },
 
@@ -60,10 +58,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.login,    builder: (_, __) => const LoginScreen()),
       GoRoute(path: AppRoutes.register, builder: (_, __) => const RegisterScreen()),
 
-      // Main shell (HomeScreen handles BottomNav + IndexedStack internally)
+      // Customer shell (HomeScreen handles BottomNav + IndexedStack internally)
       GoRoute(path: AppRoutes.home, builder: (_, __) => const HomeScreen()),
 
-      // Full-screen overlay pages (pushed on top of the shell)
+      // Customer pages
       GoRoute(
         path: AppRoutes.productDetail,
         builder: (_, s) => ProductDetailScreen(id: s.pathParameters['id']!),
@@ -84,6 +82,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.notifications, builder: (_, __) => const NotificationScreen()),
       GoRoute(path: AppRoutes.addVehicle,    builder: (_, __) => const AddVehicleScreen()),
+
+      // Staff shell and pages
+      GoRoute(path: StaffRoutes.home, builder: (_, __) => const StaffHomeScreen()),
+      GoRoute(
+        path: StaffRoutes.orderDetail,
+        builder: (_, s) => OrderDetailStaffScreen(id: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: StaffRoutes.chat,
+        builder: (_, s) => ChatScreen(roomId: s.pathParameters['roomId']!),
+      ),
+      GoRoute(path: StaffRoutes.dealerMap, builder: (_, __) => const DealerMapScreen()),
+      GoRoute(path: StaffRoutes.departments, builder: (_, __) => const DepartmentManagementScreen()),
+      GoRoute(path: StaffRoutes.staffMembers, builder: (_, __) => const StaffMemberManagementScreen()),
     ],
   );
 });

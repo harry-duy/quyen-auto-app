@@ -22,13 +22,21 @@ class ProfileScreen extends ConsumerWidget {
           _ProfileHeader(user: user),
           const SizedBox(height: 8),
           _MenuSection(title: 'Quản lý đơn hàng', items: [
-            _MenuItem(icon: Icons.receipt_long_outlined,  label: 'Đơn hàng của tôi',   onTap: () => context.go(AppRoutes.orders)),
+            _MenuItem(
+              icon: Icons.receipt_long_outlined,
+              label: 'Đơn hàng của tôi',
+              onTap: () => ref.read(homeTabIndexProvider.notifier).state = 2,
+            ),
             _MenuItem(icon: Icons.request_quote_outlined, label: 'Yêu cầu báo giá',    onTap: () => context.push(AppRoutes.quotation)),
           ]),
           const SizedBox(height: 8),
           _MenuSection(title: 'Tiện ích', items: [
             _MenuItem(icon: Icons.notifications_outlined, label: 'Thông báo',           onTap: () => context.push(AppRoutes.notifications)),
-            _MenuItem(icon: Icons.shield_outlined,        label: 'Bảo hành xe',         onTap: () => context.go(AppRoutes.warranty)),
+            _MenuItem(
+              icon: Icons.shield_outlined,
+              label: 'Bảo hành xe',
+              onTap: () => ref.read(homeTabIndexProvider.notifier).state = 3,
+            ),
             _MenuItem(
               icon: Icons.support_agent_outlined,
               label: 'Hỗ trợ khách hàng',

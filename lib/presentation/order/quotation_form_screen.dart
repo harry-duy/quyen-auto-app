@@ -117,7 +117,8 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
             child: ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-                context.go(AppRoutes.orders);
+                context.go(AppRoutes.home);
+                ref.read(homeTabIndexProvider.notifier).state = 2;
               },
               child: const Text('Xem đơn hàng'),
             ),
