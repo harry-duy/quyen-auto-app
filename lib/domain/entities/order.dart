@@ -1,5 +1,3 @@
-// TODO: Pure domain entity — no JSON/framework dependencies
-
 enum OrderStatus { pending, confirmed, inProduction, completed, cancelled }
 
 class Order {

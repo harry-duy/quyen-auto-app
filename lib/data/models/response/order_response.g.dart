@@ -58,6 +58,12 @@ OrderResponse _$OrderResponseFromJson(Map<String, dynamic> json) =>
       depositAmount: (json['depositAmount'] as num).toDouble(),
       status: json['status'] as String,
       productionStatus: json['productionStatus'] as String,
+      orderCode: json['orderCode'] as String?,
+      productName: json['productName'] as String?,
+      note: json['note'] as String?,
+      createdAt: json['createdAt'] == null
+          ? null
+          : DateTime.parse(json['createdAt'] as String),
       estimatedDate: json['estimatedDate'] == null
           ? null
           : DateTime.parse(json['estimatedDate'] as String),
@@ -76,6 +82,10 @@ Map<String, dynamic> _$OrderResponseToJson(OrderResponse instance) =>
       'depositAmount': instance.depositAmount,
       'status': instance.status,
       'productionStatus': instance.productionStatus,
+      'orderCode': instance.orderCode,
+      'productName': instance.productName,
+      'note': instance.note,
+      'createdAt': instance.createdAt?.toIso8601String(),
       'estimatedDate': instance.estimatedDate?.toIso8601String(),
       'statusLogs': instance.statusLogs,
     };

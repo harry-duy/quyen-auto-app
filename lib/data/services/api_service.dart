@@ -35,6 +35,19 @@ class ServiceResult<T> {
   }
 }
 
+// ─── ApiException ────────────────────────────────────────────────────────────
+
+class ApiException implements Exception {
+  final String message;
+  final int? statusCode;
+  final dynamic originalError;
+
+  const ApiException(this.message, {this.statusCode, this.originalError});
+
+  @override
+  String toString() => message;
+}
+
 // ─── Auth Interceptor ─────────────────────────────────────────────────────────
 
 class _AuthInterceptor extends Interceptor {
@@ -61,7 +74,6 @@ class _AuthInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    // Chỉ xử lý 401 — token hết hạn
     if (err.response?.statusCode != 401) {
       return handler.next(err);
     }
@@ -70,7 +82,6 @@ class _AuthInterceptor extends Interceptor {
 
     final refreshToken = await _tokenService.getRefreshToken();
 
-    // Không có refresh token → đăng xuất
     if (refreshToken == null) {
       _log.e('No refresh token found — logging out');
       await _tokenService.clearAllTokens();
@@ -78,7 +89,6 @@ class _AuthInterceptor extends Interceptor {
     }
 
     try {
-      // Gọi endpoint refresh (dùng Dio mới để tránh loop interceptor)
       final refreshDio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
       final refreshRes = await refreshDio.post(
         ApiConstants.refresh,
@@ -95,14 +105,12 @@ class _AuthInterceptor extends Interceptor {
 
       _log.i('Token refreshed — retrying original request');
 
-      // Retry request gốc với token mới
       final retryOpts = err.requestOptions
         ..headers['Authorization'] = 'Bearer $newAccess';
 
       final retryRes = await _dio.fetch<dynamic>(retryOpts);
       return handler.resolve(retryRes);
     } on DioException catch (e) {
-      // Refresh cũng 401 → clear hết, để app navigate về Login
       _log.e('Refresh failed (${e.response?.statusCode}) — clearing tokens');
       await _tokenService.clearAllTokens();
       return handler.reject(err);
@@ -132,10 +140,8 @@ class ApiService {
       ),
     );
 
-    // Auth interceptor (token attach + 401 retry)
     _dio.interceptors.add(_AuthInterceptor(_tokenService, _dio));
 
-    // Log interceptor — chỉ bật ở debug
     if (kDebugMode) {
       _dio.interceptors.add(
         LogInterceptor(
@@ -157,11 +163,10 @@ class ApiService {
     Map<String, dynamic>? queryParams,
     T Function(dynamic)? fromData,
   }) async {
-    final res = await _dio.get<Map<String, dynamic>>(
+    return _execute(() => _dio.get<Map<String, dynamic>>(
       path,
       queryParameters: queryParams,
-    );
-    return ServiceResult.fromJson(res.data!, fromData);
+    ), fromData);
   }
 
   Future<ServiceResult<T>> post<T>(
@@ -169,8 +174,9 @@ class ApiService {
     dynamic data,
     T Function(dynamic)? fromData,
   }) async {
-    final res = await _dio.post<Map<String, dynamic>>(path, data: data);
-    return ServiceResult.fromJson(res.data!, fromData);
+    return _execute(() => _dio.post<Map<String, dynamic>>(
+      path, data: data,
+    ), fromData);
   }
 
   Future<ServiceResult<T>> put<T>(
@@ -178,16 +184,18 @@ class ApiService {
     dynamic data,
     T Function(dynamic)? fromData,
   }) async {
-    final res = await _dio.put<Map<String, dynamic>>(path, data: data);
-    return ServiceResult.fromJson(res.data!, fromData);
+    return _execute(() => _dio.put<Map<String, dynamic>>(
+      path, data: data,
+    ), fromData);
   }
 
   Future<ServiceResult<T>> delete<T>(
     String path, {
     T Function(dynamic)? fromData,
   }) async {
-    final res = await _dio.delete<Map<String, dynamic>>(path);
-    return ServiceResult.fromJson(res.data!, fromData);
+    return _execute(() => _dio.delete<Map<String, dynamic>>(
+      path,
+    ), fromData);
   }
 
   Future<ServiceResult<T>> postMultipart<T>(
@@ -195,11 +203,57 @@ class ApiService {
     required FormData formData,
     T Function(dynamic)? fromData,
   }) async {
-    final res = await _dio.post<Map<String, dynamic>>(
+    return _execute(() => _dio.post<Map<String, dynamic>>(
       path,
       data: formData,
       options: Options(contentType: 'multipart/form-data'),
-    );
-    return ServiceResult.fromJson(res.data!, fromData);
+    ), fromData);
   }
+
+  Future<ServiceResult<T>> _execute<T>(
+    Future<Response<Map<String, dynamic>>> Function() request,
+    T Function(dynamic)? fromData,
+  ) async {
+    try {
+      final res = await request();
+      if (res.data == null) {
+        throw const ApiException(
+          'Server trả về dữ liệu rỗng',
+          statusCode: 204,
+        );
+      }
+      return ServiceResult.fromJson(res.data!, fromData);
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      final serverMessage = _extractServerMessage(e);
+
+      throw ApiException(
+        serverMessage ?? _dioErrorMessage(e),
+        statusCode: statusCode,
+        originalError: e,
+      );
+    }
+  }
+
+  String? _extractServerMessage(DioException e) {
+    try {
+      final data = e.response?.data;
+      if (data is Map<String, dynamic>) {
+        return data['message'] as String?;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  String _dioErrorMessage(DioException e) => switch (e.type) {
+    DioExceptionType.connectionTimeout ||
+    DioExceptionType.sendTimeout ||
+    DioExceptionType.receiveTimeout =>
+      'Kết nối quá thời gian. Vui lòng kiểm tra mạng và thử lại.',
+    DioExceptionType.connectionError =>
+      'Không thể kết nối đến máy chủ. Vui lòng kiểm tra mạng.',
+    DioExceptionType.badResponse =>
+      'Lỗi từ máy chủ (${e.response?.statusCode ?? ''})',
+    _ => 'Đã xảy ra lỗi. Vui lòng thử lại.',
+  };
 }

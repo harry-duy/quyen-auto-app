@@ -1,5 +1,3 @@
-// TODO: Pure domain entity — no JSON/framework dependencies
-
 class User {
   final String id;
   final String fullName;

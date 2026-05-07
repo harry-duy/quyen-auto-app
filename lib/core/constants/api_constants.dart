@@ -13,6 +13,7 @@ abstract final class ApiConstants {
   static const String refresh  = 'auth/refresh';
   static const String logout   = 'auth/logout';
   static const String zaloAuth = 'auth/zalo';
+  static const String profile  = 'auth/me';
 
   // ─── Products ──────────────────────────────────────────────────────────────
   static const String productList   = 'products';

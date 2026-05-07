@@ -11,18 +11,19 @@ class OrderRepositoryImpl implements OrderRepository {
   OrderRepositoryImpl(this._api);
 
   OrderStatus _parseStatus(String s) => OrderStatus.values.firstWhere(
-    (e) => e.name.toLowerCase() == s.toLowerCase(),
+    (e) => e.name.toLowerCase() == s.replaceAll('_', '').toLowerCase(),
     orElse: () => OrderStatus.pending,
   );
 
   Order _fromResponse(OrderResponse r) => Order(
     id:               r.id.toString(),
-    orderCode:        '#ORD-${r.id}',
+    orderCode:        r.orderCode ?? '#ORD-${r.id}',
     productId:        r.quotationId.toString(),
-    productName:      'Đơn hàng #${r.id}',
+    productName:      r.productName ?? 'Đơn hàng #${r.id}',
     status:           _parseStatus(r.status),
     totalAmount:      r.totalAmount,
-    createdAt:        DateTime.now(),
+    note:             r.note,
+    createdAt:        r.createdAt ?? DateTime.now(),
     updatedAt:        r.estimatedDate,
   );
 

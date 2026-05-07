@@ -56,6 +56,10 @@ class OrderResponse {
   final double                   depositAmount;
   final String                   status;
   final String                   productionStatus;
+  final String?                  orderCode;
+  final String?                  productName;
+  final String?                  note;
+  final DateTime?                createdAt;
   final DateTime?                estimatedDate;
   final List<OrderStatusLogResponse> statusLogs;
 
@@ -66,6 +70,10 @@ class OrderResponse {
     required this.depositAmount,
     required this.status,
     required this.productionStatus,
+    this.orderCode,
+    this.productName,
+    this.note,
+    this.createdAt,
     this.estimatedDate,
     required this.statusLogs,
   });

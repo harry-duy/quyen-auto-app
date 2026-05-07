@@ -117,9 +117,6 @@ class HomeTab extends ConsumerStatefulWidget {
 class _HomeTabState extends ConsumerState<HomeTab> {
   final _bannerController = PageController();
 
-  // TODO: replace with real notification provider
-  static const int _notifCount = 3;
-
   static const _news = [
     _NewsData(
       title: 'Quyen Auto ra mắt dòng xe thùng lạnh 2025',
@@ -150,6 +147,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   @override
   Widget build(BuildContext context) {
     final productsAsync = ref.watch(productListProvider);
+    final notifCount = ref.watch(unreadNotificationCountProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -183,10 +181,10 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             ]),
             actions: [
               badges.Badge(
-                showBadge: _notifCount > 0,
+                showBadge: notifCount > 0,
                 position: badges.BadgePosition.topEnd(top: 6, end: 6),
                 badgeContent: Text(
-                  '$_notifCount',
+                  '$notifCount',
                   style: const TextStyle(color: Colors.white, fontSize: 9),
                 ),
                 child: IconButton(
