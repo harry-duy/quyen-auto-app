@@ -189,6 +189,16 @@ class ApiService {
     ), fromData);
   }
 
+  Future<ServiceResult<T>> patch<T>(
+    String path, {
+    dynamic data,
+    T Function(dynamic)? fromData,
+  }) async {
+    return _execute(() => _dio.patch<Map<String, dynamic>>(
+      path, data: data,
+    ), fromData);
+  }
+
   Future<ServiceResult<T>> delete<T>(
     String path, {
     T Function(dynamic)? fromData,

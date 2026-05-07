@@ -15,7 +15,7 @@ final departmentListProvider =
   final api = ref.watch(apiServiceProvider);
   final res = await api.get<List<Department>>(
     ApiConstants.departments,
-    fromData: (json) => (json as List)
+    fromData: (json) => _items(json)
         .map((e) => _departmentFromJson(e as Map<String, dynamic>))
         .toList(),
   );
@@ -130,7 +130,7 @@ class ManagementActionsNotifier extends Notifier<void> {
     String? departmentId,
     String? position,
   }) async {
-    await _api.put(
+    await _api.patch(
       ApiConstants.resolve(ApiConstants.staffMemberUpdate, {'id': id}),
       data: {
         if (fullName != null) 'fullName': fullName,
@@ -156,6 +156,13 @@ final managementActionsProvider =
         ManagementActionsNotifier.new);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+List<dynamic> _items(dynamic json) {
+  if (json is Map<String, dynamic> && json['content'] is List) {
+    return json['content'] as List;
+  }
+  return json as List;
+}
 
 Department _departmentFromJson(Map<String, dynamic> j) {
   final r = DepartmentResponse.fromJson(j);

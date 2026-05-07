@@ -10,6 +10,13 @@ class OrderRepositoryImpl implements OrderRepository {
 
   OrderRepositoryImpl(this._api);
 
+  List<dynamic> _items(dynamic json) {
+    if (json is Map<String, dynamic> && json['content'] is List) {
+      return json['content'] as List;
+    }
+    return json as List;
+  }
+
   OrderStatus _parseStatus(String s) => OrderStatus.values.firstWhere(
     (e) => e.name.toLowerCase() == s.replaceAll('_', '').toLowerCase(),
     orElse: () => OrderStatus.pending,
@@ -27,6 +34,18 @@ class OrderRepositoryImpl implements OrderRepository {
     updatedAt:        r.estimatedDate,
   );
 
+  Order _fromQuotation(QuotationResponse r) => Order(
+    id: r.id.toString(),
+    orderCode: '#QUOTE-${r.id}',
+    productId: r.product?.id.toString() ?? '',
+    productName: r.product?.name ?? 'Yeu cau bao gia #${r.id}',
+    status: _parseStatus(r.status),
+    totalAmount: 0,
+    note: r.note,
+    createdAt: r.createdAt,
+    updatedAt: null,
+  );
+
   @override
   Future<List<Order>> getOrders({int page = 0, int size = 10, String? status}) async {
     final res = await _api.get<List<Order>>(
@@ -35,7 +54,7 @@ class OrderRepositoryImpl implements OrderRepository {
         'page': page, 'size': size,
         if (status != null) 'status': status,
       },
-      fromData: (json) => (json as List)
+      fromData: (json) => _items(json)
           .map((e) => _fromResponse(OrderResponse.fromJson(e as Map<String, dynamic>)))
           .toList(),
     );
@@ -70,8 +89,8 @@ class OrderRepositoryImpl implements OrderRepository {
     final res = await _api.post<Order>(
       ApiConstants.createQuotation,
       data: req.toJson(),
-      fromData: (json) => _fromResponse(
-        OrderResponse.fromJson(json as Map<String, dynamic>),
+      fromData: (json) => _fromQuotation(
+        QuotationResponse.fromJson(json as Map<String, dynamic>),
       ),
     );
     return res.data!;

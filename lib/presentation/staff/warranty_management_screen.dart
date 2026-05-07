@@ -215,9 +215,10 @@ class _WarrantyCard extends ConsumerWidget {
         content: TextField(
           controller: techController,
           decoration: const InputDecoration(
-            labelText: 'Tên kỹ thuật viên',
+            labelText: 'ID kỹ thuật viên',
             border: OutlineInputBorder(),
           ),
+          keyboardType: TextInputType.number,
         ),
         actions: [
           TextButton(
@@ -226,14 +227,15 @@ class _WarrantyCard extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              if (techController.text.isEmpty) return;
+              final technicianId = int.tryParse(techController.text.trim());
+              if (technicianId == null) return;
               Navigator.pop(ctx);
               try {
                 await ref
                     .read(staffActionsProvider.notifier)
                     .assignWarrantyTechnician(
                       warranty.id.toString(),
-                      techController.text,
+                      technicianId.toString(),
                     );
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(

@@ -39,7 +39,7 @@ final staffOrderListProvider =
       'size': 50,
       if (status != null) 'status': status,
     },
-    fromData: (json) => (json as List)
+    fromData: (json) => _items(json)
         .map((e) => _orderFromJson(e as Map<String, dynamic>))
         .toList(),
   );
@@ -64,7 +64,7 @@ final staffQuotationListProvider =
   final res = await api.get<List<QuotationResponse>>(
     ApiConstants.staffQuotations,
     queryParams: {'status': 'PENDING'},
-    fromData: (json) => (json as List)
+    fromData: (json) => _items(json)
         .map((e) => QuotationResponse.fromJson(e as Map<String, dynamic>))
         .toList(),
   );
@@ -78,7 +78,7 @@ final staffWarrantyListProvider =
   final api = ref.watch(apiServiceProvider);
   final res = await api.get<List<WarrantyRequestResponse>>(
     ApiConstants.staffWarrantyList,
-    fromData: (json) => (json as List)
+    fromData: (json) => _items(json)
         .map((e) =>
             WarrantyRequestResponse.fromJson(e as Map<String, dynamic>))
         .toList(),
@@ -110,7 +110,7 @@ class StaffActionsNotifier extends Notifier<void> {
 
   Future<void> updateOrderStatus(
       String orderId, String newStatus, String? note) async {
-    await _api.put(
+    await _api.patch(
       ApiConstants.resolve(ApiConstants.staffUpdateStatus, {'id': orderId}),
       data: {'status': newStatus, if (note != null) 'note': note},
     );
@@ -121,31 +121,31 @@ class StaffActionsNotifier extends Notifier<void> {
 
   Future<void> approveQuotation(
       String quotationId, double price, String? note) async {
-    await _api.put(
+    await _api.patch(
       ApiConstants.resolve(
           ApiConstants.staffApproveQuote, {'id': quotationId}),
-      data: {'price': price, if (note != null) 'note': note},
+      data: {'quotedPrice': price, if (note != null) 'staffNote': note},
     );
     ref.invalidate(staffQuotationListProvider);
     ref.invalidate(staffDashboardProvider);
   }
 
   Future<void> assignWarrantyTechnician(
-      String warrantyId, String technicianName) async {
-    await _api.put(
+      String warrantyId, String technicianId) async {
+    await _api.patch(
       ApiConstants.resolve(
           ApiConstants.staffWarrantyAssign, {'id': warrantyId}),
-      data: {'technician': technicianName},
+      data: {'technicianId': int.parse(technicianId)},
     );
     ref.invalidate(staffWarrantyListProvider);
   }
 
   Future<void> updateWarrantyResult(
       String warrantyId, String result, String? note) async {
-    await _api.put(
+    await _api.patch(
       ApiConstants.resolve(
           ApiConstants.staffWarrantyUpdate, {'id': warrantyId}),
-      data: {'result': result, if (note != null) 'note': note},
+      data: {'status': result, 'result': result, if (note != null) 'note': note},
     );
     ref.invalidate(staffWarrantyListProvider);
     ref.invalidate(staffDashboardProvider);
@@ -156,6 +156,13 @@ final staffActionsProvider =
     NotifierProvider<StaffActionsNotifier, void>(StaffActionsNotifier.new);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+List<dynamic> _items(dynamic json) {
+  if (json is Map<String, dynamic> && json['content'] is List) {
+    return json['content'] as List;
+  }
+  return json as List;
+}
 
 OrderStatus _parseStatus(String s) => OrderStatus.values.firstWhere(
       (e) => e.name.toLowerCase() == s.replaceAll('_', '').toLowerCase(),

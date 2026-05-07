@@ -20,14 +20,14 @@ abstract final class ApiConstants {
   static const String productDetail = 'products/{id}';
 
   // ─── Orders ────────────────────────────────────────────────────────────────
-  static const String myOrders        = 'orders/my';
+  static const String myOrders        = 'orders';
   static const String orderDetail     = 'orders/{id}';
-  static const String createQuotation = 'orders/quotation';
+  static const String createQuotation = 'quotations';
   static const String updateStatus    = 'orders/{id}/status';
 
   // ─── Warranty ──────────────────────────────────────────────────────────────
   static const String vehicles         = 'warranty/vehicles';
-  static const String warrantyRequests = 'warranty/requests';
+  static const String warrantyRequests = 'warranty';
 
   // ─── Chat ──────────────────────────────────────────────────────────────────
   static const String chatRooms    = 'chat/rooms';
@@ -35,7 +35,7 @@ abstract final class ApiConstants {
 
   // ─── Notifications ─────────────────────────────────────────────────────────
   static const String notificationList     = 'notifications';
-  static const String notificationMarkRead = 'notifications/{id}/read';
+  static const String notificationMarkRead = 'notifications/mark-read';
   static const String fcmToken             = 'notifications/fcm-token';
 
   // ─── Dealers ───────────────────────────────────────────────────────────────
@@ -53,15 +53,15 @@ abstract final class ApiConstants {
 
   // ─── Staff: Warranty ──────────────────────────────────────────────────────
   static const String staffWarrantyList   = 'staff/warranty';
-  static const String staffWarrantyUpdate = 'staff/warranty/{id}';
+  static const String staffWarrantyUpdate = 'staff/warranty/{id}/result';
   static const String staffWarrantyAssign = 'staff/warranty/{id}/assign';
 
   // ─── Staff: Dashboard ─────────────────────────────────────────────────────
   static const String staffDashboard = 'staff/dashboard';
 
   // ─── Departments ────────────────────────────────────────────────────────────
-  static const String departments       = 'departments';
-  static const String departmentDetail  = 'departments/{id}';
+  static const String departments       = 'admin/departments';
+  static const String departmentDetail  = 'admin/departments/{id}';
 
   // ─── Staff Management (admin/manager) ─────────────────────────────────────
   static const String staffMembers       = 'admin/staff';
@@ -75,7 +75,7 @@ abstract final class ApiConstants {
   static const String changePassword    = 'auth/change-password';
 
   // ─── Reports ───────────────────────────────────────────────────────────────
-  static const String reportDashboard = 'reports/dashboard';
+  static const String reportDashboard = 'staff/dashboard';
 
   // ─── Helper: build URL có path param ──────────────────────────────────────
   /// Ví dụ: ApiConstants.resolve(orderDetail, {'id': '123'}) → 'orders/123'

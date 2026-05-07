@@ -47,8 +47,7 @@ class WarrantyRepositoryImpl implements WarrantyRepository {
       ApiConstants.warrantyRequests,
       data: {
         'vehicleId': vehicleId,
-        'issue':     issue,
-        if (imageUrl != null) 'imageUrl': imageUrl,
+        'issueDescription': issue,
       },
     );
   }

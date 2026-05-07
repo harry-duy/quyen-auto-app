@@ -12,7 +12,7 @@ final notificationListProvider =
   final res = await api.get<List<NotificationResponse>>(
     ApiConstants.notificationList,
     queryParams: {'page': 0, 'size': 50},
-    fromData: (json) => (json as List)
+    fromData: (json) => _items(json)
         .map((e) => NotificationResponse.fromJson(e as Map<String, dynamic>))
         .toList(),
   );
@@ -23,3 +23,10 @@ final unreadNotificationCountProvider = Provider<int>((ref) {
   final notifications = ref.watch(notificationListProvider).valueOrNull ?? [];
   return notifications.where((n) => !n.isRead).length;
 });
+
+List<dynamic> _items(dynamic json) {
+  if (json is Map<String, dynamic> && json['content'] is List) {
+    return json['content'] as List;
+  }
+  return json as List;
+}
