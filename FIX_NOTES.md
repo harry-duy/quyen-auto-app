@@ -424,3 +424,199 @@ Da kiem tra:
 - Chi con cac lint info cu, khong anh huong chay app.
 - `flutter test` da pass:
   - `45/45 tests passed`.
+
+---
+
+## SESSION 2 — Cai dat local + Fix bug (2026-05-11)
+
+### Moi truong chay local
+
+Backend dang chay local voi MySQL:
+
+```text
+host: localhost:3306
+database: quyen_auto
+username: root
+password: 159357bapD
+```
+
+File da chinh: `backend/src/main/resources/application-dev.yml`
+
+Da xoa cau hinh Redis khoi `application-dev.yml` vi may local khong cai Redis.
+
+Da them `@ConditionalOnProperty` vao `RedisConfig.java` de tranh loi bean khi Redis khong co:
+
+```java
+@ConditionalOnProperty(name = "spring.data.redis.host", matchIfMissing = false)
+public class RedisConfig { ... }
+```
+
+Da them `exclude = {RedisAutoConfiguration.class}` vao `QuyenAutoApplication.java`:
+
+```java
+@SpringBootApplication(exclude = {RedisAutoConfiguration.class})
+```
+
+### Tai khoan test xac nhan chay duoc
+
+| Vai tro | So dien thoai | Mat khau |
+|---------|--------------|---------|
+| ADMIN   | 0908109929   | admin123 |
+| CUSTOMER | 0937217013  | 123456   |
+
+Mat khau admin trong `V1__init_schema.sql` truoc do dung sai hash (hash mau, khong phai `admin123`).
+Da cap nhat bang hash BCrypt chinh xac:
+
+```text
+$2a$10$aNO8hs81s1F4XPDzTunhCOpBCJwO/GU2tIaqo/E0nX5mApMtytvyO
+```
+
+### Cach chay backend local
+
+```powershell
+cd "C:\Users\Admin\StudioProjects\quyen_auto_app\backend"
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+Backend len dung khi thay:
+
+```text
+Tomcat started on port 8080
+Started QuyenAutoApplication
+```
+
+### Cach chay Flutter tren emulator
+
+Dung Android Studio: chon device `emulator-5556`, nhan nut Run (Shift+F10).
+
+Neu man hinh emulator hien den (black screen), co the emulator dang sleep.
+Nhan phim Home tren emulator de wake up.
+
+Kiem tra emulator co dang chay app khong:
+
+```powershell
+& "C:\Users\Admin\AppData\Local\Android\Sdk\platform-tools\adb.exe" -s emulator-5556 shell "pidof com.quyenauto.quyen_auto_app"
+```
+
+Neu co PID tra ve = app dang chay.
+
+Chup anh man hinh emulator:
+
+```powershell
+$adb = "C:\Users\Admin\AppData\Local\Android\Sdk\platform-tools\adb.exe"
+& $adb -s emulator-5556 shell "screencap -p /sdcard/screenshot.png"
+& $adb -s emulator-5556 pull /sdcard/screenshot.png "C:\screenshot.png"
+```
+
+### Ghi chu Flutter run bi "Lost connection" tren Windows PowerShell
+
+```text
+Failed to connect to the VM observatory service
+java.net.ConnectException: Connection refused
+```
+
+Day la loi debug port forwarding tren Windows, KHONG phai loi app.
+App van duoc cai dat va chay binh thuong tren emulator.
+Khac phuc: dung Android Studio thay vi `flutter run` trong terminal.
+
+---
+
+## SESSION 2 — Kiem tra toan bo va fix bug (flutter analyze + manual review)
+
+Da chay `flutter analyze` va kiem tra thu cong toan bo project.
+Ket qua: 54 issues nhung tat ca deu la `info` level (style, khong anh huong runtime).
+
+### Cac loi nghiem trong da fix (commit ac0099e)
+
+#### 1. WebSocket chat khong bao gio nhan duoc tin nhan
+
+- **File**: `lib/data/services/websocket_service.dart`
+- **Loi**: Flutter subscribe `/topic/room/{roomId}` nhung backend broadcast `/topic/chat.room.{roomId}`
+- **Fix**: Doi topic dung voi backend
+
+```dart
+// Cu (sai):
+final dest = '/topic/room/$roomId';
+
+// Moi (dung):
+final dest = '/topic/chat.room.$roomId';
+```
+
+#### 2. toggleStaffActive tra loi 405 Method Not Allowed
+
+- **File**: `lib/core/di/management_providers.dart`
+- **Loi**: Flutter dung `PUT` nhung backend khai bao `@PatchMapping`
+- **Fix**: Doi thanh `patch()`
+
+```dart
+// Cu (sai):
+await _api.put(ApiConstants.resolve(...));
+
+// Moi (dung):
+await _api.patch(ApiConstants.resolve(...));
+```
+
+#### 3. Danh sach nhan vien bi crash khi parse response
+
+- **File**: `lib/core/di/management_providers.dart` — `staffMemberListProvider`
+- **Loi**: Code cast truc tiep `json as List` nhung backend tra `PageResponse{content:[...], page:0, ...}`
+- **Fix**: Dung helper `_items(json)` da co san (cung file) de xu ly ca hai truong hop
+
+```dart
+// Cu (crash):
+fromData: (json) => (json as List).map(...).toList(),
+
+// Moi (dung):
+fromData: (json) => _items(json).map(...).toList(),
+```
+
+#### 4. quotationId null crash khi parse don hang
+
+- **File**: `lib/data/models/response/order_response.dart` + `order_response.g.dart`
+- **Loi**: `final int quotationId` non-nullable nhung server tra `null` khi don hang khong co bao gia
+- **Fix**: Doi sang `final int? quotationId` (nullable)
+- **Anh huong**: Cap nhat them 2 cho dung `.quotationId.toString()` sang `.quotationId?.toString() ?? ''`
+  - `lib/data/repositories/order_repository_impl.dart`
+  - `lib/core/di/staff_providers.dart`
+
+#### 5. weightRange / cargoType null crash khi parse bao gia
+
+- **File**: `lib/data/models/response/order_response.dart` + `order_response.g.dart`
+- **Loi**: `final String weightRange` va `final String cargoType` non-nullable nhung DB khong co `NOT NULL`
+- **Fix**: Doi ca hai sang nullable `String?`
+- **Anh huong**: Cap nhat UI dung `?? 'N/A'` tai `quotation_approval_screen.dart`
+
+#### 6. CORS backend thieu method PATCH
+
+- **File**: `backend/src/main/java/com/quyenauto/config/CorsConfig.java`
+- **Loi**: `allowedMethods` chi co `GET, POST, PUT, DELETE, OPTIONS` nhung backend co nhieu `@PatchMapping`
+- **Fix**: Them `PATCH` vao danh sach
+
+```java
+// Cu:
+config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+// Moi:
+config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+```
+
+#### 7. Security: xoa FCM token cua nguoi khac
+
+- **File**: `backend/.../notification/controller/NotificationController.java`
+- **Loi**: `DELETE /notifications/fcm-token/{token}` khong kiem tra userId — ai cung co the xoa token cua nguoi khac
+- **Fix**: Truyen `Authentication` vao controller, lay `userId`, goi service voi ca `userId` + `token`
+- **Files thay doi**:
+  - `NotificationController.java` — them `Authentication auth`, lay `userId`
+  - `NotificationService.java` — doi `removeFcmToken(String)` thanh `removeFcmToken(Long userId, String)`
+  - `FcmTokenRepository.java` — them method `deleteByUserIdAndToken(Long userId, String token)`
+
+### Cac van de con lai (chua fix, khong anh huong runtime hien tai)
+
+| Van de | File | Ghi chu |
+|--------|------|---------|
+| Race condition order code | `OrderService.java` | Dung `count+1`, co the trung khi 2 request cung luc |
+| N+1 query DepartmentService | `DepartmentService.java` | Moi department goi 2 query rieng le |
+| ChatController khong authorize | `ChatController.java` | Bat ky user nao co the tao phong chat giua 2 nguoi khac |
+| DB password trong dev yml | `application-dev.yml` | Khong commit len public repo |
+| 54 style hints | Nhieu file | `unnecessary_underscores`, `use_null_aware_elements` |
+| `dealerNearest` endpoint khong ton tai | `DealerController.java` | Constant khai bao nhung chua implement backend |
