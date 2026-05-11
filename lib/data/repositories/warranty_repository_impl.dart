@@ -9,12 +9,13 @@ class WarrantyRepositoryImpl implements WarrantyRepository {
   WarrantyRepositoryImpl(this._api);
 
   Vehicle _mapVehicle(Map<String, dynamic> v) => Vehicle(
-    id:               v['id']              as String,
-    plateNumber:      v['plateNumber']     as String,
-    truckType:        v['truckType']       as String,
-    purchaseDate:     DateTime.parse(v['purchaseDate']   as String),
-    warrantyExpiry:   DateTime.parse(v['warrantyExpiry'] as String),
-    bodySerialNumber: v['bodySerialNumber'] as String?,
+    id:               (v['id'] as num).toString(),
+    plateNumber:      v['plateNumber']   as String,
+    chassisNumber:    v['chassisNumber'] as String? ?? '',
+    purchaseDate:     v['purchaseDate'] != null
+                        ? DateTime.tryParse(v['purchaseDate'].toString())
+                        : null,
+    productName:      v['productName']  as String?,
   );
 
   @override

@@ -140,7 +140,7 @@ class _WarrantyCard extends ConsumerWidget {
           if (warranty.scheduledDate != null)
             _DetailRow(
                 label: 'Lịch hẹn',
-                value: dateFmt.format(warranty.scheduledDate!)),
+                value: warranty.scheduledDate!),
           const SizedBox(height: 12),
 
           // Actions

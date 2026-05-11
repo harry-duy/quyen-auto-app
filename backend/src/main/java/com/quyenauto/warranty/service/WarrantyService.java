@@ -2,6 +2,8 @@ package com.quyenauto.warranty.service;
 
 import com.quyenauto.common.exception.BusinessException;
 import com.quyenauto.warranty.dto.*;
+
+import java.util.List;
 import com.quyenauto.warranty.entity.Vehicle;
 import com.quyenauto.warranty.entity.WarrantyLog;
 import com.quyenauto.warranty.entity.WarrantyRequest;
@@ -23,6 +25,13 @@ public class WarrantyService {
     private final WarrantyRequestRepository warrantyRepository;
     private final VehicleRepository vehicleRepository;
     private final UserRepository userRepository;
+
+    public List<VehicleDetailResponse> getMyVehicles(Long customerId) {
+        return vehicleRepository.findByOwnerId(customerId)
+                .stream()
+                .map(VehicleDetailResponse::from)
+                .collect(java.util.stream.Collectors.toList());
+    }
 
     public Page<WarrantyResponse> getByCustomer(Long customerId, Pageable pageable) {
         return warrantyRepository.findByCustomerId(customerId, pageable).map(WarrantyResponse::from);

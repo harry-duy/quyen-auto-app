@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'product_response.dart';
 part 'warranty_response.g.dart';
 
 @JsonSerializable()
@@ -22,33 +21,31 @@ class WarrantyLogResponse {
 }
 
 @JsonSerializable()
-class VehicleResponse {
-  final int              id;
-  final String           plateNumber;
-  final String           chassisNumber;
-  final DateTime         purchaseDate;
-  final ProductResponse? product;
+class VehicleInfo {
+  final int     id;
+  final String  plateNumber;
+  final String  chassisNumber;
+  final String? purchaseDate;
 
-  const VehicleResponse({
+  const VehicleInfo({
     required this.id,
     required this.plateNumber,
     required this.chassisNumber,
-    required this.purchaseDate,
-    this.product,
+    this.purchaseDate,
   });
 
-  factory VehicleResponse.fromJson(Map<String, dynamic> json) =>
-      _$VehicleResponseFromJson(json);
-  Map<String, dynamic> toJson() => _$VehicleResponseToJson(this);
+  factory VehicleInfo.fromJson(Map<String, dynamic> json) =>
+      _$VehicleInfoFromJson(json);
+  Map<String, dynamic> toJson() => _$VehicleInfoToJson(this);
 }
 
 @JsonSerializable()
 class WarrantyRequestResponse {
   final int                    id;
-  final VehicleResponse        vehicle;
+  final VehicleInfo            vehicle;
   final String                 issueDescription;
   final String                 status;
-  final DateTime?              scheduledDate;
+  final String?                scheduledDate;
   final List<WarrantyLogResponse> logs;
 
   const WarrantyRequestResponse({

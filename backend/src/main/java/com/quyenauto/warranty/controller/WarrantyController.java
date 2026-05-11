@@ -3,6 +3,8 @@ package com.quyenauto.warranty.controller;
 import com.quyenauto.common.dto.ApiResponse;
 import com.quyenauto.common.dto.PageResponse;
 import com.quyenauto.warranty.dto.*;
+
+import java.util.List;
 import com.quyenauto.warranty.service.WarrantyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +24,13 @@ import org.springframework.web.bind.annotation.*;
 public class WarrantyController {
 
     private final WarrantyService warrantyService;
+
+    @GetMapping("/warranty/vehicles")
+    @Operation(summary = "Danh sách xe của khách hàng")
+    public ResponseEntity<ApiResponse<List<VehicleDetailResponse>>> getMyVehicles(Authentication auth) {
+        Long userId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(warrantyService.getMyVehicles(userId)));
+    }
 
     @PostMapping("/warranty")
     @Operation(summary = "Tạo yêu cầu bảo hành (khách hàng)")
