@@ -59,7 +59,7 @@ class WebSocketService {
   }
 
   void subscribeChat(String roomId, MessageCallback onMessage) {
-    final dest = '/topic/room/$roomId';
+    final dest = '/topic/chat.room.$roomId';
     _subscribe(dest, onMessage);
   }
 

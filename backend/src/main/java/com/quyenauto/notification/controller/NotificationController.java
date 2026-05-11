@@ -57,8 +57,10 @@ public class NotificationController {
 
     @DeleteMapping("/fcm-token/{token}")
     @Operation(summary = "Xoá FCM token")
-    public ResponseEntity<ApiResponse<Void>> removeFcmToken(@PathVariable String token) {
-        notificationService.removeFcmToken(token);
+    public ResponseEntity<ApiResponse<Void>> removeFcmToken(
+            Authentication auth, @PathVariable String token) {
+        Long userId = Long.parseLong(auth.getName());
+        notificationService.removeFcmToken(userId, token);
         return ResponseEntity.ok(ApiResponse.noContent());
     }
 }

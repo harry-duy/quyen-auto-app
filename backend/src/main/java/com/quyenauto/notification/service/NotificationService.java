@@ -71,7 +71,7 @@ public class NotificationService {
     }
 
     @Transactional
-    public void removeFcmToken(String token) {
-        fcmTokenRepository.deleteByToken(token);
+    public void removeFcmToken(Long userId, String token) {
+        fcmTokenRepository.deleteByUserIdAndToken(userId, token);
     }
 }

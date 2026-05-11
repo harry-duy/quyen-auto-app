@@ -126,8 +126,8 @@ class _QuotationCard extends ConsumerWidget {
           const SizedBox(height: 12),
           _DetailRow(label: 'Sản phẩm',
               value: quotation.product?.name ?? 'N/A'),
-          _DetailRow(label: 'Tải trọng', value: quotation.weightRange),
-          _DetailRow(label: 'Loại hàng', value: quotation.cargoType),
+          _DetailRow(label: 'Tải trọng', value: quotation.weightRange ?? 'N/A'),
+          _DetailRow(label: 'Loại hàng', value: quotation.cargoType ?? 'N/A'),
           if (quotation.note != null)
             _DetailRow(label: 'Ghi chú', value: quotation.note!),
           const SizedBox(height: 12),

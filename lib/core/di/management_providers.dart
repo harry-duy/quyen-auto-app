@@ -47,7 +47,7 @@ final staffMemberListProvider =
       'size': 100,
       if (deptFilter != null) 'departmentId': deptFilter,
     },
-    fromData: (json) => (json as List)
+    fromData: (json) => _items(json)
         .map((e) => _staffFromJson(e as Map<String, dynamic>))
         .toList(),
   );
@@ -144,7 +144,7 @@ class ManagementActionsNotifier extends Notifier<void> {
   }
 
   Future<void> toggleStaffActive(String id) async {
-    await _api.put(
+    await _api.patch(
       ApiConstants.resolve(ApiConstants.staffMemberToggle, {'id': id}),
     );
     ref.invalidate(staffMemberListProvider);

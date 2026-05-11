@@ -26,8 +26,8 @@ class QuotationResponse {
   final int              id;
   final int              customerId;
   final ProductResponse? product;
-  final String           weightRange;
-  final String           cargoType;
+  final String?          weightRange;
+  final String?          cargoType;
   final String?          note;
   final String           status;
   final DateTime         createdAt;
@@ -36,8 +36,8 @@ class QuotationResponse {
     required this.id,
     required this.customerId,
     this.product,
-    required this.weightRange,
-    required this.cargoType,
+    this.weightRange,
+    this.cargoType,
     this.note,
     required this.status,
     required this.createdAt,
@@ -51,7 +51,7 @@ class QuotationResponse {
 @JsonSerializable()
 class OrderResponse {
   final int                      id;
-  final int                      quotationId;
+  final int?                     quotationId;
   final double                   totalAmount;
   final double                   depositAmount;
   final String                   status;
@@ -65,7 +65,7 @@ class OrderResponse {
 
   const OrderResponse({
     required this.id,
-    required this.quotationId,
+    this.quotationId,
     required this.totalAmount,
     required this.depositAmount,
     required this.status,

@@ -31,8 +31,8 @@ QuotationResponse _$QuotationResponseFromJson(Map<String, dynamic> json) =>
       product: json['product'] == null
           ? null
           : ProductResponse.fromJson(json['product'] as Map<String, dynamic>),
-      weightRange: json['weightRange'] as String,
-      cargoType: json['cargoType'] as String,
+      weightRange: json['weightRange'] as String?,
+      cargoType: json['cargoType'] as String?,
       note: json['note'] as String?,
       status: json['status'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -53,7 +53,7 @@ Map<String, dynamic> _$QuotationResponseToJson(QuotationResponse instance) =>
 OrderResponse _$OrderResponseFromJson(Map<String, dynamic> json) =>
     OrderResponse(
       id: (json['id'] as num).toInt(),
-      quotationId: (json['quotationId'] as num).toInt(),
+      quotationId: (json['quotationId'] as num?)?.toInt(),
       totalAmount: (json['totalAmount'] as num).toDouble(),
       depositAmount: (json['depositAmount'] as num).toDouble(),
       status: json['status'] as String,

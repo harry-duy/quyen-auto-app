@@ -25,7 +25,7 @@ class OrderRepositoryImpl implements OrderRepository {
   Order _fromResponse(OrderResponse r) => Order(
     id:               r.id.toString(),
     orderCode:        r.orderCode ?? '#ORD-${r.id}',
-    productId:        r.quotationId.toString(),
+    productId:        r.quotationId?.toString() ?? '',
     productName:      r.productName ?? 'Đơn hàng #${r.id}',
     status:           _parseStatus(r.status),
     totalAmount:      r.totalAmount,
