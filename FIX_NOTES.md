@@ -620,3 +620,65 @@ config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIO
 | DB password trong dev yml | `application-dev.yml` | Khong commit len public repo |
 | 54 style hints | Nhieu file | `unnecessary_underscores`, `use_null_aware_elements` |
 | `dealerNearest` endpoint khong ton tai | `DealerController.java` | Constant khai bao nhung chua implement backend |
+
+---
+
+## SESSION 3 — Kiem tra sau (2026-05-11)
+
+Da kiem tra ky toan bo cac file Flutter + Spring Boot lan 2. Tim them cac loi nghiem trong.
+
+### Cac loi nghiem trong da fix (commit c7cded1)
+
+#### 1. OrderResponse.statusLogs null crash — crash khi load bat ky trang don hang
+
+- **Nguyen nhan**: Flutter `order_response.dart` co `required this.statusLogs` non-nullable. Backend `OrderResponse.java` chua co truong `statusLogs` nen JSON tra ve khong co field nay. Generated code: `(json['statusLogs'] as List<dynamic>).map(...)` → `json['statusLogs']` la null → CRASH.
+- **Fix Flutter**: Doi sang null-safe: `(json['statusLogs'] as List<dynamic>? ?? []).map(...)`
+- **Fix Backend**: Them `statusLogs` vao `OrderResponse.java` (dung inner class `StatusLogDto`), map tu `o.getStatusLogs()`
+- **Files**: `order_response.g.dart`, `OrderResponse.java`
+
+#### 2. WarrantyRequestResponse.vehicle null crash — crash khi staff mo tab quan ly bao hanh
+
+- **Nguyen nhan**: Backend `WarrantyResponse.java` tra ve flat fields (`vehicleId`, `plateNumber`, `chassisNumber`) thay vi nested object. Flutter `warranty_response.g.dart` lam: `VehicleResponse.fromJson(json['vehicle'] as Map)` → `json['vehicle']` la null → CRASH.
+- **Fix Backend**: Cap nhat `WarrantyResponse.java` de tra ve nested `VehicleInfo` object (gom `id`, `plateNumber`, `chassisNumber`, `purchaseDate`)
+- **Fix Flutter**: Doi `VehicleResponse` → `VehicleInfo` class (khong co `product` nested nua), `purchaseDate` doi thanh `String?`
+- **Files**: `WarrantyResponse.java`, `warranty_response.dart`, `warranty_response.g.dart`
+
+#### 3. WarrantyRequestResponse.logs null crash
+
+- **Nguyen nhan**: Backend `WarrantyResponse.java` chua co truong `logs`. Flutter `warranty_response.g.dart` lam: `(json['logs'] as List<dynamic>).map(...)` → null CRASH.
+- **Fix Backend**: Them `logs` vao `WarrantyResponse.java`, map tu `w.getLogs()`
+- **Fix Flutter**: Doi sang null-safe: `(json['logs'] as List<dynamic>? ?? []).map(...)`
+- **Files**: `WarrantyResponse.java`, `warranty_response.g.dart`
+
+#### 4. GET /warranty/vehicles endpoint khong ton tai (404)
+
+- **Nguyen nhan**: Flutter goi `GET /warranty/vehicles` de lay danh sach xe, nhung `WarrantyController.java` khong co endpoint nay.
+- **Fix**: Them endpoint `GET /warranty/vehicles` vao controller, them `getMyVehicles(Long customerId)` vao service, tao `VehicleDetailResponse.java` DTO moi
+- **Files**: `WarrantyController.java`, `WarrantyService.java`, `VehicleDetailResponse.java` (moi)
+
+#### 5. Vehicle entity fields sai hoan toan
+
+- **Nguyen nhan**: Flutter `Vehicle` entity co `truckType`, `warrantyExpiry`, `bodySerialNumber` nhung backend `Vehicle` entity khong co cac truong nay. `WarrantyRepositoryImpl._mapVehicle()` cast `v['id'] as String` trong khi backend tra so. → CRASH khi chay.
+- **Fix**: Cap nhat Flutter `Vehicle` entity chi giu lai cac truong backend thuc su co (`id`, `plateNumber`, `chassisNumber`, `purchaseDate?`, `productName?`). Cap nhat `_mapVehicle()` de dung `(v['id'] as num).toString()`
+- **Files**: `warranty.dart`, `warranty_repository_impl.dart`
+
+### Cac man hinh hien dang "Coming Soon" — Chua co loi crash (chua implement)
+
+| Man hinh | File | Ghi chu |
+|----------|------|---------|
+| Bao hanh khach hang | `warranty_screen.dart` | TODO stub |
+| Danh sach xe | `vehicle_list_screen.dart` | TODO stub |
+| Them xe | `add_vehicle_screen.dart` | TODO stub |
+| Chat | `chat_screen.dart` | TODO stub — WebSocket da fix topic |
+
+### Cac van de con lai sau session 3
+
+| Van de | File | Ghi chu |
+|--------|------|---------|
+| Race condition order code | `OrderService.java` | `count+1`, co the trung khi 2 request cung luc |
+| N+1 query DepartmentService | `DepartmentService.java` | Moi department goi 2 query rieng le |
+| ChatController khong authorize | `ChatController.java` | Bat ky user login co the tao phong chat giua 2 nguoi khac |
+| DB password trong dev yml | `application-dev.yml` | Khong commit len public repo |
+| 54 style hints | Nhieu file | `info` level, khong anh huong runtime |
+| `dealerNearest` 404 | `DealerController.java` | Constant khai bao nhung chua implement endpoint |
+| `result` field warranty gui sai | `staff_providers.dart` dong 148 | `data: {'status': result, 'result': result}` — nen tach thanh 2 tham so rieng |
