@@ -7,6 +7,7 @@ import '../../presentation/chat/chat_screen.dart';
 import '../../presentation/home/home_screen.dart';
 import '../../presentation/notification/notification_screen.dart';
 import '../../presentation/order/order_detail_screen.dart';
+import '../../presentation/order/payment_screen.dart';
 import '../../presentation/order/quotation_form_screen.dart';
 import '../../presentation/product/product_detail_screen.dart';
 import '../../presentation/warranty/add_vehicle_screen.dart';
@@ -28,6 +29,7 @@ abstract final class AppRoutes {
   static const chat          = '/chat/:roomId';
   static const notifications = '/notifications';
   static const addVehicle    = '/vehicle/add';
+  static const payment       = '/payment';
 
   static String productOf(String id)   => '/product/$id';
   static String orderOf(String id)     => '/order/$id';
@@ -84,6 +86,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.notifications, builder: (_, __) => const NotificationScreen()),
       GoRoute(path: AppRoutes.addVehicle,    builder: (_, __) => const AddVehicleScreen()),
+      GoRoute(
+        path: AppRoutes.payment,
+        builder: (_, s) {
+          final args = s.extra as Map<String, String>;
+          return PaymentScreen(
+            paymentUrl: args['paymentUrl']!,
+            orderCode: args['orderCode']!,
+          );
+        },
+      ),
     ],
   );
 });

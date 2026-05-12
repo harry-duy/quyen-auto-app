@@ -74,6 +74,10 @@ abstract final class ApiConstants {
   static const String updateProfile     = 'auth/me';
   static const String changePassword    = 'auth/change-password';
 
+  // ─── Payment ────────────────────────────────────────────────────────────────
+  static const String paymentCreate   = 'payment/create';
+  static const String paymentCallback = 'payment/callback';
+
   // ─── Reports ───────────────────────────────────────────────────────────────
   static const String reportDashboard = 'reports/dashboard';
 

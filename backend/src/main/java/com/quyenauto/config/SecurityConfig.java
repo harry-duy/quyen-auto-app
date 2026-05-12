@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .requestMatchers("/auth/login", "/auth/register", "/auth/refresh", "/auth/zalo").permitAll()
                 .requestMatchers("/swagger-ui/**", "/api-docs/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/ws/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/payment/callback").permitAll()
                 .requestMatchers(HttpMethod.GET, "/products/**", "/dealers/**").permitAll()
                 .requestMatchers("/admin/**").hasAnyRole("MANAGER", "ADMIN")
                 .requestMatchers("/staff/**").hasAnyRole("STAFF", "MANAGER", "ADMIN")

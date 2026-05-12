@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'core/config/app_flavor.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
+import 'presentation/widgets/connectivity_banner.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,14 +37,13 @@ class QuyenAutoApp extends ConsumerWidget {
       theme: AppTheme.light,
       routerConfig: router,
       builder: (context, child) {
-        // Giới hạn font scale tránh UI bị vỡ trên thiết bị tăng cỡ chữ
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
             textScaler: TextScaler.linear(
               MediaQuery.of(context).textScaler.scale(1.0).clamp(0.85, 1.15),
             ),
           ),
-          child: child!,
+          child: ConnectivityBanner(child: child!),
         );
       },
     );

@@ -27,13 +27,26 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final LoginAttemptService loginAttemptService;
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "Số điện thoại hoặc mật khẩu không đúng"));
+        String phone = request.getPhone();
+
+        if (loginAttemptService.isBlocked(phone)) {
+            int minutes = loginAttemptService.getRemainingLockMinutes(phone);
+            throw new BusinessException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Tài khoản tạm khóa do đăng nhập sai nhiều lần. Thử lại sau " + minutes + " phút.");
+        }
+
+        User user = userRepository.findByPhone(phone)
+                .orElseThrow(() -> {
+                    loginAttemptService.loginFailed(phone);
+                    return new BusinessException(HttpStatus.UNAUTHORIZED, "Số điện thoại hoặc mật khẩu không đúng");
+                });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            loginAttemptService.loginFailed(phone);
             throw new BusinessException(HttpStatus.UNAUTHORIZED, "Số điện thoại hoặc mật khẩu không đúng");
         }
 
@@ -41,6 +54,7 @@ public class AuthService {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Tài khoản đã bị vô hiệu hóa");
         }
 
+        loginAttemptService.loginSucceeded(phone);
         return generateAuthResponse(user);
     }
 
