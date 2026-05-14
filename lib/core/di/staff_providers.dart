@@ -150,6 +150,30 @@ class StaffActionsNotifier extends Notifier<void> {
     ref.invalidate(staffWarrantyListProvider);
     ref.invalidate(staffDashboardProvider);
   }
+
+  /// Duyet yeu cau huy don hang cua khach hang => CANCELLED.
+  Future<void> approveCancel(String orderId, {String? note}) async {
+    final url = ApiConstants.resolve(ApiConstants.staffApproveCancel, {'id': orderId});
+    await _api.patch(
+      note != null ? '$url?note=${Uri.encodeComponent(note)}' : url,
+      data: {},
+    );
+    ref.invalidate(staffOrderListProvider);
+    ref.invalidate(staffOrderDetailProvider(orderId));
+    ref.invalidate(staffDashboardProvider);
+  }
+
+  /// Tu choi yeu cau huy don hang => ve lai PENDING.
+  Future<void> rejectCancel(String orderId, {String? note}) async {
+    final url = ApiConstants.resolve(ApiConstants.staffRejectCancel, {'id': orderId});
+    await _api.patch(
+      note != null ? '$url?note=${Uri.encodeComponent(note)}' : url,
+      data: {},
+    );
+    ref.invalidate(staffOrderListProvider);
+    ref.invalidate(staffOrderDetailProvider(orderId));
+    ref.invalidate(staffDashboardProvider);
+  }
 }
 
 final staffActionsProvider =

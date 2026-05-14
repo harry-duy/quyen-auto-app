@@ -22,6 +22,7 @@ abstract final class ApiConstants {
   // ─── Orders ────────────────────────────────────────────────────────────────
   static const String myOrders        = 'orders';
   static const String orderDetail     = 'orders/{id}';
+  static const String cancelOrder     = 'orders/{id}/cancel';
   static const String createQuotation = 'quotations';
   static const String updateStatus    = 'orders/{id}/status';
 
@@ -30,8 +31,10 @@ abstract final class ApiConstants {
   static const String warrantyRequests = 'warranty';
 
   // ─── Chat ──────────────────────────────────────────────────────────────────
-  static const String chatRooms    = 'chat/rooms';
-  static const String chatMessages = 'chat/rooms/{roomId}/messages';
+  static const String chatRooms      = 'chat/rooms';
+  static const String chatMessages   = 'chat/rooms/{roomId}/messages';
+  static const String chatMarkRead   = 'chat/rooms/{roomId}/read';
+  static const String chatInit       = 'chat/rooms/init';
 
   // ─── Notifications ─────────────────────────────────────────────────────────
   static const String notificationList     = 'notifications';
@@ -43,9 +46,11 @@ abstract final class ApiConstants {
   static const String dealerNearest = 'dealers/nearest';
 
   // ─── Staff: Orders ─────────────────────────────────────────────────────────
-  static const String staffOrders       = 'staff/orders';
-  static const String staffOrderDetail  = 'staff/orders/{id}';
-  static const String staffUpdateStatus = 'staff/orders/{id}/status';
+  static const String staffOrders          = 'staff/orders';
+  static const String staffOrderDetail     = 'staff/orders/{id}';
+  static const String staffUpdateStatus    = 'staff/orders/{id}/status';
+  static const String staffApproveCancel   = 'staff/orders/{id}/cancel/approve';
+  static const String staffRejectCancel    = 'staff/orders/{id}/cancel/reject';
 
   // ─── Staff: Quotations ────────────────────────────────────────────────────
   static const String staffQuotations    = 'staff/quotations';
@@ -73,6 +78,9 @@ abstract final class ApiConstants {
   // ─── Profile Update ────────────────────────────────────────────────────────
   static const String updateProfile     = 'auth/me';
   static const String changePassword    = 'auth/change-password';
+
+  // ─── Upload ────────────────────────────────────────────────────────────────
+  static const String upload            = 'upload';
 
   // ─── Reports ───────────────────────────────────────────────────────────────
   static const String reportDashboard = 'staff/dashboard';

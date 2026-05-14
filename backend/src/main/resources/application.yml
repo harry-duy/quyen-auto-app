@@ -29,7 +29,7 @@ spring:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:quyen-auto-default-jwt-secret-key-change-in-production-2024}
+    secret: ${JWT_SECRET}
     access-token-expiration: 86400000    # 24h
     refresh-token-expiration: 2592000000 # 30d
 

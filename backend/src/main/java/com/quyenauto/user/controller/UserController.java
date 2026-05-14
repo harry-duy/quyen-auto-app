@@ -13,7 +13,6 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -63,20 +62,4 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.noContent());
     }
 
-    @PutMapping("/auth/me")
-    @Operation(summary = "Cập nhật hồ sơ cá nhân")
-    public ResponseEntity<ApiResponse<UserResponse>> updateProfile(
-            Authentication auth, @Valid @RequestBody UpdateUserRequest request) {
-        Long userId = Long.parseLong(auth.getName());
-        return ResponseEntity.ok(ApiResponse.ok(userService.updateProfile(userId, request)));
-    }
-
-    @PostMapping("/auth/change-password")
-    @Operation(summary = "Đổi mật khẩu")
-    public ResponseEntity<ApiResponse<Void>> changePassword(
-            Authentication auth, @Valid @RequestBody ChangePasswordRequest request) {
-        Long userId = Long.parseLong(auth.getName());
-        userService.changePassword(userId, request);
-        return ResponseEntity.ok(ApiResponse.noContent());
-    }
 }

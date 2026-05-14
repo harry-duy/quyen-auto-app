@@ -35,6 +35,15 @@ public class DealerController {
         return ResponseEntity.ok(ApiResponse.ok(dealerService.getById(id)));
     }
 
+    @GetMapping("/dealers/nearest")
+    @Operation(summary = "Đại lý gần nhất theo toạ độ GPS")
+    public ResponseEntity<ApiResponse<List<DealerResponse>>> getNearest(
+            @RequestParam double lat,
+            @RequestParam double lng,
+            @RequestParam(defaultValue = "5") int limit) {
+        return ResponseEntity.ok(ApiResponse.ok(dealerService.getNearest(lat, lng, limit)));
+    }
+
     @PostMapping("/admin/dealers")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @Operation(summary = "Tạo đại lý mới")

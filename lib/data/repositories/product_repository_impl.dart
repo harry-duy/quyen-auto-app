@@ -16,14 +16,22 @@ class ProductRepositoryImpl implements ProductRepository {
 
   Box<String> get _cacheBox => Hive.box<String>('cache');
 
+  /// Handles both plain-list and paginated `{"content":[...],"page":0,...}` responses.
+  List<dynamic> _items(dynamic json) {
+    if (json is Map<String, dynamic> && json['content'] is List) {
+      return json['content'] as List;
+    }
+    return json as List;
+  }
+
   Product _fromResponse(ProductResponse r) => Product(
         id: r.id.toString(),
         name: r.name,
         description: r.description,
-        price: r.priceRangeMin,
-        category: r.category,
-        imageUrls: r.images.map((img) => img.url).toList(),
-        truckType: r.weightCapacity,
+        price: r.basePrice,
+        category: r.categoryName ?? '',
+        imageUrls: r.imageUrls,
+        truckType: null, // weightCapacity stored in specifications JSON
         inStock: r.isActive,
       );
 
@@ -54,7 +62,7 @@ class ProductRepositoryImpl implements ProductRepository {
           if (category != null) 'category': category,
           if (search != null) 'search': search,
         },
-        fromData: (json) => (json as List)
+        fromData: (json) => _items(json)
             .map((e) => _fromResponse(
                 ProductResponse.fromJson(e as Map<String, dynamic>)))
             .toList(),

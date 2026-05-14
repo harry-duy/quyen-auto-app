@@ -196,11 +196,12 @@ class _OrderCard extends StatelessWidget {
   }
 
   String _statusLabel(OrderStatus s) => switch (s) {
-        OrderStatus.pending => 'Chờ xác nhận',
-        OrderStatus.confirmed => 'Đã xác nhận',
-        OrderStatus.inProduction => 'Đang sản xuất',
-        OrderStatus.completed => 'Hoàn thành',
-        OrderStatus.cancelled => 'Đã hủy',
+        OrderStatus.pending         => 'Chờ xác nhận',
+        OrderStatus.confirmed       => 'Đã xác nhận',
+        OrderStatus.inProduction    => 'Đang sản xuất',
+        OrderStatus.completed       => 'Hoàn thành',
+        OrderStatus.cancelled       => 'Đã hủy',
+        OrderStatus.cancelRequested => 'Chờ duyệt hủy',
       };
 }
 

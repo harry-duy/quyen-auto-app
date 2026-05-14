@@ -49,21 +49,25 @@ abstract final class AppColors {
   // ─── Helpers ───────────────────────────────────────────────────────────────
   /// Trả về màu text tương ứng với status string từ API.
   static Color forOrderStatus(String status) => switch (status.toLowerCase()) {
-    'pending'       => statusPending,
-    'quoted'        => statusQuoted,
-    'in_production' => statusInProduction,
-    'delivered'     => statusDelivered,
-    'completed'     => statusCompleted,
-    _               => statusPending,
+    'pending'          => statusPending,
+    'quoted'           => statusQuoted,
+    'in_production'    => statusInProduction,
+    'delivered'        => statusDelivered,
+    'completed'        => statusCompleted,
+    'cancelled'        => errorRed,
+    'cancelrequested'  => warningAmber,
+    _                  => statusPending,
   };
 
   /// Trả về màu nền tương ứng với status string từ API.
   static Color bgForOrderStatus(String status) => switch (status.toLowerCase()) {
-    'pending'       => statusPendingBg,
-    'quoted'        => statusQuotedBg,
-    'in_production' => statusInProductionBg,
-    'delivered'     => statusDeliveredBg,
-    'completed'     => statusCompletedBg,
-    _               => statusPendingBg,
+    'pending'          => statusPendingBg,
+    'quoted'           => statusQuotedBg,
+    'in_production'    => statusInProductionBg,
+    'delivered'        => statusDeliveredBg,
+    'completed'        => statusCompletedBg,
+    'cancelled'        => const Color(0xFFFDECEC),
+    'cancelrequested'  => const Color(0xFFFFF8E1),
+    _                  => statusPendingBg,
   };
 }

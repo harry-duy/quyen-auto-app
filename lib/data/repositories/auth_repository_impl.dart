@@ -111,6 +111,7 @@ class AuthRepositoryImpl implements AuthRepository {
     avatarUrl:      j['avatarUrl']      as String?,
     role:           UserRole.fromString(j['role'] as String?),
     isActive:       j['isActive']       as bool? ?? true,
+    emailVerified:  j['emailVerified']  as bool? ?? true,
     departmentId:   (j['departmentId'])?.toString(),
     departmentName: j['departmentName'] as String?,
     position:       j['position']       as String?,

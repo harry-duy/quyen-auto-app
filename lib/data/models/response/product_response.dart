@@ -1,55 +1,32 @@
 import 'package:json_annotation/json_annotation.dart';
 part 'product_response.g.dart';
 
-@JsonSerializable()
-class ProductImageResponse {
-  final int    id;
-  final String url;
-  final bool   isPrimary;
-
-  const ProductImageResponse({
-    required this.id,
-    required this.url,
-    required this.isPrimary,
-  });
-
-  factory ProductImageResponse.fromJson(Map<String, dynamic> json) =>
-      _$ProductImageResponseFromJson(json);
-  Map<String, dynamic> toJson() => _$ProductImageResponseToJson(this);
-}
-
+/// Matches backend ProductResponse DTO exactly:
+/// id, categoryId, categoryName, name, description,
+/// specifications, basePrice, isActive, imageUrls
 @JsonSerializable()
 class ProductResponse {
-  final int                    id;
-  final String                 name;
-  final String                 category;
-  final String                 weightCapacity;
-  final String                 description;
-  final double                 priceRangeMin;
-  final double                 priceRangeMax;
-  final List<ProductImageResponse> images;
-  final bool                   isActive;
+  final int     id;
+  final int?    categoryId;
+  final String? categoryName;
+  final String  name;
+  final String  description;
+  final String? specifications;
+  final double  basePrice;
+  final bool    isActive;
+  final List<String> imageUrls;
 
   const ProductResponse({
     required this.id,
+    this.categoryId,
+    this.categoryName,
     required this.name,
-    required this.category,
-    required this.weightCapacity,
     required this.description,
-    required this.priceRangeMin,
-    required this.priceRangeMax,
-    required this.images,
+    this.specifications,
+    required this.basePrice,
     required this.isActive,
+    required this.imageUrls,
   });
-
-  /// URL ảnh đại diện (primary hoặc ảnh đầu tiên)
-  String? get primaryImageUrl {
-    if (images.isEmpty) return null;
-    return images.firstWhere(
-      (img) => img.isPrimary,
-      orElse: () => images.first,
-    ).url;
-  }
 
   factory ProductResponse.fromJson(Map<String, dynamic> json) =>
       _$ProductResponseFromJson(json);

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
+import 'package:path/path.dart' as p;
 import '../../core/constants/api_constants.dart';
 import 'token_service.dart';
 
@@ -218,6 +219,28 @@ class ApiService {
       data: formData,
       options: Options(contentType: 'multipart/form-data'),
     ), fromData);
+  }
+
+  /// Upload mot file len Cloudinary qua POST /upload.
+  /// Tra ve URL cua file da upload (String).
+  Future<String> uploadFile(
+    File file, {
+    String folder = 'general',
+  }) async {
+    final fileName = p.basename(file.path);
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(file.path, filename: fileName),
+      'folder': folder,
+    });
+    final result = await postMultipart<String>(
+      ApiConstants.upload,
+      formData: formData,
+      fromData: (data) => data as String,
+    );
+    if (result.data == null) {
+      throw const ApiException('Upload anh that bai — server khong tra ve URL');
+    }
+    return result.data!;
   }
 
   Future<ServiceResult<T>> _execute<T>(

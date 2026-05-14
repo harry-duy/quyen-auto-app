@@ -34,6 +34,7 @@ class User {
   final String? avatarUrl;
   final UserRole role;
   final bool isActive;
+  final bool emailVerified;
   final String? departmentId;
   final String? departmentName;
   final String? position;
@@ -47,6 +48,7 @@ class User {
     this.avatarUrl,
     required this.role,
     this.isActive = true,
+    this.emailVerified = true,
     this.departmentId,
     this.departmentName,
     this.position,

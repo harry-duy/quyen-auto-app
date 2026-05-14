@@ -63,7 +63,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     ref.read(authProvider).when(
       data: (user) {
-        if (user != null) context.go(AppRoutes.home);
+        if (user != null) {
+          // Co email va chua xac minh → hien man OTP
+          if (!user.emailVerified && user.email != null) {
+            context.go(AppRoutes.verifyOtp);
+          } else {
+            context.go(AppRoutes.home);
+          }
+        }
       },
       error: (e, _) {
         ScaffoldMessenger.of(context).showSnackBar(

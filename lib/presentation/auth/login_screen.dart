@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
@@ -70,6 +71,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           },
           loading: () {},
         );
+  }
+
+  void _showForgotPasswordDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Quên mật khẩu'),
+        content: const Text(
+          'Vui lòng liên hệ tổng đài để được hỗ trợ đặt lại mật khẩu.',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(context);
+              launchUrlString('tel:0908109929');
+            },
+            icon: const Icon(Icons.phone, size: 16),
+            label: const Text('Gọi tổng đài'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _loginWithZalo() {
@@ -166,7 +194,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: isLoading ? null : () {},
+                    onPressed: isLoading ? null : _showForgotPasswordDialog,
                     child: const Text(AppStrings.forgotPassword),
                   ),
                 ),

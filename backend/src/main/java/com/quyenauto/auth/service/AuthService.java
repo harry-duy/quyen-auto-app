@@ -11,6 +11,8 @@ import com.quyenauto.user.entity.UserRole;
 import com.quyenauto.user.repository.DepartmentRepository;
 import com.quyenauto.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,11 +24,14 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
@@ -54,16 +59,30 @@ public class AuthService {
             throw new BusinessException("Email đã được sử dụng");
         }
 
+        boolean hasEmail = request.getEmail() != null && !request.getEmail().isBlank();
+
         User user = User.builder()
                 .fullName(request.getFullName())
                 .phone(request.getPhone())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .email(request.getEmail())
+                .email(hasEmail ? request.getEmail() : null)
                 .role(UserRole.CUSTOMER)
                 .isActive(true)
+                // Co email thi can xac minh; khong co email thi mac dinh da xac minh
+                .emailVerified(!hasEmail)
                 .build();
 
         user = userRepository.save(user);
+
+        // Gui OTP neu co email (bat dong bo — loi gui mail khong anh huong dang ky)
+        if (hasEmail) {
+            try {
+                otpService.sendEmailVerificationOtp(user.getId(), request.getEmail());
+            } catch (Exception e) {
+                log.warn("Could not send OTP after register for user {}: {}", user.getId(), e.getMessage());
+            }
+        }
+
         return generateAuthResponse(user);
     }
 
@@ -91,10 +110,48 @@ public class AuthService {
         refreshTokenRepository.deleteByUserId(userId);
     }
 
+    @Transactional(readOnly = true)
     public AuthResponse.UserInfo getProfile(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));
         return toUserInfo(user);
+    }
+
+    @Transactional
+    public AuthResponse.UserInfo updateProfile(Long userId, UpdateProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));
+
+        if (request.getFullName() != null && !request.getFullName().isBlank()) {
+            user.setFullName(request.getFullName());
+        }
+        if (request.getEmail() != null) {
+            if (!request.getEmail().isBlank() && !request.getEmail().equals(user.getEmail())) {
+                if (userRepository.existsByEmail(request.getEmail())) {
+                    throw new BusinessException("Email đã được sử dụng");
+                }
+            }
+            user.setEmail(request.getEmail().isBlank() ? null : request.getEmail());
+        }
+        if (request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl().isBlank() ? null : request.getAvatarUrl());
+        }
+
+        user = userRepository.save(user);
+        return toUserInfo(user);
+    }
+
+    @Transactional
+    public void changePassword(Long userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new BusinessException(HttpStatus.UNAUTHORIZED, "Mật khẩu hiện tại không đúng");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
     private AuthResponse generateAuthResponse(User user) {
@@ -131,6 +188,7 @@ public class AuthService {
                 .avatarUrl(user.getAvatarUrl())
                 .role(user.getRole().name())
                 .isActive(user.getIsActive())
+                .emailVerified(user.getEmailVerified())
                 .departmentId(user.getDepartmentId())
                 .departmentName(departmentName)
                 .position(user.getPosition())

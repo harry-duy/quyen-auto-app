@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/di/providers.dart';
@@ -151,22 +152,22 @@ class StaffProfileScreen extends ConsumerWidget {
           _MenuTile(
             icon: Icons.person_outline,
             title: 'Thông tin cá nhân',
-            onTap: () {},
+            onTap: () => _showEditProfileSheet(context, ref, user),
           ),
           _MenuTile(
             icon: Icons.notifications_outlined,
             title: 'Cài đặt thông báo',
-            onTap: () {},
+            onTap: () => context.push(StaffRoutes.notifications),
           ),
           _MenuTile(
             icon: Icons.security_outlined,
             title: 'Đổi mật khẩu',
-            onTap: () {},
+            onTap: () => _showChangePasswordSheet(context, ref),
           ),
           _MenuTile(
             icon: Icons.help_outline,
             title: 'Trợ giúp',
-            onTap: () {},
+            onTap: () => _showHelpSheet(context),
           ),
           const SizedBox(height: 24),
 
@@ -209,6 +210,303 @@ class StaffProfileScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showEditProfileSheet(
+      BuildContext context, WidgetRef ref, User? user) {
+    final nameCtrl =
+        TextEditingController(text: user?.fullName ?? '');
+    final emailCtrl =
+        TextEditingController(text: user?.email ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Thông tin cá nhân',
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Họ và tên',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email_outlined),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  final name = nameCtrl.text.trim();
+                  final email = emailCtrl.text.trim();
+                  Navigator.pop(ctx);
+                  try {
+                    await ref
+                        .read(authProvider.notifier)
+                        .updateProfile(
+                          fullName:
+                              name.isNotEmpty ? name : null,
+                          email:
+                              email.isNotEmpty ? email : null,
+                        );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(const SnackBar(
+                        content:
+                            Text('Đã cập nhật thông tin'),
+                      ));
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(
+                        content: Text('Lỗi: $e'),
+                        backgroundColor: AppColors.errorRed,
+                      ));
+                    }
+                  }
+                },
+                child: const Text('Lưu thay đổi'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChangePasswordSheet(BuildContext context, WidgetRef ref) {
+    final currentCtrl = TextEditingController();
+    final newCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) {
+        bool showCurrent = false;
+        bool showNew = false;
+        return StatefulBuilder(
+          builder: (ctx, setState) => Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Đổi mật khẩu',
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: currentCtrl,
+                  obscureText: !showCurrent,
+                  decoration: InputDecoration(
+                    labelText: 'Mật khẩu hiện tại',
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(showCurrent
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => showCurrent = !showCurrent),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: newCtrl,
+                  obscureText: !showNew,
+                  decoration: InputDecoration(
+                    labelText: 'Mật khẩu mới (tối thiểu 6 ký tự)',
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.lock_reset_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(showNew
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => showNew = !showNew),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: confirmCtrl,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Xác nhận mật khẩu mới',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.check_circle_outline),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final current = currentCtrl.text.trim();
+                      final newPwd = newCtrl.text.trim();
+                      final confirm = confirmCtrl.text.trim();
+                      if (current.isEmpty || newPwd.isEmpty) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(
+                                content: Text('Vui lòng điền đầy đủ'),
+                                backgroundColor: AppColors.warningAmber));
+                        return;
+                      }
+                      if (newPwd != confirm) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(
+                                content: Text('Mật khẩu xác nhận không khớp'),
+                                backgroundColor: AppColors.warningAmber));
+                        return;
+                      }
+                      if (newPwd.length < 6) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(
+                                content: Text('Mật khẩu mới phải ít nhất 6 ký tự'),
+                                backgroundColor: AppColors.warningAmber));
+                        return;
+                      }
+                      Navigator.pop(ctx);
+                      try {
+                        await ref
+                            .read(authProvider.notifier)
+                            .changePassword(
+                              currentPassword: current,
+                              newPassword: newPwd,
+                            );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content:
+                                      Text('Đã đổi mật khẩu thành công')));
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text('Lỗi: $e'),
+                              backgroundColor: AppColors.errorRed));
+                        }
+                      }
+                    },
+                    child: const Text('Đổi mật khẩu'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showHelpSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Trợ giúp & Liên hệ',
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 16),
+            const Text(
+              'Nếu gặp vấn đề trong quá trình sử dụng ứng dụng, vui lòng liên hệ bộ phận kỹ thuật:',
+              style:
+                  TextStyle(fontSize: 13, color: AppColors.textGray),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.phone,
+                    color: AppColors.primaryOrange, size: 20),
+              ),
+              title: const Text('Hotline nội bộ',
+                  style: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w600)),
+              subtitle: const Text('0908 109 929',
+                  style: TextStyle(
+                      fontSize: 12, color: AppColors.textGray)),
+              onTap: () => launchUrlString('tel:0908109929'),
+            ),
+            const Divider(height: 1),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.infoBlue
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.email_outlined,
+                    color: AppColors.infoBlue, size: 20),
+              ),
+              title: const Text('Email hỗ trợ',
+                  style: TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w600)),
+              subtitle: const Text('support@quyenauto.vn',
+                  style: TextStyle(
+                      fontSize: 12, color: AppColors.textGray)),
+              onTap: () => launchUrlString(
+                  'mailto:support@quyenauto.vn'),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }

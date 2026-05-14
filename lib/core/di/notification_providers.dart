@@ -24,6 +24,33 @@ final unreadNotificationCountProvider = Provider<int>((ref) {
   return notifications.where((n) => !n.isRead).length;
 });
 
+// ─── Notification Actions ────────────────────────────────────────────────────
+
+class NotificationActionsNotifier extends Notifier<void> {
+  @override
+  void build() {}
+
+  Future<void> markAllRead() async {
+    await ref
+        .read(apiServiceProvider)
+        .post<void>(ApiConstants.notificationMarkRead, data: {});
+    ref.invalidate(notificationListProvider);
+  }
+
+  Future<void> markOneRead(int id) async {
+    await ref
+        .read(apiServiceProvider)
+        .post<void>('${ApiConstants.notificationList}/$id/read', data: {});
+    ref.invalidate(notificationListProvider);
+  }
+}
+
+final notificationActionsProvider =
+    NotifierProvider<NotificationActionsNotifier, void>(
+        NotificationActionsNotifier.new);
+
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
 List<dynamic> _items(dynamic json) {
   if (json is Map<String, dynamic> && json['content'] is List) {
     return json['content'] as List;

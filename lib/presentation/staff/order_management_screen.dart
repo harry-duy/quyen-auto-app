@@ -14,6 +14,7 @@ class OrderManagementScreen extends ConsumerWidget {
   static const _statusFilters = <String?>[
     null,
     'PENDING',
+    'CANCEL_REQUESTED',
     'CONFIRMED',
     'IN_PRODUCTION',
     'COMPLETED',
@@ -23,6 +24,7 @@ class OrderManagementScreen extends ConsumerWidget {
   static const _statusLabels = <String>[
     'Tất cả',
     'Chờ xác nhận',
+    '⚠️ Chờ duyệt hủy',
     'Đã xác nhận',
     'Đang sản xuất',
     'Hoàn thành',
@@ -257,11 +259,12 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, fg, bg) = switch (status) {
-      OrderStatus.pending => ('Chờ xác nhận', AppColors.statusPending, AppColors.statusPendingBg),
-      OrderStatus.confirmed => ('Đã xác nhận', AppColors.statusQuoted, AppColors.statusQuotedBg),
-      OrderStatus.inProduction => ('Đang SX', AppColors.statusInProduction, AppColors.statusInProductionBg),
-      OrderStatus.completed => ('Hoàn thành', AppColors.statusCompleted, AppColors.statusCompletedBg),
-      OrderStatus.cancelled => ('Đã hủy', AppColors.errorRed, AppColors.errorRed.withValues(alpha: 0.1)),
+      OrderStatus.pending         => ('Chờ xác nhận', AppColors.statusPending, AppColors.statusPendingBg),
+      OrderStatus.confirmed       => ('Đã xác nhận', AppColors.statusQuoted, AppColors.statusQuotedBg),
+      OrderStatus.inProduction    => ('Đang SX', AppColors.statusInProduction, AppColors.statusInProductionBg),
+      OrderStatus.completed       => ('Hoàn thành', AppColors.statusCompleted, AppColors.statusCompletedBg),
+      OrderStatus.cancelled       => ('Đã hủy', AppColors.errorRed, AppColors.errorRed.withValues(alpha: 0.1)),
+      OrderStatus.cancelRequested => ('⚠️ Chờ duyệt hủy', AppColors.warningAmber, AppColors.warningAmber.withValues(alpha: 0.12)),
     };
 
     return Container(

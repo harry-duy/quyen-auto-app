@@ -27,12 +27,25 @@ public class ChatService {
     private final ChatMessageRepository messageRepository;
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     public List<ChatRoomResponse> getRooms(Long userId) {
         List<ChatRoom> rooms = roomRepository.findByUserId(userId);
         return rooms.stream().map(room -> toChatRoomResponse(room, userId)).toList();
     }
 
-    public Page<ChatMessageResponse> getMessages(Long roomId, Pageable pageable) {
+    @Transactional(readOnly = true)
+    public Page<ChatMessageResponse> getMessages(Long roomId, Long requesterId, Pageable pageable) {
+        ChatRoom room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy phòng chat"));
+
+        boolean isMember = room.getCustomer().getId().equals(requesterId)
+                || (room.getStaff() != null && room.getStaff().getId().equals(requesterId));
+
+        if (!isMember) {
+            throw new BusinessException(HttpStatus.FORBIDDEN,
+                    "Bạn không có quyền xem tin nhắn của phòng này");
+        }
+
         return messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, pageable)
                 .map(ChatMessageResponse::from);
     }
@@ -58,13 +71,19 @@ public class ChatService {
 
     @Transactional
     public ChatRoomResponse getOrCreateRoom(Long customerId, Long staffId) {
+        // Tìm phòng hiện có (staffId có thể null khi customer chưa được assign staff)
         ChatRoom room = roomRepository.findByCustomerIdAndStaffId(customerId, staffId)
                 .orElseGet(() -> {
                     User customer = userRepository.findById(customerId)
                             .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy khách hàng"));
-                    User staff = userRepository.findById(staffId)
-                            .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"));
-                    return roomRepository.save(ChatRoom.builder().customer(customer).staff(staff).build());
+                    User staff = staffId != null
+                            ? userRepository.findById(staffId)
+                                    .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"))
+                            : null;
+                    return roomRepository.save(ChatRoom.builder()
+                            .customer(customer)
+                            .staff(staff)
+                            .build());
                 });
         return toChatRoomResponse(room, customerId);
     }

@@ -23,6 +23,7 @@ public class AuthResponse {
         private String avatarUrl;
         private String role;
         private Boolean isActive;
+        private Boolean emailVerified;
         private Long departmentId;
         private String departmentName;
         private String position;

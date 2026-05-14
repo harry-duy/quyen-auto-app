@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -23,12 +25,15 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final FcmTokenRepository fcmTokenRepository;
     private final UserRepository userRepository;
+    private final FcmPushService fcmPushService;
 
+    @Transactional(readOnly = true)
     public Page<NotificationResponse> getByUser(Long userId, Pageable pageable) {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
                 .map(NotificationResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public long countUnread(Long userId) {
         return notificationRepository.countByUserIdAndIsReadFalse(userId);
     }
@@ -36,6 +41,11 @@ public class NotificationService {
     @Transactional
     public void markAllRead(Long userId) {
         notificationRepository.markAllReadByUserId(userId);
+    }
+
+    @Transactional
+    public void markOneRead(Long userId, Long notificationId) {
+        notificationRepository.markOneReadByIdAndUserId(notificationId, userId);
     }
 
     @Transactional
@@ -53,6 +63,13 @@ public class NotificationService {
                 .build();
 
         notificationRepository.save(notification);
+
+        // Gui FCM push notification (bo qua neu Firebase chua cau hinh)
+        List<String> tokens = fcmTokenRepository.findByUserId(userId)
+                .stream()
+                .map(FcmToken::getToken)
+                .toList();
+        fcmPushService.send(tokens, title, body);
     }
 
     @Transactional

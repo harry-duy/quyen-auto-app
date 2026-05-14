@@ -43,6 +43,14 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.ok(orderService.getByCode(code)));
     }
 
+    @PatchMapping("/orders/{id}/cancel")
+    @Operation(summary = "Khách hàng hủy đơn hàng (chỉ khi PENDING)")
+    public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(
+            @PathVariable Long id, Authentication auth) {
+        Long customerId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(orderService.cancelOrder(customerId, id)));
+    }
+
     @GetMapping("/staff/orders")
     @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     @Operation(summary = "Tất cả đơn hàng (staff)")
@@ -63,5 +71,25 @@ public class OrderController {
             @Valid @RequestBody UpdateOrderStatusRequest request) {
         Long staffId = Long.parseLong(auth.getName());
         return ResponseEntity.ok(ApiResponse.ok(orderService.updateStatus(id, staffId, request)));
+    }
+
+    @PatchMapping("/staff/orders/{id}/cancel/approve")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Duyệt yêu cầu hủy đơn của khách hàng => CANCELLED")
+    public ResponseEntity<ApiResponse<OrderResponse>> approveCancel(
+            @PathVariable Long id, Authentication auth,
+            @RequestParam(required = false) String note) {
+        Long staffId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(orderService.approveCancel(id, staffId, note)));
+    }
+
+    @PatchMapping("/staff/orders/{id}/cancel/reject")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Từ chối yêu cầu hủy đơn, trả về PENDING")
+    public ResponseEntity<ApiResponse<OrderResponse>> rejectCancel(
+            @PathVariable Long id, Authentication auth,
+            @RequestParam(required = false) String note) {
+        Long staffId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(orderService.rejectCancel(id, staffId, note)));
     }
 }

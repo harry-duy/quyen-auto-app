@@ -47,4 +47,8 @@ public class User extends BaseEntity {
 
     @Column(name = "zalo_id", unique = true, length = 100)
     private String zaloId;
+
+    @Builder.Default
+    @Column(name = "email_verified", nullable = false)
+    private Boolean emailVerified = true;
 }

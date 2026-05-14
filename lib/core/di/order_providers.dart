@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/constants/api_constants.dart';
 import '../../domain/entities/order.dart';
 import 'service_providers.dart';
 
@@ -79,3 +80,45 @@ class QuotationNotifier extends AsyncNotifier<Order?> {
 
 final quotationProvider =
     AsyncNotifierProvider<QuotationNotifier, Order?>(QuotationNotifier.new);
+
+// ─── Order Actions ────────────────────────────────────────────────────────────
+
+class OrderActionsNotifier extends Notifier<void> {
+  @override
+  void build() {}
+
+  /// Khach hang gui yeu cau huy don hang.
+  Future<void> cancelOrder(String orderId) async {
+    await ref.read(apiServiceProvider).patch<void>(
+      ApiConstants.resolve(ApiConstants.cancelOrder, {'id': orderId}),
+      data: {},
+    );
+    ref.invalidate(orderListProvider);
+    ref.invalidate(orderDetailProvider(orderId));
+  }
+
+  /// Staff duyet yeu cau huy don hang => CANCELLED.
+  Future<void> approveCancel(String orderId, {String? note}) async {
+    final url = ApiConstants.resolve(ApiConstants.staffApproveCancel, {'id': orderId});
+    await ref.read(apiServiceProvider).patch<void>(
+      note != null ? '$url?note=${Uri.encodeComponent(note)}' : url,
+      data: {},
+    );
+    ref.invalidate(orderListProvider);
+    ref.invalidate(orderDetailProvider(orderId));
+  }
+
+  /// Staff tu choi yeu cau huy => tra ve PENDING.
+  Future<void> rejectCancel(String orderId, {String? note}) async {
+    final url = ApiConstants.resolve(ApiConstants.staffRejectCancel, {'id': orderId});
+    await ref.read(apiServiceProvider).patch<void>(
+      note != null ? '$url?note=${Uri.encodeComponent(note)}' : url,
+      data: {},
+    );
+    ref.invalidate(orderListProvider);
+    ref.invalidate(orderDetailProvider(orderId));
+  }
+}
+
+final orderActionsProvider =
+    NotifierProvider<OrderActionsNotifier, void>(OrderActionsNotifier.new);

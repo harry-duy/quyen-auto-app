@@ -71,6 +71,8 @@ public class Order extends BaseEntity {
     private List<OrderStatusLog> statusLogs = new ArrayList<>();
 
     public enum OrderStatus {
-        PENDING, CONFIRMED, IN_PRODUCTION, COMPLETED, CANCELLED
+        PENDING, CONFIRMED, IN_PRODUCTION, COMPLETED, CANCELLED,
+        /** Khach hang da yeu cau huy, dang cho staff phe duyet */
+        CANCEL_REQUESTED
     }
 }

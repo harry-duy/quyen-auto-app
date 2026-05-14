@@ -46,6 +46,15 @@ public class NotificationController {
         return ResponseEntity.ok(ApiResponse.noContent());
     }
 
+    @PostMapping("/{id}/read")
+    @Operation(summary = "Đánh dấu một thông báo đã đọc")
+    public ResponseEntity<ApiResponse<Void>> markOneRead(
+            Authentication auth, @PathVariable Long id) {
+        Long userId = Long.parseLong(auth.getName());
+        notificationService.markOneRead(userId, id);
+        return ResponseEntity.ok(ApiResponse.noContent());
+    }
+
     @PostMapping("/fcm-token")
     @Operation(summary = "Đăng ký FCM token")
     public ResponseEntity<ApiResponse<Void>> registerFcmToken(

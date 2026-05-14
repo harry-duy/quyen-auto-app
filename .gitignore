@@ -46,3 +46,13 @@ app.*.map.json
 
 # Environment
 .env
+
+# Debug screenshots
+*.png
+!assets/**/*.png
+
+# Claude Code internal
+.claude/
+
+# Temporary files
+HashGen.java

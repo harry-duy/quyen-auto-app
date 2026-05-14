@@ -22,6 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     public Page<UserResponse> getStaffMembers(Long departmentId, Pageable pageable) {
         List<UserRole> staffRoles = List.of(UserRole.STAFF, UserRole.MANAGER, UserRole.ADMIN);
         Page<User> page;
@@ -33,6 +34,7 @@ public class UserService {
         return page.map(UserResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public UserResponse getById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));

@@ -26,6 +26,7 @@ public class WarrantyService {
     private final VehicleRepository vehicleRepository;
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     public List<VehicleDetailResponse> getMyVehicles(Long customerId) {
         return vehicleRepository.findByOwnerId(customerId)
                 .stream()
@@ -33,10 +34,12 @@ public class WarrantyService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public Page<WarrantyResponse> getByCustomer(Long customerId, Pageable pageable) {
         return warrantyRepository.findByCustomerId(customerId, pageable).map(WarrantyResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public Page<WarrantyResponse> getAll(String status, Pageable pageable) {
         if (status != null) {
             WarrantyRequest.WarrantyStatus ws = WarrantyRequest.WarrantyStatus.valueOf(status.toUpperCase());
@@ -45,6 +48,7 @@ public class WarrantyService {
         return warrantyRepository.findAll(pageable).map(WarrantyResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public WarrantyResponse getById(Long id) {
         return WarrantyResponse.from(findById(id));
     }

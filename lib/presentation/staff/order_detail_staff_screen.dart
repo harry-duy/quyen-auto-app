@@ -69,11 +69,12 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     final (statusLabel, statusColor) = switch (order.status) {
-      OrderStatus.pending => ('Chờ xác nhận', AppColors.statusPending),
-      OrderStatus.confirmed => ('Đã xác nhận', AppColors.statusQuoted),
-      OrderStatus.inProduction => ('Đang sản xuất', AppColors.statusInProduction),
-      OrderStatus.completed => ('Hoàn thành', AppColors.statusCompleted),
-      OrderStatus.cancelled => ('Đã hủy', AppColors.errorRed),
+      OrderStatus.pending         => ('Chờ xác nhận', AppColors.statusPending),
+      OrderStatus.confirmed       => ('Đã xác nhận', AppColors.statusQuoted),
+      OrderStatus.inProduction    => ('Đang sản xuất', AppColors.statusInProduction),
+      OrderStatus.completed       => ('Hoàn thành', AppColors.statusCompleted),
+      OrderStatus.cancelled       => ('Đã hủy', AppColors.errorRed),
+      OrderStatus.cancelRequested => ('Chờ duyệt hủy', AppColors.warningAmber),
     };
 
     return ListView(
@@ -129,9 +130,76 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
         ),
         const SizedBox(height: 24),
 
-        // Status update section
+        // Cancel request approval section
+        if (order.status == OrderStatus.cancelRequested) ...[
+          const Text('Yêu cầu hủy đơn của khách hàng',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.warningAmber)),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.warningAmber.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.warningAmber.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Khách hàng yêu cầu hủy đơn này. Bạn có muốn phê duyệt?',
+                  style: TextStyle(fontSize: 13, color: AppColors.textGray),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _noteController,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    hintText: 'Ghi chú (tùy chọn)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _isUpdating ? null : () => _rejectCancel(order.id),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.errorRed,
+                        side: const BorderSide(color: AppColors.errorRed),
+                      ),
+                      icon: const Icon(Icons.close),
+                      label: const Text('Từ chối'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _isUpdating ? null : () => _approveCancel(order.id),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.successGreen,
+                        foregroundColor: Colors.white,
+                      ),
+                      icon: _isUpdating
+                          ? const SizedBox(width: 16, height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Icon(Icons.check),
+                      label: const Text('Duyệt hủy'),
+                    ),
+                  ),
+                ]),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+
+        // Status update section (normal workflow)
         if (order.status != OrderStatus.completed &&
-            order.status != OrderStatus.cancelled) ...[
+            order.status != OrderStatus.cancelled &&
+            order.status != OrderStatus.cancelRequested) ...[
           const Text('Cập nhật trạng thái',
               style: TextStyle(
                   fontSize: 16,
@@ -225,6 +293,53 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
           SnackBar(
               content: Text('Lỗi: $e'),
               backgroundColor: AppColors.errorRed),
+        );
+      }
+    }
+  }
+
+  Future<void> _approveCancel(String orderId) async {
+    setState(() => _isUpdating = true);
+    try {
+      final note = _noteController.text.trim().isEmpty ? null : _noteController.text.trim();
+      await ref.read(staffActionsProvider.notifier).approveCancel(orderId, note: note);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã duyệt hủy đơn hàng'),
+            backgroundColor: AppColors.successGreen,
+          ),
+        );
+        _noteController.clear();
+        setState(() => _isUpdating = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUpdating = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $e'), backgroundColor: AppColors.errorRed),
+        );
+      }
+    }
+  }
+
+  Future<void> _rejectCancel(String orderId) async {
+    setState(() => _isUpdating = true);
+    try {
+      final note = _noteController.text.trim().isEmpty ? null : _noteController.text.trim();
+      await ref.read(staffActionsProvider.notifier).rejectCancel(orderId, note: note);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã từ chối yêu cầu hủy — đơn về trạng thái chờ xác nhận')),
+        );
+        _noteController.clear();
+        setState(() => _isUpdating = false);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isUpdating = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $e'), backgroundColor: AppColors.errorRed),
         );
       }
     }

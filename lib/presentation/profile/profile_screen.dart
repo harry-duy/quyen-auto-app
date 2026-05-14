@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/di/providers.dart';
@@ -20,6 +23,9 @@ class ProfileScreen extends ConsumerWidget {
       body: SingleChildScrollView(
         child: Column(children: [
           _ProfileHeader(user: user),
+          // Banner xac minh email neu chua xac minh
+          if (user != null && !user.emailVerified && user.email != null)
+            _EmailVerifyBanner(onTap: () => context.push(AppRoutes.verifyOtp)),
           const SizedBox(height: 8),
           _MenuSection(title: 'Quản lý đơn hàng', items: [
             _MenuItem(
@@ -45,13 +51,21 @@ class ProfileScreen extends ConsumerWidget {
                 decoration: BoxDecoration(color: AppColors.primaryOrange, borderRadius: BorderRadius.circular(10)),
                 child: const Text('Chat', style: TextStyle(color: AppColors.textWhite, fontSize: 11, fontWeight: FontWeight.w600)),
               ),
-              onTap: () {},
+              onTap: () => context.push(AppRoutes.chatList),
             ),
           ]),
           const SizedBox(height: 8),
           _MenuSection(title: 'Tài khoản', items: [
-            _MenuItem(icon: Icons.person_outline, label: 'Thông tin cá nhân', onTap: () {}),
-            _MenuItem(icon: Icons.lock_outline,   label: 'Đổi mật khẩu',     onTap: () {}),
+            _MenuItem(
+              icon: Icons.person_outline,
+              label: 'Thông tin cá nhân',
+              onTap: () => _showEditProfileSheet(context, ref, user),
+            ),
+            _MenuItem(
+              icon: Icons.lock_outline,
+              label: 'Đổi mật khẩu',
+              onTap: () => _showChangePasswordSheet(context, ref),
+            ),
           ]),
           const SizedBox(height: 8),
           Padding(
@@ -80,6 +94,226 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
+  void _showEditProfileSheet(
+      BuildContext context, WidgetRef ref, User? user) {
+    final nameCtrl =
+        TextEditingController(text: user?.fullName ?? '');
+    final emailCtrl =
+        TextEditingController(text: user?.email ?? '');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 20,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Thông tin cá nhân',
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(
+                labelText: 'Họ và tên',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email_outlined),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  final name = nameCtrl.text.trim();
+                  final email = emailCtrl.text.trim();
+                  Navigator.pop(ctx);
+                  try {
+                    await ref.read(authProvider.notifier).updateProfile(
+                          fullName:
+                              name.isNotEmpty ? name : null,
+                          email: email.isNotEmpty ? email : null,
+                        );
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text(
+                                'Đã cập nhật thông tin cá nhân')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content: Text('Lỗi: $e'),
+                            backgroundColor: AppColors.errorRed),
+                      );
+                    }
+                  }
+                },
+                child: const Text('Lưu thay đổi'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showChangePasswordSheet(BuildContext context, WidgetRef ref) {
+    final currentCtrl = TextEditingController();
+    final newCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        bool showCurrent = false;
+        bool showNew = false;
+        return StatefulBuilder(
+          builder: (ctx, setState) => Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Đổi mật khẩu',
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: currentCtrl,
+                  obscureText: !showCurrent,
+                  decoration: InputDecoration(
+                    labelText: 'Mật khẩu hiện tại',
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(showCurrent
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => showCurrent = !showCurrent),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: newCtrl,
+                  obscureText: !showNew,
+                  decoration: InputDecoration(
+                    labelText: 'Mật khẩu mới (tối thiểu 6 ký tự)',
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.lock_reset_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(showNew
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => showNew = !showNew),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: confirmCtrl,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Xác nhận mật khẩu mới',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.check_circle_outline),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final current = currentCtrl.text.trim();
+                      final newPwd  = newCtrl.text.trim();
+                      final confirm = confirmCtrl.text.trim();
+                      if (current.isEmpty || newPwd.isEmpty) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(
+                                content: Text('Vui lòng điền đầy đủ thông tin'),
+                                backgroundColor: AppColors.warningAmber));
+                        return;
+                      }
+                      if (newPwd != confirm) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(
+                                content: Text('Mật khẩu mới không khớp'),
+                                backgroundColor: AppColors.warningAmber));
+                        return;
+                      }
+                      if (newPwd.length < 6) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                            const SnackBar(
+                                content: Text('Mật khẩu mới phải ít nhất 6 ký tự'),
+                                backgroundColor: AppColors.warningAmber));
+                        return;
+                      }
+                      Navigator.pop(ctx);
+                      try {
+                        await ref
+                            .read(authProvider.notifier)
+                            .changePassword(
+                              currentPassword: current,
+                              newPassword: newPwd,
+                            );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Đã đổi mật khẩu thành công')));
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text('Lỗi: $e'),
+                              backgroundColor: AppColors.errorRed));
+                        }
+                      }
+                    },
+                    child: const Text('Đổi mật khẩu'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _confirmLogout(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
@@ -102,12 +336,55 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
-class _ProfileHeader extends StatelessWidget {
+class _ProfileHeader extends ConsumerStatefulWidget {
   final User? user;
   const _ProfileHeader({required this.user});
 
   @override
+  ConsumerState<_ProfileHeader> createState() => _ProfileHeaderState();
+}
+
+class _ProfileHeaderState extends ConsumerState<_ProfileHeader> {
+  bool _uploading = false;
+
+  Future<void> _pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 80,
+    );
+    if (picked == null || !mounted) return;
+
+    setState(() => _uploading = true);
+    try {
+      final file = File(picked.path);
+      final api = ref.read(apiServiceProvider);
+      final url = await api.uploadFile(file, folder: 'avatars');
+      await ref.read(authProvider.notifier).updateProfile(avatarUrl: url);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã cập nhật ảnh đại diện')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi upload ảnh: $e'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final user = widget.user;
     final initials = user?.fullName.isNotEmpty == true
         ? user!.fullName.split(' ').where((w) => w.isNotEmpty).take(2).map((w) => w[0].toUpperCase()).join()
         : 'QA';
@@ -117,23 +394,53 @@ class _ProfileHeader extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
       child: Column(children: [
-        Container(
-          width: 80, height: 80,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.primaryOrange,
-            border: Border.all(color: AppColors.textWhite, width: 2),
+        GestureDetector(
+          onTap: _uploading ? null : _pickAndUploadAvatar,
+          child: Stack(
+            children: [
+              Container(
+                width: 80, height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primaryOrange,
+                  border: Border.all(color: AppColors.textWhite, width: 2),
+                ),
+                child: _uploading
+                    ? const Center(
+                        child: SizedBox(
+                          width: 28, height: 28,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    : user?.avatarUrl != null
+                        ? ClipOval(
+                            child: Image.network(user!.avatarUrl!, fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Center(
+                                  child: Text(initials,
+                                      style: const TextStyle(color: AppColors.textWhite, fontSize: 26, fontWeight: FontWeight.w800)),
+                                )))
+                        : Center(
+                            child: Text(initials,
+                                style: const TextStyle(color: AppColors.textWhite, fontSize: 26, fontWeight: FontWeight.w800))),
+              ),
+              // Camera badge overlay
+              if (!_uploading)
+                Positioned(
+                  right: 0, bottom: 0,
+                  child: Container(
+                    width: 24, height: 24,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primaryOrange,
+                    ),
+                    child: const Icon(Icons.camera_alt, size: 13, color: Colors.white),
+                  ),
+                ),
+            ],
           ),
-          child: user?.avatarUrl != null
-              ? ClipOval(
-                  child: Image.network(user!.avatarUrl!, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Center(
-                        child: Text(initials,
-                            style: const TextStyle(color: AppColors.textWhite, fontSize: 26, fontWeight: FontWeight.w800)),
-                      )))
-              : Center(
-                  child: Text(initials,
-                      style: const TextStyle(color: AppColors.textWhite, fontSize: 26, fontWeight: FontWeight.w800))),
         ),
         const SizedBox(height: 12),
         Text(
@@ -145,7 +452,7 @@ class _ProfileHeader extends StatelessWidget {
           Text(user!.phone, style: TextStyle(color: AppColors.textWhite.withValues(alpha: 0.7), fontSize: 14)),
         if (user?.email != null && user!.email!.isNotEmpty) ...[
           const SizedBox(height: 2),
-          Text(user!.email!, style: TextStyle(color: AppColors.textWhite.withValues(alpha: 0.6), fontSize: 12)),
+          Text(user.email!, style: TextStyle(color: AppColors.textWhite.withValues(alpha: 0.6), fontSize: 12)),
         ],
         const SizedBox(height: 12),
         Container(
@@ -164,6 +471,58 @@ class _ProfileHeader extends StatelessWidget {
     );
   }
 }
+
+// ── Banner xac minh email ─────────────────────────────────────────────────────
+
+class _EmailVerifyBanner extends StatelessWidget {
+  final VoidCallback onTap;
+  const _EmailVerifyBanner({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF8E1),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.warningAmber),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.mark_email_unread_outlined,
+                color: AppColors.warningAmber, size: 20),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Email chưa được xác minh',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF795548)),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Nhấn để xác minh ngay và bảo mật tài khoản',
+                    style: TextStyle(fontSize: 12, color: AppColors.textGray),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.textGray, size: 18),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 class _MenuSection extends StatelessWidget {
   final String title;

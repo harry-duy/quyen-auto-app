@@ -682,3 +682,613 @@ Da kiem tra ky toan bo cac file Flutter + Spring Boot lan 2. Tim them cac loi ng
 | 54 style hints | Nhieu file | `info` level, khong anh huong runtime |
 | `dealerNearest` 404 | `DealerController.java` | Constant khai bao nhung chua implement endpoint |
 | `result` field warranty gui sai | `staff_providers.dart` dong 148 | `data: {'status': result, 'result': result}` — nen tach thanh 2 tham so rieng |
+
+---
+
+## SESSION 4 — Implement Coming Soon Features (2026-05-11)
+
+Da implement tat ca cac man hinh "Coming Soon" co the lam va fix model chat sai.
+
+### 1. Fix `ChatRoomResponse` model Flutter sai hoan toan (crash an)
+
+- **Nguyen nhan**: Backend `ChatRoomResponse.java` tra ve `lastMessage: String` (ten noi dung), `lastMessageAt: LocalDateTime`, `unreadCount: Long`, `customerName`, `customerAvatar`. Flutter model lai co `lastMessage: MessageResponse?` (nested object). → CRASH khi JSON parse.
+- **Fix Flutter**:
+  - `lastMessage`: `MessageResponse?` → `String?`
+  - Them `lastMessageAt: DateTime?`
+  - Them `customerName: String?`, `customerAvatar: String?`
+  - `MessageResponse`: Them `roomId`, `senderName`, `senderAvatar` (match `ChatMessageResponse.java`)
+- **Files**: `chat_response.dart`, `chat_response.g.dart`
+
+### 2. Fix `staff_chat_list_screen.dart` theo model moi
+
+- Doi `lastMsg.content` → `room.lastMessage`
+- Doi `lastMsg.createdAt` → `room.lastMessageAt`
+- Hien thi avatar + ten khach hang thay vi avatar nhan vien (vi staff nhin thay khach hang)
+- **File**: `staff_chat_list_screen.dart`
+
+### 3. Tao `warranty_providers.dart` (moi)
+
+- `myVehiclesProvider` — goi `warrantyRepository.getMyVehicles()` (GET /warranty/vehicles)
+- `myWarrantyListProvider` — goi `GET /warranty` (phan trang, null-safe)
+- `WarrantyActionsNotifier` + `warrantyActionsProvider` — tao yeu cau bao hanh
+- **File**: `lib/core/di/warranty_providers.dart` (moi)
+
+### 4. Tao `chat_providers.dart` (moi)
+
+- `chatRoomsProvider` — GET /chat/rooms
+- `chatHistoryProvider(roomId)` — GET /chat/rooms/{roomId}/messages (phan trang)
+- `ChatRoomNotifier` + `chatRoomNotifierProvider(roomId)`:
+  - Subscribe WebSocket `/topic/chat.room.{roomId}` khi khoi tao
+  - `loadHistory()` — them lich su vao state, tranh trung lap theo id
+  - `sendMessage()` — gui WS den `/app/chat.send` voi JSON `{roomId, content, type: TEXT}`
+  - `markAsRead()` — goi REST POST /chat/rooms/{roomId}/read
+- **File**: `lib/core/di/chat_providers.dart` (moi)
+
+### 5. Them API constants moi
+
+- `chatMarkRead = 'chat/rooms/{roomId}/read'`
+- `chatInit = 'chat/rooms/init'`
+- **File**: `api_constants.dart`
+
+### 6. Implement `warranty_screen.dart` (Customer)
+
+- Thay the stub "Coming Soon" bang man hinh day du:
+  - Section "Xe cua toi" voi horizontal list card + nut "Xem tat ca"
+  - Section "Lich su yeu cau bao hanh" voi list tile co status chip + logs summary
+  - FAB "Yeu cau bao hanh" → dialog chon xe + nhap mo ta
+  - Pull-to-refresh, empty states, error states
+- **File**: `warranty_screen.dart`
+
+### 7. Implement `vehicle_list_screen.dart` (Customer)
+
+- Thay the stub bang man hinh danh sach xe day du
+- Hien thi bien so, so khung, ten san pham, ngay mua
+- Pull-to-refresh, empty state, error state
+- **File**: `vehicle_list_screen.dart`
+
+### 8. Implement `add_vehicle_screen.dart`
+
+- Backend khong co endpoint `POST /warranty/vehicles` → xe duoc dang ky boi staff
+- Man hinh nay giai thich quy trinh va cung cap nut "Goi Hotline" + "Chat Zalo"
+- **File**: `add_vehicle_screen.dart`
+
+### 9. Implement `chat_screen.dart` (Customer + Staff)
+
+- Thay the stub bang man hinh chat day du:
+  - Load lich su tin nhan REST khi vao man hinh
+  - Subscribe WebSocket real-time nhan tin nhan moi
+  - Bubble UI: tin nhan cua minh (phai, cam) vs nguoi kia (trai, trang)
+  - Avatar + ten nguoi gui cho tin nhan cua nguoi khac
+  - Icon trang thai da doc (done_all xanh / done xam)
+  - DateDivider phan cach cac ngay
+  - Input bar nhieu dong + nut gui
+  - Tu dong scroll xuong tin moi nhat
+  - Mark as read khi vao phong
+- **File**: `chat_screen.dart`
+
+### 10. Them `CustomerChatListScreen` (moi)
+
+- Danh sach phong chat cua khach hang (gong nhu staff)
+- Neu chi 1 phong → tu dong chuyen den ChatScreen
+- **File**: `lib/presentation/chat/customer_chat_list_screen.dart` (moi)
+
+### 11. Cap nhat routes
+
+- Them `AppRoutes.chatList = '/chat-rooms'` → `CustomerChatListScreen`
+- Them `AppRoutes.vehicleList = '/vehicles'` → `VehicleListScreen`
+- **Files**: `route_paths.dart`, `app_router.dart`
+
+### 12. Wire Profile → Chat
+
+- "Ho tro khach hang" trong profile: `onTap: () {}` → `context.push(AppRoutes.chatList)`
+- **File**: `profile_screen.dart`
+
+### 13. Export providers moi
+
+- `providers.dart` export them `warranty_providers.dart`, `chat_providers.dart`
+- **File**: `providers.dart`
+
+### Ket qua
+
+- Flutter analyze: **0 errors, 0 warnings** (59 info style hints pre-existing)
+- Tat ca 4 man hinh "Coming Soon" da duoc implement
+- Chat model match voi backend hoan toan
+
+
+---
+
+## SESSION 5 — Implement Remaining Features (2026-05-11)
+
+### 1. Implement Notification Screen
+
+- Thay the stub "Coming Soon" bang man hinh thong bao day du
+- Hien thi list voi icon theo type (ORDER/WARRANTY/QUOTATION/SYSTEM)
+- Nut "Doc tat ca" xuat hien khi co tin chua doc (goi `POST /notifications/mark-read`)
+- Tap vao thong bao → mark 1 tin doc + navigate (ORDER → order detail)
+- Badge dot cam cho tin chua doc, nen xanh nhat cho hang chua doc
+- Pull-to-refresh
+- **File**: `notification_screen.dart`
+
+### 2. Them `NotificationActionsNotifier` vao notification_providers
+
+- `markAllRead()` — goi `POST /notifications/mark-read`
+- `markOneRead(id)` — goi `POST /notifications/{id}/read`
+- **File**: `notification_providers.dart`
+
+### 3. Them updateProfile + changePassword vao AuthNotifier
+
+- `updateProfile({fullName, email, avatarUrl})` — goi `PUT /auth/me`, sau do re-fetch profile
+- `changePassword({currentPassword, newPassword})` — goi `POST /auth/change-password`
+- **File**: `auth_providers.dart`
+
+### 4. Implement "Thong tin ca nhan" trong Profile Screen (Customer)
+
+- Bottom sheet voi TextField ho ten + email
+- Goi `authProvider.notifier.updateProfile()`
+- **File**: `profile_screen.dart`
+
+### 5. Implement "Doi mat khau" trong Profile Screen (Customer)
+
+- Bottom sheet voi 3 truong: mat khau hien tai, mat khau moi, xac nhan
+- Nut hien/an mat khau (StatefulBuilder + bool state ben ngoai builder)
+- Validate: khong de trong, mat khau moi >= 6 ky tu, xac nhan phai khop
+- **File**: `profile_screen.dart`
+
+### 6. Wire Staff Profile Screen Buttons
+
+- "Thong tin ca nhan" → bottom sheet edit profile (fullName, email)
+- "Doi mat khau" → bottom sheet doi mat khau
+- "Cai dat thong bao" → navigate den `/staff/notifications` (NotificationScreen)
+- "Tro giup" → bottom sheet Hotline + Email
+- **File**: `staff_profile_screen.dart`
+
+### 7. Them StaffRoutes.notifications + route
+
+- `StaffRoutes.notifications = '/staff/notifications'`
+- Dang ky trong `app_router.dart` → `NotificationScreen`
+- **Files**: `route_paths.dart`, `app_router.dart`
+
+### Ket qua
+
+- Flutter analyze: **0 errors, 0 warnings** (64 info style hints)
+- Tat ca chuc nang "Coming Soon" / onTap: () {} da duoc implement
+
+---
+
+## SESSION 6 — Backend endpoints con thieu + Fix remaining gaps (2026-05-11)
+
+Da kiem tra lai toan bo frontend va backend, tim va implement tat ca cac endpoint con thieu.
+
+### Backend — Endpoint moi them
+
+#### 1. `POST /notifications/{id}/read` — Danh dau 1 thong bao da doc
+
+- **Van de**: Flutter `notification_providers.dart` goi `POST /notifications/{id}/read` nhung backend khong co endpoint nay. Chi co `POST /notifications/mark-read` (danh dau TAT CA).
+- **Fix**:
+  - `NotificationRepository.java`: Them query `@Modifying` moi:
+    ```java
+    @Query("UPDATE Notification n SET n.isRead = true WHERE n.id = :id AND n.user.id = :userId")
+    void markOneReadByIdAndUserId(Long id, Long userId);
+    ```
+  - `NotificationService.java`: Them method `markOneRead(Long userId, Long notificationId)`
+  - `NotificationController.java`: Them endpoint `@PostMapping("/{id}/read")`
+- **Files**: `NotificationRepository.java`, `NotificationService.java`, `NotificationController.java`
+
+#### 2. `GET /dealers/nearest` — Tim dai ly gan nhat theo GPS
+
+- **Van de**: `ApiConstants.dealerNearest = 'dealers/nearest'` da khai bao trong Flutter nhung backend khong co endpoint. `DealerController` chi co `GET /dealers` va `GET /dealers/{id}`.
+- **Fix**:
+  - `DealerService.java`: Them `getNearest(double lat, double lng, int limit)` su dung cong thuc **Haversine** tinh khoang cach km, sap xep tang dan, lay `limit` ket qua dau tien.
+  - `DealerController.java`: Them `@GetMapping("/dealers/nearest")` voi params `lat`, `lng`, `limit` (mac dinh 5).
+  - Luu y: Spring MVC uu tien path literal truoc path variable, nen `/dealers/nearest` duoc match truoc `/dealers/{id}`.
+- **Files**: `DealerService.java`, `DealerController.java`
+
+#### 3. `PUT /auth/me` — Cap nhat thong tin ca nhan
+
+- **Van de**: Flutter `auth_providers.dart` goi `PUT /auth/me` de cap nhat ho ten/email/avatar nhung `AuthController` chi co `GET /auth/me`, khong co `PUT`.
+- **Fix**:
+  - `UpdateProfileRequest.java` (moi): DTO voi 3 truong `fullName`, `email`, `avatarUrl` + validation `@Size`, `@Email`
+  - `AuthService.java`: Them `updateProfile(Long userId, UpdateProfileRequest)`:
+    - Kiem tra email trung truoc khi cap nhat
+    - Email/avatarUrl blank → set null
+  - `AuthController.java`: Them `@PutMapping("/me")`
+- **Files**: `UpdateProfileRequest.java` (moi), `AuthService.java`, `AuthController.java`
+
+#### 4. `POST /auth/change-password` — Doi mat khau
+
+- **Van de**: Flutter goi `POST /auth/change-password` nhung backend khong co endpoint nay.
+- **Fix**:
+  - `ChangePasswordRequest.java` (moi): DTO voi `currentPassword`, `newPassword` + validation `@Size(min=6)`
+  - `AuthService.java`: Them `changePassword(Long userId, ChangePasswordRequest)`:
+    - Kiem tra mat khau hien tai bang `passwordEncoder.matches()`
+    - Neu sai → throw `BusinessException(UNAUTHORIZED, "Mat khau hien tai khong dung")`
+    - Neu dung → encode va luu mat khau moi
+  - `AuthController.java`: Them `@PostMapping("/change-password")`
+- **Files**: `ChangePasswordRequest.java` (moi), `AuthService.java`, `AuthController.java`
+
+#### 5. `PATCH /orders/{id}/cancel` — Khach hang huy don hang
+
+- **Van de**: `OrderDetailScreen` co nut "Huy don hang" nhung chi dong dialog, khong goi API. Backend khong co endpoint huy don phia khach hang, chi co `PATCH /staff/orders/{id}/status` cho staff.
+- **Fix**:
+  - `OrderService.java`: Them `cancelOrder(Long customerId, Long orderId)`:
+    - Kiem tra khach hang so huu don: `order.getCustomer().getId().equals(customerId)` → 403 neu sai
+    - Kiem tra trang thai PENDING: chi cho huy khi con PENDING → 400 neu khac
+    - Them log "Khach hang huy don", set status CANCELLED
+  - `OrderController.java`: Them `@PatchMapping("/orders/{id}/cancel")`
+- **Files**: `OrderService.java`, `OrderController.java`
+
+---
+
+### Flutter — Fix va implement phan con lai
+
+#### 6. Wire nut "Huy don" trong OrderDetailScreen
+
+- **Van de**: Nut "Huy don hang" o `order_detail_screen.dart` chi goi `Navigator.pop(context)` khi bam "Huy don" trong dialog — khong goi API nao.
+- **Fix**:
+  - `api_constants.dart`: Them `cancelOrder = 'orders/{id}/cancel'`
+  - `order_providers.dart`: Them `OrderActionsNotifier` voi method `cancelOrder(orderId)` goi `PATCH /orders/{id}/cancel`, sau do invalidate `orderListProvider` va `orderDetailProvider`
+  - `order_detail_screen.dart`:
+    - Them import `order_providers.dart`
+    - Doi `_OrderDetailView` tu `StatelessWidget` → `ConsumerWidget` (can `WidgetRef ref` de goi provider)
+    - `_confirmCancel()` nhan them tham so `WidgetRef ref`
+    - Khi confirm: goi `ref.read(orderActionsProvider.notifier).cancelOrder(orderId)`, hien SnackBar, quay ve man hinh truoc
+    - Bao loi duoc hien SnackBar mau do
+- **Files**: `api_constants.dart`, `order_providers.dart`, `order_detail_screen.dart`
+
+#### 7. Nut "Quen mat khau" trong LoginScreen
+
+- **Van de**: Nut "Quen mat khau" co `onPressed: isLoading ? null : () {}` → bam khong lam gi.
+- **Fix**: Them method `_showForgotPasswordDialog()` hien `AlertDialog` giai thich lien he tong dai, co nut "Goi tong dai" mo `tel:0908109929` qua `url_launcher`.
+- **Files**: `login_screen.dart`
+
+#### 8. Staff Profile — Them show/hide toggle cho o nhap mat khau
+
+- **Van de**: Bottom sheet "Doi mat khau" cua staff (`_showChangePasswordSheet` trong `staff_profile_screen.dart`) su dung `obscureText: true` co dinh, khong co nut hien/an mat khau. Khac biet so voi man customer da co toggle.
+- **Fix**: Boc bang `StatefulBuilder`, khai bao `bool showCurrent = false`, `bool showNew = false` ben ngoai `builder:` (de tranh reset khi setState). Them `IconButton` suffixIcon voi `Icons.visibility` / `Icons.visibility_off`.
+- **File**: `staff_profile_screen.dart`
+
+---
+
+### Tong ket trang thai sau Session 6
+
+#### Da implement day du (tat ca chuc nang co the lam)
+
+| Chuc nang | Backend | Flutter |
+|-----------|---------|---------|
+| Xem san pham, chi tiet san pham | ✅ | ✅ |
+| Yeu cau bao gia | ✅ | ✅ |
+| Danh sach don hang + chi tiet | ✅ | ✅ |
+| **Huy don hang (khach hang)** | ✅ vua them | ✅ vua fix |
+| Chat realtime (WebSocket + REST) | ✅ | ✅ |
+| Thong bao (danh dau 1/tat ca da doc) | ✅ vua them | ✅ |
+| Bao hanh (xem xe, tao yeu cau) | ✅ | ✅ |
+| Cap nhat thong tin ca nhan | ✅ vua them | ✅ |
+| **Doi mat khau** | ✅ vua them | ✅ |
+| **Quen mat khau** | N/A (hotline) | ✅ vua them |
+| Staff: quan ly don hang | ✅ | ✅ |
+| Staff: duyet bao gia | ✅ | ✅ |
+| Staff: quan ly bao hanh | ✅ | ✅ |
+| Staff: chat voi khach | ✅ | ✅ |
+| Staff: ban do dai ly + GPS | ✅ vua them /nearest | ✅ |
+| Staff: quan ly phong ban + nhan vien | ✅ | ✅ |
+| **Staff profile: show/hide mat khau** | N/A | ✅ vua fix |
+
+#### Con lai co chu y de lai (khong implement)
+
+| Chuc nang | Ly do |
+|-----------|-------|
+| Dang nhap Zalo OAuth | Can tich hop Zalo SDK ben thu 3 + backend verify token that — phuc tap, ngoai pham vi hien tai |
+| `chat_repository_impl.dart` (stub cu) | File cu con ton tai nhung khong duoc dung (logic that nam trong `chat_providers.dart`). Khong anh huong runtime. |
+
+---
+
+## Quy tac ghi note
+
+> **Tu session 6 tro di**: Moi lan co thay doi (fix bug, them tinh nang, sua endpoint, ...) phai **cap nhat file nay ngay** voi SESSION moi o cuoi file. Khong de note bi tre.
+
+---
+
+## SESSION 7 — Production Hardening (2026-05-11)
+
+### Bước 1: Tách secrets ra .env — xóa credential khỏi source code
+
+**Vấn đề**: `application-dev.yml` chứa mật khẩu DB thật (`${DB_PASSWORD:159357bapD}`) và `application.yml` chứa JWT secret yếu dưới dạng default fallback — nếu deploy mà quên set env var thì dùng luôn secret yếu/rò rỉ mật khẩu.
+
+**Fix**:
+
+1. **`backend/src/main/resources/application-dev.yml`**
+   - Thêm `spring.config.import: optional:file:./.env[.properties]` — Spring Boot tự đọc file `.env` tại thư mục chạy app
+   - Đổi `${DB_PASSWORD:159357bapD}` → `${DB_PASSWORD}` (bỏ default nguy hiểm)
+
+2. **`backend/src/main/resources/application.yml`**
+   - Đổi `${JWT_SECRET:quyen-auto-default-jwt-secret-key-change-in-production-2024}` → `${JWT_SECRET}` (bắt buộc phải set)
+
+3. **`backend/.env`** (MỚI — **gitignored** theo `backend/.gitignore: *.env`)
+   - Chứa giá trị thật cho dev: `DB_PASSWORD`, `JWT_SECRET`, `MAIL_*`, `CLOUDINARY_*`
+   - **Không commit file này**
+
+4. **`backend/.env.example`** (MỚI — **được commit** làm template)
+   - Hướng dẫn dev mới copy thành `.env` và điền giá trị
+
+**Lệnh để chạy dev sau khi thay đổi**:
+```bash
+# Từ thư mục backend/
+cp .env.example .env
+# Điền DB_PASSWORD và JWT_SECRET thật vào .env
+mvn spring-boot:run
+```
+
+**Kiểm tra**: `git check-ignore -v backend/.env` → matched bởi `backend/.gitignore:*.env` ✅
+
+---
+
+### Bước 2: Rate limiting cho POST /auth/login — chặn brute force
+
+**Vấn đề**: `/auth/login` không có giới hạn số lần thử → attacker có thể brute-force mật khẩu.
+
+**Fix**: Thêm `LoginRateLimitFilter` dùng Bucket4j in-memory:
+- **5 attempts / IP / 15 phút**
+- Trả về `429 Too Many Requests` + JSON message khi vượt giới hạn
+- Đọc IP từ `X-Forwarded-For` (hỗ trợ reverse proxy), fallback về `getRemoteAddr()`
+
+**Files thay đổi**:
+- `backend/pom.xml` — thêm `com.github.bucket4j:bucket4j-core:8.10.1`
+- `backend/src/main/java/com/quyenauto/config/LoginRateLimitFilter.java` — **MỚI**, `@Component @Order(1)`
+
+**Phía Flutter**: Không cần sửa — `ApiService._extractServerMessage()` đã tự extract `message` từ JSON response, SnackBar sẽ hiển thị đúng.
+
+**Response khi bị rate limit**:
+```json
+{
+  "success": false,
+  "message": "Qua nhieu lan dang nhap that bai. Vui long thu lai sau 15 phut.",
+  "statusCode": 429
+}
+```
+
+---
+
+### Bước 3: Fix ChatController — kiểm tra quyền vào phòng chat
+
+**Vấn đề**:
+1. `GET /chat/rooms/{roomId}/messages` — không có `Authentication` param → **bất kỳ user đã đăng nhập nào** cũng đọc được tin nhắn của mọi phòng chat (kể cả phòng họ không phải thành viên).
+2. `POST /chat/rooms/init?customerId=X&staffId=Y` — không kiểm tra caller → customer có thể tạo phòng chat "nhân danh" customer khác.
+
+**Fix**:
+
+**`ChatService.java`** — đổi signature `getMessages`, thêm membership check:
+```java
+public Page<ChatMessageResponse> getMessages(Long roomId, Long requesterId, Pageable pageable) {
+    ChatRoom room = roomRepository.findById(roomId)
+        .orElseThrow(() -> new BusinessException(NOT_FOUND, "Không tìm thấy phòng chat"));
+    boolean isMember = room.getCustomer().getId().equals(requesterId)
+        || (room.getStaff() != null && room.getStaff().getId().equals(requesterId));
+    if (!isMember) throw new BusinessException(FORBIDDEN, "Bạn không có quyền...");
+    return messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, pageable)...;
+}
+```
+
+**`ChatController.java`**:
+- `getMessages` — thêm `Authentication auth`, truyền `userId` vào service
+- `getOrCreateRoom` — thêm `Authentication auth`; nếu caller có `ROLE_CUSTOMER` thì `customerId` phải bằng `callerId`, ngược lại (staff/manager/admin) cho phép tạo bất kỳ
+
+**Không cần sửa Flutter** — các request từ app đều đúng (customer gửi `customerId` của chính họ).
+
+---
+
+### Bước 7: WebSocket auto-reconnect với exponential backoff
+
+**Vấn đề**: `websocket_service.dart` cũ:
+1. Dùng `reconnectDelay: Duration(seconds: 5)` của stomp — cố định 5s, không backoff
+2. `onDisconnect` clear `_subscriptions` nhưng **không re-subscribe** sau khi kết nối lại → chat và order update ngừng hoạt động sau khi mất mạng rồi online lại
+
+**Fix** — Rewrite `websocket_service.dart`:
+- Tắt stomp auto-reconnect (`reconnectDelay: Duration(days: 1)`)
+- Tự handle reconnect với exponential backoff: **2s → 4s → 8s → 16s → 32s → 60s (max)**
+- Lưu `_subscriptionCallbacks` map; sau mỗi `onConnect` gọi `_resubscribeAll()` để restore tất cả topic đã subscribe
+- `disconnect()` intentional không trigger reconnect
+
+**Backoff formula**: `delay = 2 * 2^(attempt-1)`, capped ở 60s
+
+---
+
+### Bước 8: Fix race condition mã đơn hàng
+
+**Vấn đề**: `generateOrderCode()` dùng `orderRepository.count() + 1` — nếu 2 request đồng thời, cả 2 có thể get cùng count → trùng mã đơn hàng (lỗi `UNIQUE constraint failed`).
+
+**Fix**: Thay bằng UUID-based code:
+```java
+String prefix = "QA" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMM"));
+String uniquePart = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+return prefix + uniquePart; // e.g. "QA2605A3F8B12C"
+```
+Format mới: `QA{yyMM}{8-hex}` = 14 chars, fit trong `length = 30`, zero collision probability.
+
+**Lưu ý (Bước 8)**: `generateOrderCode()` hiện chưa được gọi ở đâu trong code — orders chưa có endpoint tạo mới. Fix này đảm bảo khi implement order creation sẽ an toàn.
+
+---
+
+### Bước 6: Cloudinary upload ảnh đại diện (avatar)
+
+**Vấn đề**: Avatar profile chỉ hiển thị static, không thể thay đổi từ app.
+
+**Backend**: Đã có sẵn `CloudinaryConfig`, `CloudinaryService`, `POST /upload` endpoint — chỉ cần wire Flutter.
+
+**Flutter changes**:
+
+1. **`pubspec.yaml`** — thêm `path: ^1.9.0` (để lấy `basename()` khi build multipart)
+
+2. **`api_constants.dart`** — thêm `static const String upload = 'upload'`
+
+3. **`api_service.dart`** — thêm `uploadFile(File file, {String folder})`:
+   ```dart
+   Future<String> uploadFile(File file, {String folder = 'general'}) async {
+     final formData = FormData.fromMap({
+       'file': await MultipartFile.fromFile(file.path, filename: basename(file.path)),
+       'folder': folder,
+     });
+     // goi postMultipart, lay data String (URL)
+   }
+   ```
+
+4. **`profile_screen.dart`** — convert `_ProfileHeader` từ `StatelessWidget` → `ConsumerStatefulWidget`:
+   - Thêm camera badge overlay trên avatar
+   - Tap avatar → `ImagePicker.pickImage()` → `api.uploadFile()` → `authProvider.updateProfile(avatarUrl: url)`
+   - Show `CircularProgressIndicator` trong khi upload (`_uploading = true`)
+
+**Flow**:
+1. User tap avatar → gallery picker mở
+2. Chọn ảnh → resize tối đa 512x512, quality 80%
+3. Upload lên `POST /upload?folder=avatars`
+4. Backend trả về URL Cloudinary
+5. Gọi `PUT /auth/me` với `avatarUrl` mới
+6. State refresh → avatar hiển thị ngay
+
+**Lưu ý production**: Cần điền `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` vào `.env` (dev) hoặc env vars (prod).
+
+---
+
+### Bước 9: Workflow phê duyệt hủy đơn hàng
+
+**Vấn đề trước**: Khách hàng cancel → đơn bị hủy ngay lập tức, không có bước xét duyệt của staff.
+
+**Workflow mới**:
+1. Khách hàng nhấn "Yêu cầu hủy đơn" → status: `CANCEL_REQUESTED`
+2. Staff nhìn thấy badge "⚠️ Chờ duyệt hủy" → vào chi tiết để Approve/Reject
+3. Approve → `CANCELLED` + OrderStatusLog
+4. Reject → `PENDING` + OrderStatusLog
+
+**Cho phép cancel từ**: `PENDING` hoặc `CONFIRMED` (trước chỉ `PENDING`)
+
+**Backend changes**:
+- `V2__add_cancel_requested_status.sql` — ALTER orders.status ENUM để thêm `CANCEL_REQUESTED`
+- `Order.java` — thêm `CANCEL_REQUESTED` vào enum
+- `OrderService.java` — `cancelOrder()` → `CANCEL_REQUESTED` thay vì `CANCELLED`; thêm `approveCancel()`, `rejectCancel()`
+- `OrderController.java` — thêm `PATCH /staff/orders/{id}/cancel/approve` và `PATCH /staff/orders/{id}/cancel/reject`
+- `api_constants.dart` — thêm `staffApproveCancel`, `staffRejectCancel`
+
+**Flutter changes**:
+- `order.dart` — thêm `cancelRequested` vào `OrderStatus` enum
+- `app_colors.dart` — thêm màu cho `cancelrequested` (amber/warning)
+- `order_detail_screen.dart` (customer) — nút "Yêu cầu hủy đơn", banner chờ duyệt khi status = cancelRequested
+- `order_detail_staff_screen.dart` — thêm section Approve/Reject, handle case trong status switch
+- `order_management_screen.dart` — thêm filter "Chờ duyệt hủy", thêm chip màu amber
+- `order_providers.dart` — thêm `approveCancel()`, `rejectCancel()` vào `OrderActionsNotifier`
+- `staff_providers.dart` — thêm `approveCancel()`, `rejectCancel()` vào `StaffActionsNotifier`
+
+---
+
+### Bước 5: FCM Push Notification — gửi thực sự khi có thông báo mới
+
+**Mục tiêu**: Khi backend gọi `NotificationService.createNotification()`, server tự động gửi FCM push notification đến thiết bị của user. App đăng ký FCM token ngay sau khi đăng nhập thành công.
+
+**Thiết kế graceful degradation**:
+- Nếu `FIREBASE_SERVICE_ACCOUNT_JSON` chưa được set → app vẫn khởi động bình thường, push notification bị bỏ qua (log WARN)
+- Nếu `google-services.json` chưa có trong Flutter → app vẫn build và chạy, FCM bị tắt tự động (try-catch)
+
+**Backend changes**:
+
+1. **`FcmConfig.java`** (MỚI, `config/`)
+   - `@Bean FirebaseApp firebaseApp()` — đọc `${firebase.service-account-json:}` từ env
+   - Nếu rỗng → log WARN + return `null` (bean null, app không crash)
+   - Nếu có → parse JSON credentials, khởi tạo `FirebaseApp`
+   - Check `!FirebaseApp.getApps().isEmpty()` tránh init lại khi dev hot-reload
+
+2. **`FcmPushService.java`** (MỚI, `notification/service/`)
+   - `@Service`, constructor `@Autowired @Nullable FirebaseApp` → null-safe khi Firebase chưa cấu hình
+   - `send(List<String> tokens, String title, String body)`:
+     - Bỏ qua nếu `firebaseApp == null` hoặc `tokens` rỗng
+     - Chia batch <= 500 tokens (giới hạn FCM multicast)
+     - Dùng `FirebaseMessaging.getInstance(app).sendEachForMulticast(MulticastMessage)`
+     - Log success/failure count, log token thất bại ở DEBUG level
+
+3. **`NotificationService.java`** — thêm `FcmPushService fcmPushService` (via `@RequiredArgsConstructor`):
+   - Trong `createNotification()`: sau khi `notificationRepository.save()`, query tất cả FCM token của user → gọi `fcmPushService.send(tokens, title, body)`
+
+4. **`application-dev.yml`** — thêm `firebase.service-account-json: ${FIREBASE_SERVICE_ACCOUNT_JSON:}`
+
+5. **`backend/.env`** — thêm `FIREBASE_SERVICE_ACCOUNT_JSON=` (rỗng, để dev tắt FCM)
+
+6. **`backend/.env.example`** — thêm hướng dẫn lấy service account JSON từ Firebase Console
+
+**pom.xml** (đã thêm session trước):
+- `firebase-admin:9.4.3`
+
+**Flutter changes**:
+
+7. **`main.dart`** và **`main_staff.dart`** — thêm Firebase init sau `dotenv.load()`:
+   ```dart
+   try {
+     await Firebase.initializeApp();
+   } catch (_) {
+     // Firebase chua duoc cau hinh — FCM se bi vo hieu hoa
+   }
+   ```
+
+8. **`auth_providers.dart`** — thêm `_registerFcmToken()`:
+   ```dart
+   Future<void> _registerFcmToken() async {
+     try {
+       await FirebaseMessaging.instance.requestPermission(...);
+       final token = await FirebaseMessaging.instance.getToken();
+       if (token == null) return;
+       await api.post('notifications/fcm-token', data: {'token': token, 'deviceType': 'MOBILE'});
+     } catch (_) {}
+   }
+   ```
+   - Gọi `_registerFcmToken()` trong: `build()` (restore session), `login()`, `register()`, `loginWithZalo()`
+
+**pubspec.yaml** (đã có sẵn từ trước): `firebase_core: ^3.8.0`, `firebase_messaging: ^15.1.5`
+
+---
+
+### Bước 4: OTP xác minh email sau đăng ký
+
+**Vấn đề**: Không có cơ chế xác minh email → bất kỳ ai có thể đăng ký bằng email của người khác mà không cần xác nhận.
+
+**Thiết kế (graceful, không breaking)**:
+- Đăng ký có email → `emailVerified = false`, gửi OTP 6 chữ số qua email
+- Đăng ký không có email → `emailVerified = true` (không cần xác minh)
+- User có thể bỏ qua OTP → vẫn dùng được app, chỉ thấy banner nhắc trong profile
+- User cũ (trước migration) → mặc định `emailVerified = TRUE`, không ảnh hưởng
+
+**Bug Flyway đã fix**: Session trước tạo nhầm `V2__add_cancel_requested_status.sql` trong khi đã có `V2__fix_admin_password.sql`. Đã rename thành `V3__add_cancel_requested_status.sql`. OTP migration = `V4__otp_email_verification.sql`.
+
+**Backend** (10 files):
+- `V4__otp_email_verification.sql` — `ALTER TABLE users ADD email_verified`, `CREATE TABLE otp_codes`
+- `User.java` — thêm `emailVerified = true`
+- `OtpCode.java` (MỚI) — entity: `user_id, code, purpose, attempts, expires_at`
+- `OtpCodeRepository.java` (MỚI) — `findLatestByUserIdAndPurpose()`, `deleteByUserIdAndPurpose()`
+- `EmailService.java` (MỚI) — gửi email OTP; nếu MAIL_USERNAME rỗng → log ra console (dev mode)
+- `OtpService.java` (MỚI) — `sendEmailVerificationOtp()` (SecureRandom 6 chữ số, expire 5 phút), `verifyEmailOtp()` (max 5 attempts)
+- `AuthService.java` — inject OtpService; `register()` tự gửi OTP nếu có email (try-catch, không block đăng ký)
+- `AuthResponse.UserInfo` — thêm `emailVerified`
+- `VerifyOtpRequest.java` (MỚI) — DTO `code` (6 chars)
+- `AuthController.java` — thêm `POST /auth/otp/send` và `POST /auth/otp/verify`
+
+**Flutter** (7 files):
+- `user.dart` — thêm `emailVerified` (default `true`)
+- `auth_repository_impl.dart` — map `emailVerified` từ JSON
+- `auth_providers.dart` — thêm `resendOtp()`, `verifyOtp(code)`
+- `route_paths.dart` — thêm `verifyOtp = '/verify-otp'`
+- `app_router.dart` — thêm route + cho phép `/verify-otp` trong onAuthScreen
+- `OtpVerificationScreen` (MỚI) — 6 ô nhập số, countdown 5 phút, gửi lại, tự verify khi đủ 6 chữ
+- `register_screen.dart` — sau register: `!emailVerified && email != null` → `/verify-otp`
+- `profile_screen.dart` — `_EmailVerifyBanner` (amber) tap → `/verify-otp`
+
+**Dev workflow**: OTP sẽ in ra Spring Boot console log khi chưa cấu hình mail. Grep log `OTP for`:
+```
+WARN OTP for user@example.com is: 482931
+```
+
+---
+
+**Để bật FCM trong production**:
+1. Tạo project Firebase tại console.firebase.google.com
+2. Android: download `google-services.json` vào `android/app/`
+3. iOS: download `GoogleService-Info.plist` vào `ios/Runner/`
+4. Chạy `flutterfire configure` để tạo `lib/firebase_options.dart`
+5. Sửa `main.dart` + `main_staff.dart`: `await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)`
+6. Backend: lấy service account JSON (Firebase Console → Project Settings → Service Accounts → Generate new private key), điền vào `FIREBASE_SERVICE_ACCOUNT_JSON` trong `.env` (1 dòng, no line breaks)
+
+

@@ -84,7 +84,12 @@ class _ChatRoomTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final timeFmt = DateFormat('HH:mm');
-    final lastMsg = room.lastMessage;
+
+    // Customer name — show name if available, fall back to ID
+    final customerLabel =
+        room.customerName?.isNotEmpty == true
+            ? room.customerName!
+            : 'Khách hàng #${room.customerId}';
 
     return ListTile(
       contentPadding:
@@ -92,12 +97,13 @@ class _ChatRoomTile extends StatelessWidget {
       leading: CircleAvatar(
         radius: 24,
         backgroundColor: AppColors.primaryNavy,
-        backgroundImage:
-            room.staffAvatar != null ? NetworkImage(room.staffAvatar!) : null,
-        child: room.staffAvatar == null
+        backgroundImage: room.customerAvatar != null
+            ? NetworkImage(room.customerAvatar!)
+            : null,
+        child: room.customerAvatar == null
             ? Text(
-                room.staffName.isNotEmpty
-                    ? room.staffName[0].toUpperCase()
+                customerLabel.isNotEmpty
+                    ? customerLabel[0].toUpperCase()
                     : 'C',
                 style: const TextStyle(
                     color: AppColors.textWhite,
@@ -105,15 +111,15 @@ class _ChatRoomTile extends StatelessWidget {
                     fontSize: 16))
             : null,
       ),
-      title: Text('Khách hàng #${room.customerId}',
+      title: Text(customerLabel,
           style: TextStyle(
               fontSize: 14,
               fontWeight:
                   room.unreadCount > 0 ? FontWeight.w700 : FontWeight.w500,
               color: AppColors.textDark)),
-      subtitle: lastMsg != null
+      subtitle: room.lastMessage != null
           ? Text(
-              lastMsg.content,
+              room.lastMessage!,
               style: TextStyle(
                   fontSize: 12,
                   color: room.unreadCount > 0
@@ -128,8 +134,8 @@ class _ChatRoomTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (lastMsg != null)
-            Text(timeFmt.format(lastMsg.createdAt),
+          if (room.lastMessageAt != null)
+            Text(timeFmt.format(room.lastMessageAt!),
                 style: const TextStyle(
                     fontSize: 10, color: AppColors.textGray)),
           if (room.unreadCount > 0) ...[

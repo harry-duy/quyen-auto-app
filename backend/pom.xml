@@ -22,6 +22,8 @@
         <jjwt.version>0.11.5</jjwt.version>
         <cloudinary.version>1.38.0</cloudinary.version>
         <springdoc.version>2.7.0</springdoc.version>
+        <bucket4j.version>8.10.1</bucket4j.version>
+        <firebase-admin.version>9.4.3</firebase-admin.version>
     </properties>
 
     <dependencies>
@@ -87,6 +89,21 @@
             <artifactId>jjwt-jackson</artifactId>
             <version>${jjwt.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- ─── Firebase Admin ──────────────────────────────────────────── -->
+        <dependency>
+            <groupId>com.google.firebase</groupId>
+            <artifactId>firebase-admin</artifactId>
+            <version>${firebase-admin.version}</version>
+        </dependency>
+
+        <!-- ─── Rate Limiting ───────────────────────────────────────────── -->
+        <!-- groupId doi tu com.github.bucket4j sang com.bucket4j tu phien ban 8.7+ -->
+        <dependency>
+            <groupId>com.bucket4j</groupId>
+            <artifactId>bucket4j-core</artifactId>
+            <version>${bucket4j.version}</version>
         </dependency>
 
         <!-- ─── Cloudinary ───────────────────────────────────────────────── -->

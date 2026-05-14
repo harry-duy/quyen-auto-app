@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/di/order_providers.dart';
 import '../../core/di/providers.dart';
 import '../../domain/entities/order.dart';
 
@@ -54,19 +55,21 @@ class OrderDetailScreen extends ConsumerWidget {
 
 // ─── Detail View ─────────────────────────────────────────────────────────────
 
-class _OrderDetailView extends StatelessWidget {
+class _OrderDetailView extends ConsumerWidget {
   final Order order;
   final String orderId;
   const _OrderDetailView({required this.order, required this.orderId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final fmt =
         NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
     final dateFmt = DateFormat('HH:mm — dd/MM/yyyy');
     final statusColor = AppColors.forOrderStatus(order.status.name);
     final statusBg = AppColors.bgForOrderStatus(order.status.name);
-    final canCancel = order.status == OrderStatus.pending;
+    // Co the gui yeu cau huy khi dang PENDING hoac CONFIRMED
+    final canCancel = order.status == OrderStatus.pending ||
+        order.status == OrderStatus.confirmed;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -168,32 +171,61 @@ class _OrderDetailView extends StatelessWidget {
           const SizedBox(height: 80),
         ]),
       ),
-      bottomNavigationBar: canCancel
+      bottomNavigationBar: order.status == OrderStatus.cancelRequested
           ? SafeArea(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: OutlinedButton.icon(
-                  onPressed: () => _confirmCancel(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.errorRed,
-                    side: const BorderSide(color: AppColors.errorRed),
-                    minimumSize: const Size(double.infinity, 52),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF8E1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.warningAmber.withValues(alpha: 0.5)),
                   ),
-                  icon: const Icon(Icons.cancel_outlined),
-                  label: const Text('Hủy đơn hàng'),
+                  child: const Row(children: [
+                    Icon(Icons.hourglass_top, color: AppColors.warningAmber),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Đang chờ nhân viên xét duyệt yêu cầu hủy đơn',
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.warningAmber,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ]),
                 ),
               ),
             )
-          : null,
+          : canCancel
+              ? SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                    child: OutlinedButton.icon(
+                      onPressed: () => _confirmCancel(context, ref),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.errorRed,
+                        side: const BorderSide(color: AppColors.errorRed),
+                        minimumSize: const Size(double.infinity, 52),
+                      ),
+                      icon: const Icon(Icons.cancel_outlined),
+                      label: const Text('Yêu cầu hủy đơn'),
+                    ),
+                  ),
+                )
+              : null,
     );
   }
 
-  void _confirmCancel(BuildContext context) {
+  void _confirmCancel(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Xác nhận hủy đơn'),
-        content: Text('Bạn có chắc muốn hủy đơn hàng ${order.orderCode}?'),
+        title: const Text('Gửi yêu cầu hủy đơn'),
+        content: Text(
+          'Yêu cầu hủy đơn hàng ${order.orderCode} sẽ được gửi đến nhân viên để xét duyệt.',
+        ),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context),
@@ -201,8 +233,31 @@ class _OrderDetailView extends StatelessWidget {
           ElevatedButton(
             style:
                 ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy đơn'),
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await ref
+                    .read(orderActionsProvider.notifier)
+                    .cancelOrder(orderId);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Đã gửi yêu cầu hủy — chờ nhân viên xác nhận'),
+                    ),
+                  );
+                  Navigator.of(context).pop();
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(e.toString().replaceAll('Exception:', '').trim()),
+                        backgroundColor: AppColors.errorRed),
+                  );
+                }
+              }
+            },
+            child: const Text('Gửi yêu cầu'),
           ),
         ],
       ),
@@ -210,19 +265,21 @@ class _OrderDetailView extends StatelessWidget {
   }
 
   IconData _statusIcon(OrderStatus s) => switch (s) {
-        OrderStatus.pending => Icons.schedule,
-        OrderStatus.confirmed => Icons.thumb_up_outlined,
-        OrderStatus.inProduction => Icons.precision_manufacturing_outlined,
-        OrderStatus.completed => Icons.check_circle_outline,
-        OrderStatus.cancelled => Icons.cancel_outlined,
+        OrderStatus.pending         => Icons.schedule,
+        OrderStatus.confirmed       => Icons.thumb_up_outlined,
+        OrderStatus.inProduction    => Icons.precision_manufacturing_outlined,
+        OrderStatus.completed       => Icons.check_circle_outline,
+        OrderStatus.cancelled       => Icons.cancel_outlined,
+        OrderStatus.cancelRequested => Icons.pending_actions_outlined,
       };
 
   String _statusLabel(OrderStatus s) => switch (s) {
-        OrderStatus.pending => 'Chờ xác nhận',
-        OrderStatus.confirmed => 'Đã xác nhận',
-        OrderStatus.inProduction => 'Đang sản xuất',
-        OrderStatus.completed => 'Hoàn thành',
-        OrderStatus.cancelled => 'Đã hủy',
+        OrderStatus.pending         => 'Chờ xác nhận',
+        OrderStatus.confirmed       => 'Đã xác nhận',
+        OrderStatus.inProduction    => 'Đang sản xuất',
+        OrderStatus.completed       => 'Hoàn thành',
+        OrderStatus.cancelled       => 'Đã hủy',
+        OrderStatus.cancelRequested => 'Chờ duyệt hủy',
       };
 }
 
@@ -337,6 +394,28 @@ class _StatusTimeline extends StatelessWidget {
           Text('Đơn hàng đã bị hủy',
               style: TextStyle(
                   color: AppColors.errorRed, fontWeight: FontWeight.w600)),
+        ]),
+      );
+    }
+
+    if (current == OrderStatus.cancelRequested) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.warningAmber.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.warningAmber.withValues(alpha: 0.3)),
+        ),
+        child: const Row(children: [
+          Icon(Icons.pending_actions_outlined, color: AppColors.warningAmber),
+          SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Yêu cầu hủy đơn đang chờ nhân viên xét duyệt',
+              style: TextStyle(
+                  color: AppColors.warningAmber, fontWeight: FontWeight.w600),
+            ),
+          ),
         ]),
       );
     }

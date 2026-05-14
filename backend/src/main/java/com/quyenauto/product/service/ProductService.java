@@ -23,11 +23,13 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ProductCategoryRepository categoryRepository;
 
+    @Transactional(readOnly = true)
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findByIsActiveTrueOrderBySortOrderAsc()
                 .stream().map(CategoryResponse::from).toList();
     }
 
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getProducts(Long categoryId, String keyword, Pageable pageable) {
         Page<Product> page;
         if (keyword != null && !keyword.isBlank()) {
@@ -40,6 +42,7 @@ public class ProductService {
         return page.map(ProductResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public ProductResponse getProductById(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));

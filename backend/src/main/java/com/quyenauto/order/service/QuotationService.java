@@ -23,19 +23,23 @@ public class QuotationService {
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
 
+    @Transactional(readOnly = true)
     public Page<QuotationResponse> getByCustomer(Long customerId, Pageable pageable) {
         return quotationRepository.findByCustomerId(customerId, pageable).map(QuotationResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public Page<QuotationResponse> getByStatus(String status, Pageable pageable) {
         Quotation.QuotationStatus qs = Quotation.QuotationStatus.valueOf(status.toUpperCase());
         return quotationRepository.findByStatus(qs, pageable).map(QuotationResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public Page<QuotationResponse> getAll(Pageable pageable) {
         return quotationRepository.findAll(pageable).map(QuotationResponse::from);
     }
 
+    @Transactional(readOnly = true)
     public QuotationResponse getById(Long id) {
         return QuotationResponse.from(findById(id));
     }

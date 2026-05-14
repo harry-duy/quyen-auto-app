@@ -21,12 +21,14 @@ public class DepartmentService {
     private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
 
+    @Transactional(readOnly = true)
     public List<DepartmentResponse> getAll() {
         return departmentRepository.findByIsActiveTrueOrderByNameAsc().stream()
                 .map(this::toResponse)
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public DepartmentResponse getById(Long id) {
         Department dept = departmentRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy phòng ban"));
