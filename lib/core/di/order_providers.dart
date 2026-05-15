@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/constants/api_constants.dart';
 import '../../domain/entities/order.dart';
 import 'service_providers.dart';
 
@@ -57,23 +58,69 @@ class QuotationNotifier extends AsyncNotifier<Order?> {
 
   Future<bool> submit({
     required String productId,
-    required String truckType,
-    required double truckLength,
-    required String requirements,
+    required String vehicleBrand,
+    required String bodyType,
+    required String bodySize,
+    double? lengthCm,
+    double? widthCm,
+    double? heightCm,
+    List<String>? options,
     String? note,
   }) async {
     state = const AsyncLoading();
     final result = await AsyncValue.guard(
       () => ref.read(orderRepositoryProvider).createQuotation(
             productId: productId,
-            truckType: truckType,
-            truckLength: truckLength,
-            requirements: requirements,
+            vehicleBrand: vehicleBrand,
+            bodyType: bodyType,
+            bodySize: bodySize,
+            lengthCm: lengthCm,
+            widthCm: widthCm,
+            heightCm: heightCm,
+            options: options,
             note: note,
           ),
     );
     state = result;
     return result.hasValue && result.value != null;
+  }
+
+  Future<bool> submitGuest({
+    required String phone,
+    String? fullName,
+    String? productId,
+    String? vehicleBrand,
+    String? bodyType,
+    String? bodySize,
+    double? lengthCm,
+    double? widthCm,
+    double? heightCm,
+    List<String>? options,
+    String? note,
+  }) async {
+    state = const AsyncLoading();
+    final api = ref.read(apiServiceProvider);
+    final result = await AsyncValue.guard(() async {
+      await api.post(
+        ApiConstants.createGuestQuotation,
+        data: {
+          'phone': phone,
+          if (fullName != null) 'fullName': fullName,
+          if (productId != null) 'productId': int.tryParse(productId),
+          if (vehicleBrand != null) 'vehicleBrand': vehicleBrand,
+          if (bodyType != null) 'bodyType': bodyType,
+          if (bodySize != null) 'bodySize': bodySize,
+          if (lengthCm != null) 'lengthCm': lengthCm,
+          if (widthCm != null) 'widthCm': widthCm,
+          if (heightCm != null) 'heightCm': heightCm,
+          if (options != null && options.isNotEmpty) 'options': options,
+          if (note != null) 'note': note,
+        },
+      );
+      return null as Order?;
+    });
+    state = result;
+    return !result.hasError;
   }
 }
 

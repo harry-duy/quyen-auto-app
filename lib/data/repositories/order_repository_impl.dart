@@ -27,6 +27,18 @@ class OrderRepositoryImpl implements OrderRepository {
     updatedAt:        r.estimatedDate,
   );
 
+  Order _fromQuotation(QuotationResponse q) => Order(
+    id:          q.id.toString(),
+    orderCode:   '#QUO-${q.id}',
+    productId:   q.id.toString(),
+    productName: q.productName ?? q.product?.name ?? 'Báo giá #${q.id}',
+    status:      OrderStatus.pending,
+    totalAmount: 0,
+    note:        q.note,
+    createdAt:   q.createdAt,
+    updatedAt:   null,
+  );
+
   @override
   Future<List<Order>> getOrders({int page = 0, int size = 10, String? status}) async {
     final res = await _api.get<List<Order>>(
@@ -56,22 +68,33 @@ class OrderRepositoryImpl implements OrderRepository {
   @override
   Future<Order> createQuotation({
     required String productId,
-    required String truckType,
-    required double truckLength,
-    required String requirements,
+    required String vehicleBrand,
+    required String bodyType,
+    required String bodySize,
+    double? lengthCm,
+    double? widthCm,
+    double? heightCm,
+    List<String>? options,
     String? note,
   }) async {
     final req = QuotationRequest(
-      productId:   int.parse(productId),
-      weightRange: '$truckLength tấn',
-      cargoType:   requirements,
-      note:        note,
+      productId:    int.parse(productId),
+      weightRange:  bodySize,
+      cargoType:    bodyType,
+      vehicleBrand: vehicleBrand,
+      bodyType:     bodyType,
+      bodySize:     bodySize,
+      lengthCm:     lengthCm,
+      widthCm:      widthCm,
+      heightCm:     heightCm,
+      options:      options,
+      note:         note,
     );
     final res = await _api.post<Order>(
       ApiConstants.createQuotation,
       data: req.toJson(),
-      fromData: (json) => _fromResponse(
-        OrderResponse.fromJson(json as Map<String, dynamic>),
+      fromData: (json) => _fromQuotation(
+        QuotationResponse.fromJson(json as Map<String, dynamic>),
       ),
     );
     return res.data!;

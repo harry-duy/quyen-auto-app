@@ -31,4 +31,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> findByRoleInAndDepartmentId(java.util.List<UserRole> roles, Long departmentId, Pageable pageable);
 
     Page<User> findByRoleIn(java.util.List<UserRole> roles, Pageable pageable);
+
+    java.util.List<User> findByRoleInAndIsActiveTrue(java.util.List<UserRole> roles);
 }

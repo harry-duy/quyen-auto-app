@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../core/constants/app_colors.dart';
 import '../../core/di/staff_providers.dart';
 import '../../core/router/staff_router.dart';
@@ -20,15 +22,11 @@ class StaffDashboardScreen extends ConsumerWidget {
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         title: Row(children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primaryOrange,
-            ),
-            child: const Icon(Icons.admin_panel_settings,
-                color: AppColors.textWhite, size: 18),
+          Image.asset(
+            'assets/images/logo.png',
+            width: 36,
+            height: 36,
+            fit: BoxFit.contain,
           ),
           const SizedBox(width: 10),
           const Text('Staff Dashboard',
@@ -52,6 +50,24 @@ class StaffDashboardScreen extends ConsumerWidget {
               loading: () => const _MetricCardsGridShimmer(),
               error: (e, _) => _ErrorCard(message: e.toString()),
             ),
+            const SizedBox(height: 16),
+
+            // Quick action: create customer
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () =>
+                    context.push(StaffRoutes.createCustomer),
+                icon: const Icon(Icons.person_add_outlined, size: 20),
+                label: const Text('Tạo tài khoản khách hàng'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primaryNavy,
+                  side: const BorderSide(color: AppColors.primaryNavy),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+
             const SizedBox(height: 24),
 
             // Revenue Chart

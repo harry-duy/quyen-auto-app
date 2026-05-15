@@ -96,12 +96,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  void _loginWithZalo() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Zalo OAuth — Coming Soon')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authProvider).isLoading;
@@ -120,38 +114,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 // Logo
                 Center(
-                  child: Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      color: AppFlavor.isStaff
-                          ? AppColors.primaryNavy
-                          : AppColors.primaryOrange,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        AppFlavor.isStaff
-                            ? Icons.admin_panel_settings
-                            : Icons.local_shipping,
-                        color: Colors.white,
-                        size: 40,
-                      ),
-                    ),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 160,
+                    height: 120,
+                    fit: BoxFit.contain,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
 
-                Text(
-                  AppFlavor.isStaff ? 'Quyen Auto Staff' : 'Quyen Auto',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryNavy,
-                  ),
-                ),
-                const SizedBox(height: 6),
                 Text(
                   AppFlavor.isStaff
                       ? 'Đăng nhập tài khoản nhân viên'
@@ -223,42 +194,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Customer-only: Zalo + Register
+                // Customer-only: info about account creation
                 if (AppFlavor.isCustomer) ...[
-                  Row(children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text('hoặc', style: TextStyle(color: AppColors.textGray, fontSize: 13)),
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.infoBlue.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const Expanded(child: Divider()),
-                  ]),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: isLoading ? null : _loginWithZalo,
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF0068FF),
-                      side: const BorderSide(color: Color(0xFF0068FF), width: 1.5),
-                      minimumSize: const Size(double.infinity, 52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    child: const Row(children: [
+                      Icon(Icons.info_outline,
+                          color: AppColors.infoBlue, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Tài khoản sẽ được tạo bởi nhân viên Quyen Auto '
+                          'sau khi xác nhận hợp đồng. Bạn có thể xem catalogue '
+                          'và yêu cầu báo giá mà không cần đăng nhập.',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.infoBlue, height: 1.4),
+                        ),
                       ),
-                    ),
-                    icon: const Icon(Icons.chat_bubble_outline, size: 20),
-                    label: const Text(
-                      'Đăng nhập bằng Zalo',
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ]),
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: isLoading ? null : () => context.go(AppRoutes.home),
+                    icon: const Icon(Icons.storefront_outlined, size: 20),
+                    label: const Text('Xem catalogue & báo giá'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    const Text('Chưa có tài khoản?',
-                        style: TextStyle(color: AppColors.textGray)),
-                    TextButton(
-                      onPressed: isLoading ? null : () => context.push(AppRoutes.register),
-                      child: const Text(AppStrings.register),
-                    ),
-                  ]),
                 ],
 
                 // Staff-only: contact admin hint

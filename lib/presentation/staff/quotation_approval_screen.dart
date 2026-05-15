@@ -12,10 +12,29 @@ class QuotationApprovalScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final quotationsAsync = ref.watch(staffQuotationListProvider);
+    final pendingCount = ref.watch(staffPendingQuoteCountProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('Duyệt báo giá')),
+      appBar: AppBar(
+        title: const Text('Duyệt báo giá'),
+        actions: [
+          pendingCount.when(
+            data: (count) => count > 0
+                ? Container(
+                    margin: const EdgeInsets.only(right: 16),
+                    child: Badge(
+                      label: Text('$count'),
+                      backgroundColor: AppColors.errorRed,
+                      child: const Icon(Icons.notifications_active),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+        ],
+      ),
       body: quotationsAsync.when(
         data: (quotations) {
           if (quotations.isEmpty) {
@@ -34,8 +53,10 @@ class QuotationApprovalScreen extends ConsumerWidget {
             );
           }
           return RefreshIndicator(
-            onRefresh: () async =>
-                ref.invalidate(staffQuotationListProvider),
+            onRefresh: () async {
+              ref.invalidate(staffQuotationListProvider);
+              ref.invalidate(staffPendingQuoteCountProvider);
+            },
             child: ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: quotations.length,
@@ -54,6 +75,12 @@ class QuotationApprovalScreen extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(e.toString(),
                   style: const TextStyle(color: AppColors.errorRed)),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () => ref.invalidate(staffQuotationListProvider),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Thử lại'),
+              ),
             ],
           ),
         ),
@@ -69,6 +96,7 @@ class _QuotationCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
+    final isContacted = quotation.contacted;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -76,21 +104,32 @@ class _QuotationCard extends ConsumerWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderLight),
+        border: Border.all(
+          color: isContacted ? AppColors.borderLight : AppColors.warningAmber,
+          width: isContacted ? 1 : 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header
           Row(children: [
             Container(
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: AppColors.warningAmber.withValues(alpha: 0.12),
+                color: isContacted
+                    ? AppColors.successGreen.withValues(alpha: 0.12)
+                    : AppColors.warningAmber.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.request_quote,
-                  color: AppColors.warningAmber, size: 20),
+              child: Icon(
+                isContacted ? Icons.check_circle : Icons.request_quote,
+                color: isContacted
+                    ? AppColors.successGreen
+                    : AppColors.warningAmber,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -109,39 +148,169 @@ class _QuotationCard extends ConsumerWidget {
                 ],
               ),
             ),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.warningAmber.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+            if (!isContacted)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.errorRed.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.priority_high, size: 14, color: AppColors.errorRed),
+                    SizedBox(width: 2),
+                    Text('Chưa liên hệ',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.errorRed)),
+                  ],
+                ),
+              )
+            else
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.successGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text('Đã liên hệ',
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.successGreen)),
               ),
-              child: const Text('PENDING',
-                  style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.warningAmber)),
-            ),
           ]),
-          const SizedBox(height: 12),
-          _DetailRow(label: 'Sản phẩm',
-              value: quotation.product?.name ?? 'N/A'),
-          _DetailRow(label: 'Tải trọng', value: quotation.weightRange),
-          _DetailRow(label: 'Loại hàng', value: quotation.cargoType),
-          if (quotation.note != null)
-            _DetailRow(label: 'Ghi chú', value: quotation.note!),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _showApprovalDialog(context, ref),
-              icon: const Icon(Icons.check_circle, size: 18),
-              label: const Text('Gửi báo giá'),
+
+          const Divider(height: 20),
+
+          // Customer info
+          _DetailRow(
+            icon: Icons.person_outline,
+            label: 'Khách hàng',
+            value: quotation.customerName ?? 'N/A',
+          ),
+          if (quotation.customerPhone != null)
+            _DetailRow(
+              icon: Icons.phone_outlined,
+              label: 'Điện thoại',
+              value: quotation.customerPhone!,
             ),
+
+          const SizedBox(height: 8),
+
+          // Vehicle spec
+          _DetailRow(
+            icon: Icons.local_shipping_outlined,
+            label: 'Sản phẩm',
+            value: quotation.productName ?? quotation.product?.name ?? 'N/A',
+          ),
+          if (quotation.vehicleBrand != null)
+            _DetailRow(
+              icon: Icons.directions_car_outlined,
+              label: 'Hãng xe',
+              value: quotation.vehicleBrand!,
+            ),
+          if (quotation.bodyType != null)
+            _DetailRow(
+              icon: Icons.inventory_2_outlined,
+              label: 'Loại thùng',
+              value: quotation.bodyType!,
+            ),
+          if (quotation.bodySize != null)
+            _DetailRow(
+              icon: Icons.straighten_outlined,
+              label: 'Size thùng',
+              value: quotation.bodySize!,
+            ),
+          if (quotation.lengthCm != null ||
+              quotation.widthCm != null ||
+              quotation.heightCm != null)
+            _DetailRow(
+              icon: Icons.aspect_ratio_outlined,
+              label: 'Kích thước',
+              value:
+                  '${quotation.lengthCm?.toStringAsFixed(0) ?? '?'} × ${quotation.widthCm?.toStringAsFixed(0) ?? '?'} × ${quotation.heightCm?.toStringAsFixed(0) ?? '?'} cm',
+            ),
+          if (quotation.options != null && quotation.options!.isNotEmpty)
+            _DetailRow(
+              icon: Icons.build_outlined,
+              label: 'Option',
+              value: quotation.options!.join(', '),
+            ),
+          if (quotation.note != null)
+            _DetailRow(
+              icon: Icons.notes_outlined,
+              label: 'Ghi chú',
+              value: quotation.note!,
+            ),
+
+          if (isContacted && quotation.contactedByName != null) ...[
+            const SizedBox(height: 6),
+            _DetailRow(
+              icon: Icons.assignment_ind_outlined,
+              label: 'Người nhận',
+              value: quotation.contactedByName!,
+            ),
+          ],
+
+          const SizedBox(height: 14),
+
+          // Action buttons
+          Row(
+            children: [
+              if (!isContacted)
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _markContacted(context, ref),
+                    icon: const Icon(Icons.phone_callback, size: 18),
+                    label: const Text('Đã liên hệ'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.successGreen,
+                      side: const BorderSide(color: AppColors.successGreen),
+                    ),
+                  ),
+                ),
+              if (!isContacted) const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _showApprovalDialog(context, ref),
+                  icon: const Icon(Icons.check_circle, size: 18),
+                  label: const Text('Gửi báo giá'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  void _markContacted(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref
+          .read(staffActionsProvider.notifier)
+          .markQuotationContacted(quotation.id.toString());
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã đánh dấu liên hệ thành công'),
+            backgroundColor: AppColors.successGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Lỗi: $e'),
+              backgroundColor: AppColors.errorRed),
+        );
+      }
+    }
   }
 
   void _showApprovalDialog(BuildContext context, WidgetRef ref) {
@@ -231,9 +400,10 @@ class _QuotationCard extends ConsumerWidget {
 }
 
 class _DetailRow extends StatelessWidget {
+  final IconData icon;
   final String label;
   final String value;
-  const _DetailRow({required this.label, required this.value});
+  const _DetailRow({required this.icon, required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -242,8 +412,10 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, size: 16, color: AppColors.textGray),
+          const SizedBox(width: 6),
           SizedBox(
-            width: 90,
+            width: 80,
             child: Text(label,
                 style: const TextStyle(
                     fontSize: 12, color: AppColors.textGray)),

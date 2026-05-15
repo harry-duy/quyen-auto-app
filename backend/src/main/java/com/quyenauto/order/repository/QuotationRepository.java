@@ -13,5 +13,9 @@ public interface QuotationRepository extends JpaRepository<Quotation, Long> {
 
     Page<Quotation> findByStaffId(Long staffId, Pageable pageable);
 
+    Page<Quotation> findByStatusAndContactedFalse(Quotation.QuotationStatus status, Pageable pageable);
+
     long countByStatus(Quotation.QuotationStatus status);
+
+    long countByStatusAndContactedFalse(Quotation.QuotationStatus status);
 }

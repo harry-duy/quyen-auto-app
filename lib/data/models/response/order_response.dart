@@ -25,21 +25,47 @@ class OrderStatusLogResponse {
 class QuotationResponse {
   final int              id;
   final int              customerId;
+  final String?          customerName;
+  final String?          customerPhone;
   final ProductResponse? product;
+  final String?          productName;
   final String           weightRange;
   final String           cargoType;
   final String?          note;
+  final String?          vehicleBrand;
+  final String?          bodyType;
+  final String?          bodySize;
+  final double?          lengthCm;
+  final double?          widthCm;
+  final double?          heightCm;
+  final List<String>?    options;
   final String           status;
+  final bool             contacted;
+  final String?          contactedByName;
+  final DateTime?        contactedAt;
   final DateTime         createdAt;
 
   const QuotationResponse({
     required this.id,
     required this.customerId,
+    this.customerName,
+    this.customerPhone,
     this.product,
+    this.productName,
     required this.weightRange,
     required this.cargoType,
     this.note,
+    this.vehicleBrand,
+    this.bodyType,
+    this.bodySize,
+    this.lengthCm,
+    this.widthCm,
+    this.heightCm,
+    this.options,
     required this.status,
+    this.contacted = false,
+    this.contactedByName,
+    this.contactedAt,
     required this.createdAt,
   });
 

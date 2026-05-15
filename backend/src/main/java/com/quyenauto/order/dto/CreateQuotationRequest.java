@@ -3,6 +3,8 @@ package com.quyenauto.order.dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class CreateQuotationRequest {
 
@@ -12,4 +14,12 @@ public class CreateQuotationRequest {
     private String weightRange;
     private String cargoType;
     private String note;
+
+    private String vehicleBrand;
+    private String bodyType;
+    private String bodySize;
+    private Double lengthCm;
+    private Double widthCm;
+    private Double heightCm;
+    private List<String> options;
 }

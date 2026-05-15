@@ -63,6 +63,11 @@ class WebSocketService {
     _subscribe(dest, onMessage);
   }
 
+  void subscribeStaffQuotations(MessageCallback onMessage) {
+    const dest = '/topic/staff/quotations';
+    _subscribe(dest, onMessage);
+  }
+
   void _subscribe(String destination, MessageCallback onMessage) {
     if (_subscriptions.containsKey(destination)) return;
     if (_client == null || !isConnected) return;
