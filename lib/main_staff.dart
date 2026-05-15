@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'core/config/app_flavor.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/staff_router.dart';
+import 'presentation/widgets/connectivity_banner.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -50,7 +51,7 @@ class QuyenAutoStaffApp extends ConsumerWidget {
               MediaQuery.of(context).textScaler.scale(1.0).clamp(0.85, 1.15),
             ),
           ),
-          child: child!,
+          child: ConnectivityBanner(child: child!),
         );
       },
     );

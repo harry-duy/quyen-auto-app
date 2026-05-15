@@ -8,6 +8,7 @@ import '../../presentation/home/home_screen.dart';
 import '../../presentation/notification/notification_screen.dart';
 
 import '../../presentation/order/order_detail_screen.dart';
+import '../../presentation/order/payment_screen.dart';
 import '../../presentation/order/quotation_form_screen.dart';
 import '../../presentation/product/product_detail_screen.dart';
 import '../../presentation/staff/create_customer_screen.dart';
@@ -31,8 +32,9 @@ abstract final class AppRoutes {
   static const quotation     = '/quotation-form';
   static const chat          = '/chat/:roomId';
   static const notifications = '/notifications';
-  static const addVehicle      = '/vehicle/add';
-  static const createCustomer  = '/staff/create-customer';
+  static const addVehicle     = '/vehicle/add';
+  static const createCustomer = '/staff/create-customer';
+  static const payment        = '/payment';
 
   static String productOf(String id)   => '/product/$id';
   static String orderOf(String id)     => '/order/$id';
@@ -101,9 +103,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.chat,
         builder: (_, s) => ChatScreen(roomId: s.pathParameters['roomId']!),
       ),
-      GoRoute(path: AppRoutes.notifications,   builder: (_, __) => const NotificationScreen()),
-      GoRoute(path: AppRoutes.addVehicle,      builder: (_, __) => const AddVehicleScreen()),
-      GoRoute(path: AppRoutes.createCustomer,  builder: (_, __) => const CreateCustomerScreen()),
+      GoRoute(path: AppRoutes.notifications,  builder: (_, __) => const NotificationScreen()),
+      GoRoute(path: AppRoutes.addVehicle,     builder: (_, __) => const AddVehicleScreen()),
+      GoRoute(path: AppRoutes.createCustomer, builder: (_, __) => const CreateCustomerScreen()),
+      GoRoute(
+        path: AppRoutes.payment,
+        builder: (_, s) {
+          final args = s.extra as Map<String, String>;
+          return PaymentScreen(
+            paymentUrl: args['paymentUrl']!,
+            orderCode: args['orderCode']!,
+          );
+        },
+      ),
     ],
   );
 });

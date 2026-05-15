@@ -2,6 +2,7 @@ package com.quyenauto.auth.security;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -10,8 +11,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class JwtService {
+
+    private static final String DEFAULT_SECRET = "quyen-auto-default-jwt-secret-key-change-in-production-2024";
 
     private final SecretKey key;
     private final long accessTokenExpiration;
@@ -20,7 +24,23 @@ public class JwtService {
     public JwtService(
             @Value("${app.jwt.secret}") String secret,
             @Value("${app.jwt.access-token-expiration}") long accessTokenExpiration,
-            @Value("${app.jwt.refresh-token-expiration}") long refreshTokenExpiration) {
+            @Value("${app.jwt.refresh-token-expiration}") long refreshTokenExpiration,
+            @Value("${spring.profiles.active:dev}") String activeProfile) {
+
+        if ("prod".equalsIgnoreCase(activeProfile) && DEFAULT_SECRET.equals(secret)) {
+            throw new IllegalStateException(
+                    "JWT_SECRET must be configured via environment variable in production! " +
+                    "Set JWT_SECRET env var with a strong random key (min 64 chars).");
+        }
+
+        if (secret.length() < 32) {
+            throw new IllegalStateException("JWT secret must be at least 32 characters long.");
+        }
+
+        if (DEFAULT_SECRET.equals(secret)) {
+            log.warn("⚠️ Using default JWT secret — acceptable for development only!");
+        }
+
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessTokenExpiration = accessTokenExpiration;
         this.refreshTokenExpiration = refreshTokenExpiration;

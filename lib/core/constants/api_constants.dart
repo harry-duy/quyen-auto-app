@@ -88,6 +88,10 @@ abstract final class ApiConstants {
   // ─── Upload ────────────────────────────────────────────────────────────────
   static const String upload            = 'upload';
 
+  // ─── Payment ────────────────────────────────────────────────────────────────
+  static const String paymentCreate   = 'payment/create';
+  static const String paymentCallback = 'payment/callback';
+
   // ─── Reports ───────────────────────────────────────────────────────────────
   static const String reportDashboard = 'staff/dashboard';
 
