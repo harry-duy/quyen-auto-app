@@ -5,6 +5,7 @@ import 'package:shimmer/shimmer.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/router/app_router.dart';
+import '../../core/utils/product_image_helper.dart';
 import '../../domain/entities/product.dart';
 
 class ProductCard extends StatelessWidget {
@@ -31,18 +32,18 @@ class ProductCard extends StatelessWidget {
               child: SizedBox(
                 height: 130,
                 width: double.infinity,
-                child: product.imageUrls.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: product.imageUrls.first,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Shimmer.fromColors(
-                          baseColor: AppColors.borderLight,
-                          highlightColor: AppColors.surface,
-                          child: Container(color: AppColors.borderLight),
-                        ),
-                        errorWidget: (_, __, ___) => _placeholder(),
-                      )
-                    : _placeholder(),
+                child: CachedNetworkImage(
+                  imageUrl: ProductImageHelper.resolve(product),
+                  fit: BoxFit.contain,
+                  color: AppColors.primaryNavy.withValues(alpha: 0.04),
+                  colorBlendMode: BlendMode.darken,
+                  placeholder: (_, __) => Shimmer.fromColors(
+                    baseColor: AppColors.borderLight,
+                    highlightColor: AppColors.surface,
+                    child: Container(color: AppColors.borderLight),
+                  ),
+                  errorWidget: (_, __, ___) => _placeholder(),
+                ),
               ),
             ),
 

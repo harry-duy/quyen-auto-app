@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/di/providers.dart';
 import '../../core/router/app_router.dart';
+import '../../core/utils/product_image_helper.dart';
 import '../../domain/entities/order.dart';
 import '../../domain/entities/product.dart';
 import '../order/order_list_screen.dart';
@@ -137,24 +138,35 @@ class HomeTab extends ConsumerStatefulWidget {
 class _HomeTabState extends ConsumerState<HomeTab> {
   final _bannerController = PageController();
 
+  // Real news from quyenauto.com
   static const _news = [
     _NewsData(
-      title: 'Quyen Auto ra mắt dòng xe thùng lạnh 2025',
-      subtitle: 'Công nghệ làm lạnh mới, tiết kiệm năng lượng tối ưu',
-      date: '05/05/2025',
+      title: 'Ra mắt ISUZU FSR-N & Giải pháp vận tải thủy hải sản tại Thanh Hóa',
+      subtitle: 'Dòng thùng bảo ôn OXY Quyen Auto dành riêng cho ngành thủy sản',
+      date: '19/04/2026',
+      imageUrl: 'https://quyenauto.com/wp-content/uploads/2026/04/FSR-Quyen-Auto-1-scaled.jpg',
       icon: Icons.local_shipping_outlined,
     ),
     _NewsData(
-      title: 'Khuyến mãi đặc biệt tháng 5 — giảm đến 15%',
-      subtitle: 'Áp dụng cho đơn đặt xe tải từ 5 tấn trở lên',
-      date: '01/05/2025',
-      icon: Icons.local_offer_outlined,
+      title: 'Quyen Auto đào tạo bảo dưỡng thùng lạnh cho đại lý ISUZU miền Bắc',
+      subtitle: 'Chương trình đào tạo sản phẩm & kỹ thuật bảo dưỡng thùng xe lạnh',
+      date: '04/04/2026',
+      imageUrl: 'https://quyenauto.com/wp-content/uploads/2026/04/IMG_7249-edited-scaled.jpg',
+      icon: Icons.build_outlined,
     ),
     _NewsData(
-      title: 'Chính sách bảo hành mới — 3 năm không giới hạn km',
-      subtitle: 'Quyen Auto cam kết chất lượng dịch vụ hậu mãi',
-      date: '25/04/2025',
-      icon: Icons.shield_outlined,
+      title: 'Chương trình đào tạo sản phẩm cho đại lý ISUZU tại Quyen Auto 2026',
+      subtitle: 'Nâng cao kiến thức chuyên môn cho hệ thống đại lý trên toàn quốc',
+      date: '02/04/2026',
+      imageUrl: 'https://quyenauto.com/wp-content/uploads/2026/04/1-scaled.jpg',
+      icon: Icons.school_outlined,
+    ),
+    _NewsData(
+      title: 'Tất niên Quyen Auto 2025 — Cùng nhìn lại một năm thành công',
+      subtitle: 'Lễ tất niên ấm áp, ghi dấu những thành tựu nổi bật của năm 2025',
+      date: '05/02/2026',
+      imageUrl: 'https://quyenauto.com/wp-content/uploads/2026/02/1-scaled.jpg',
+      icon: Icons.celebration_outlined,
     ),
   ];
 
@@ -413,15 +425,14 @@ class _BannerCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (product.imageUrls.isNotEmpty)
-              CachedNetworkImage(
-                imageUrl: product.imageUrls.first,
-                fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => const Center(
-                  child: Icon(Icons.local_shipping,
-                      color: AppColors.textWhite, size: 60),
-                ),
+            CachedNetworkImage(
+              imageUrl: ProductImageHelper.resolve(product),
+              fit: BoxFit.cover,
+              errorWidget: (_, __, ___) => const Center(
+                child: Icon(Icons.local_shipping,
+                    color: AppColors.textWhite, size: 60),
               ),
+            ),
             // Gradient overlay
             Container(
               decoration: BoxDecoration(
@@ -578,22 +589,18 @@ class _ProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Thumbnail
-            SizedBox(
+            Container(
               height: 105,
               width: double.infinity,
-              child: product.imageUrls.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: product.imageUrls.first,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => const Center(
-                        child: Icon(Icons.local_shipping_outlined,
-                            color: AppColors.primaryNavy, size: 36),
-                      ),
-                    )
-                  : const Center(
-                      child: Icon(Icons.local_shipping_outlined,
-                          color: AppColors.primaryNavy, size: 36),
-                    ),
+              color: AppColors.primaryNavy.withValues(alpha: 0.04),
+              child: CachedNetworkImage(
+                imageUrl: ProductImageHelper.resolve(product),
+                fit: BoxFit.contain,
+                errorWidget: (_, __, ___) => const Center(
+                  child: Icon(Icons.local_shipping_outlined,
+                      color: AppColors.primaryNavy, size: 36),
+                ),
+              ),
             ),
             // Info
             Padding(
@@ -644,12 +651,14 @@ class _NewsData {
   final String subtitle;
   final String date;
   final IconData icon;
+  final String? imageUrl;
 
   const _NewsData({
     required this.title,
     required this.subtitle,
     required this.date,
     required this.icon,
+    this.imageUrl,
   });
 }
 
@@ -661,56 +670,85 @@ class _NewsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.borderLight),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Row(children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: AppColors.primaryOrange.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
+      clipBehavior: Clip.hardEdge,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Thumbnail
+          SizedBox(
+            width: 90,
+            height: 80,
+            child: item.imageUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: item.imageUrl!,
+                    fit: BoxFit.cover,
+                    errorWidget: (_, __, ___) => _iconFallback(),
+                  )
+                : _iconFallback(),
           ),
-          child: Icon(item.icon, color: AppColors.primaryOrange, size: 22),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.title,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+          // Content
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.subtitle,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textGray,
+                      height: 1.3,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    item.date,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: AppColors.primaryOrange,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 3),
-              Text(
-                item.subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textGray,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          item.date,
-          style: const TextStyle(fontSize: 11, color: AppColors.textGray),
-        ),
-      ]),
+        ],
+      ),
     );
   }
+
+  Widget _iconFallback() => Container(
+        color: AppColors.primaryOrange.withValues(alpha: 0.08),
+        child: Center(
+          child: Icon(item.icon, color: AppColors.primaryOrange, size: 28),
+        ),
+      );
 }
