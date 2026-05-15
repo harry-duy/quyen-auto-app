@@ -78,6 +78,9 @@ dev_dependencies:
   riverpod_generator: ^2.6.2
   json_serializable: ^6.8.0
 
+  # ─── App Icons ───────────────────────────────────────────────────────────────
+  flutter_launcher_icons: ^0.14.3
+
 flutter:
   uses-material-design: true
 

@@ -122,37 +122,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 const SizedBox(height: 24),
                 Center(
-                  child: Container(
-                    width: 88,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryOrange,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.local_shipping,
-                        color: Colors.white,
-                        size: 40,
-                      ),
-                    ),
+                  child: Image.asset(
+                    'assets/images/LOGO QA.png',
+                    width: 200,
+                    height: 120,
+                    fit: BoxFit.contain,
                   ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Quyen Auto',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryNavy,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Dang nhap de tiep tuc',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 15, color: AppColors.textGray),
                 ),
                 const SizedBox(height: 40),
                 TextFormField(

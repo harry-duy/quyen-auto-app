@@ -158,27 +158,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             pinned: true,
             backgroundColor: AppColors.primaryNavy,
             elevation: 0,
-            title: Row(children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryOrange,
-                ),
-                child: const Icon(Icons.local_shipping,
-                    color: AppColors.textWhite, size: 18),
-              ),
-              const SizedBox(width: 10),
-              const Text(
-                'Quyen Auto',
-                style: TextStyle(
-                  color: AppColors.textWhite,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                ),
-              ),
-            ]),
+            title: Image.asset(
+              'assets/images/LOGO QA-white-red.png',
+              height: 32,
+              fit: BoxFit.contain,
+            ),
             actions: [
               badges.Badge(
                 showBadge: notifCount > 0,
