@@ -1291,4 +1291,148 @@ WARN OTP for user@example.com is: 482931
 5. Sửa `main.dart` + `main_staff.dart`: `await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)`
 6. Backend: lấy service account JSON (Firebase Console → Project Settings → Service Accounts → Generate new private key), điền vào `FIREBASE_SERVICE_ACCOUNT_JSON` trong `.env` (1 dòng, no line breaks)
 
+---
+
+## SESSION 8 — Cập nhật Logo & Gộp Worktrees (2026-05-15)
+
+### 1. Cập nhật Logo Quyen Auto
+
+**Vấn đề**: Toàn bộ app đang dùng placeholder icon xe tải cam thay vì logo thật của Quyen Auto.
+
+#### 1.1 Logo trong Login Screen
+
+- **File**: `lib/presentation/auth/login_screen.dart`
+- **Thay đổi**: Thay `Container` với `Icons.local_shipping` màu cam → `Image.asset('assets/images/LOGO QA.png')`
+- **Xóa**: Dòng chữ "Quyen Auto" và "Dang nhap de tiep tuc" bên dưới logo (logo đã có chữ sẵn)
+- **Kích thước hiển thị**: width 200, height 120, fit: BoxFit.contain
+
+#### 1.2 Logo trong Home AppBar
+
+- **File**: `lib/presentation/home/home_screen.dart`
+- **Thay đổi**: Thay `Container` vòng tròn cam + `Icons.local_shipping` + Text "Quyen Auto" → `Image.asset('assets/images/LOGO QA-white-red.png', height: 32)`
+- **Lý do dùng `LOGO QA-white-red.png`**: Logo có nền trong suốt với màu trắng/đỏ — hiển thị tốt trên nền AppBar navy xanh (`#1A2A4A`)
+
+#### 1.3 Launcher Icon (logo ngoài màn hình chính)
+
+- **Thêm package**: `flutter_launcher_icons: ^0.14.3` vào `dev_dependencies`
+- **Tạo file**: `flutter_launcher_icons.yaml`
+- **Tạo file**: `assets/images/launcher_icon.png` — ảnh vuông 1024×1024, nền đen (`#000000`), logo trắng/đỏ căn giữa chiếm 75% chiều rộng
+- **Script tạo**: Python + Pillow
+
+```python
+from PIL import Image
+logo = Image.open("assets/images/LOGO QA-white-red.png").convert("RGBA")
+canvas = Image.new("RGBA", (1024, 1024), (0, 0, 0, 255))
+new_w = int(1024 * 0.75)
+new_h = int(new_w * logo.size[1] / logo.size[0])
+logo_resized = logo.resize((new_w, new_h), Image.LANCZOS)
+canvas.paste(logo_resized, ((1024 - new_w)//2, (1024 - new_h)//2), logo_resized)
+canvas.save("assets/images/launcher_icon.png", "PNG")
+```
+
+- **Lệnh generate**: `dart run flutter_launcher_icons`
+- **Kết quả**: Tự động tạo icon cho Android (mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi + adaptive v26), iOS (20×20 → 1024×1024), Web (favicon + PWA icons)
+
+**Lưu ý launcher icon**: Android cache icon cũ — cần **uninstall app rồi install lại** để thấy icon mới trên màn hình chính.
+
+---
+
+### 2. Gộp Claude Worktrees vào main
+
+Gộp toàn bộ 3 worktree vào nhánh `feature/test`:
+
+#### 2.1 `claude/quizzical-rosalind-7e0d63` → commit `04a0cf4`
+
+**Flutter**:
+- `quotation_form_screen.dart` — mở rộng form báo giá (guest quotation, thêm trường)
+- `quotation_approval_screen.dart` — UI nâng cấp: customer info, vehicle specs, dual-action buttons (đánh dấu đã liên hệ + gửi báo giá)
+- `dashboard_screen.dart` — cập nhật dashboard staff
+- `create_customer_screen.dart` (MỚI) — staff tạo tài khoản khách hàng trực tiếp
+- `order_response.dart` + `order_response.g.dart` — thêm `productName`, `weightRange`/`cargoType` non-nullable
+- `order_repository_impl.dart` — prefix `#QUO-` cho mã báo giá
+- `websocket_service.dart` — thêm `subscribeStaffQuotations()`
+
+**Backend**:
+- `SecurityConfig.java` — cập nhật phân quyền
+- `QuotationController.java` — thêm endpoint tạo báo giá cho khách vãng lai
+- `QuotationService.java` — thêm `getPendingUncontacted()`, `countPendingUncontacted()`
+- `UserController.java`, `UserService.java`, `UserRepository.java` — hỗ trợ tạo khách hàng bởi staff
+- `GuestQuotationRequest.java` (MỚI) — DTO báo giá vãng lai
+- `CreateCustomerRequest.java` (MỚI) — DTO tạo khách hàng
+- `V2__quotation_extended_fields.sql` (MỚI) — migration thêm trường báo giá
+- `V3__quotation_guest_and_customer_flow.sql` (MỚI) — migration flow khách vãng lai
+
+#### 2.2 `feature/security-payment-chat` → commit `7cbf2aa`
+
+**Flutter**:
+- `chat_screen.dart` — viết lại hoàn chỉnh với state management, realtime subscription, error handling
+- `app_router.dart` — thêm route `payment`
+- `api_constants.dart` — thêm `paymentCreate`, `paymentCallback`
+
+**Backend**:
+- `AuthService.java` — thêm `LoginAttemptService` (chống brute force)
+- `application.yml` — JWT expire rút xuống 1h, cấu hình SSL
+- `.env.example` — thêm Redis, VNPay, SSL env vars
+
+---
+
+### 3. Fix lỗi compile sau merge (commit `adc7ea5`)
+
+Sau khi gộp, merge conflict resolution làm mất một số route và import. Đã fix:
+
+#### Routes bị thiếu trong `AppRoutes` (`app_router.dart`)
+
+| Route | Hằng số thêm | Screen |
+|-------|-------------|--------|
+| `/register` | `AppRoutes.register` | `RegisterScreen` |
+| `/verify-otp` | `AppRoutes.verifyOtp` | redirect → `/home` (OTP screen đã có riêng) |
+| `/chat-list` | `AppRoutes.chatList` | `CustomerChatListScreen` |
+| `/vehicle-list` | `AppRoutes.vehicleList` | `VehicleListScreen` |
+
+#### Route bị thiếu trong `StaffRoutes` (`staff_router.dart`)
+
+- Thêm `StaffRoutes.notifications = '/staff/notifications'` → `NotificationScreen`
+
+#### Import bị thiếu
+
+| File | Import thiếu |
+|------|-------------|
+| `login_screen.dart` | `app_flavor.dart`, `staff_router.dart` |
+| `otp_verification_screen.dart` | `staff_router.dart` |
+
+#### Kết quả sau fix
+
+```
+flutter analyze → 0 errors, 0 warnings (75 info style hints)
+```
+
+---
+
+### Tổng kết tình trạng sau Session 8
+
+| Hạng mục | Trạng thái |
+|----------|-----------|
+| Logo login screen | ✅ LOGO QA.png, không còn placeholder |
+| Logo home AppBar | ✅ LOGO QA-white-red.png trên nền navy |
+| Launcher icon Android | ✅ Đen + logo trắng/đỏ, tất cả density |
+| Launcher icon iOS | ✅ 20×20 → 1024×1024 |
+| Launcher icon Web | ✅ Favicon + PWA icons |
+| Quotation flow mở rộng | ✅ Guest quotation, form mới |
+| Staff tạo khách hàng | ✅ `CreateCustomerScreen` |
+| VNPay payment | ✅ Routes + constants sẵn sàng |
+| Chat cải thiện | ✅ Viết lại với state management đầy đủ |
+| flutter analyze | ✅ 0 errors |
+
+### Lệnh chạy app
+
+```powershell
+# Backend
+cd "C:\Users\Admin\StudioProjects\quyen_auto_app\backend"
+.\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=dev
+
+# Flutter (sau khi backend lên port 8080)
+cd "C:\Users\Admin\StudioProjects\quyen_auto_app"
+flutter run
+```
+
 
