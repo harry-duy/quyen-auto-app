@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:badges/badges.dart' as badges;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -137,6 +139,7 @@ class HomeTab extends ConsumerStatefulWidget {
 
 class _HomeTabState extends ConsumerState<HomeTab> {
   final _bannerController = PageController();
+  Timer? _bannerTimer;
 
   // Real news from quyenauto.com
   static const _news = [
@@ -171,7 +174,31 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Start auto-play after the first frame so PageController is attached
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startAutoPlay());
+  }
+
+  void _startAutoPlay() {
+    _bannerTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      if (!mounted || !_bannerController.hasClients) return;
+      final products = ref.read(productListProvider).valueOrNull;
+      final count = (products?.take(5).length ?? 0);
+      if (count < 2) return;
+      final current = _bannerController.page?.round() ?? 0;
+      final next = (current + 1) >= count ? 0 : current + 1;
+      _bannerController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
   void dispose() {
+    _bannerTimer?.cancel();
     _bannerController.dispose();
     super.dispose();
   }
