@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -67,8 +66,6 @@ class _ProductDetailViewState extends State<_ProductDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt =
-        NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
     final hasImages = product.imageUrls.isNotEmpty;
 
     return Scaffold(
@@ -156,38 +153,51 @@ class _ProductDetailViewState extends State<_ProductDetailView> {
                     ),
                   const SizedBox(height: 16),
 
-                  // Price
+                  // Contact CTA
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
-                      color: AppColors.primaryOrange.withValues(alpha: 0.06),
+                      color: AppColors.primaryNavy.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                          color:
-                              AppColors.primaryOrange.withValues(alpha: 0.2)),
+                          color: AppColors.primaryNavy.withValues(alpha: 0.15)),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Giá tham khảo',
-                          style: TextStyle(
-                              fontSize: 12, color: AppColors.textGray),
+                    child: Row(children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryNavy,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          product.price > 0
-                              ? 'Từ ${fmt.format(product.price)}'
-                              : 'Liên hệ để nhận báo giá',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primaryOrange,
-                          ),
+                        child: const Icon(Icons.phone_outlined,
+                            color: AppColors.textWhite, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Liên hệ để nhận báo giá',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primaryNavy,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Hotline: 0908 109 929',
+                              style: TextStyle(
+                                  fontSize: 12, color: AppColors.textGray),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ]),
                   ),
                   const SizedBox(height: 20),
 

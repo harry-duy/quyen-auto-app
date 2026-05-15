@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -14,9 +13,6 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmt =
-        NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
-
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(12),
@@ -33,7 +29,7 @@ class ProductCard extends StatelessWidget {
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(12)),
               child: SizedBox(
-                height: 120,
+                height: 130,
                 width: double.infinity,
                 child: product.imageUrls.isNotEmpty
                     ? CachedNetworkImage(
@@ -44,17 +40,9 @@ class ProductCard extends StatelessWidget {
                           highlightColor: AppColors.surface,
                           child: Container(color: AppColors.borderLight),
                         ),
-                        errorWidget: (_, __, ___) => Container(
-                          color: AppColors.primaryNavy.withValues(alpha: 0.07),
-                          child: const Icon(Icons.local_shipping_outlined,
-                              size: 44, color: AppColors.primaryNavy),
-                        ),
+                        errorWidget: (_, __, ___) => _placeholder(),
                       )
-                    : Container(
-                        color: AppColors.primaryNavy.withValues(alpha: 0.07),
-                        child: const Icon(Icons.local_shipping_outlined,
-                            size: 44, color: AppColors.primaryNavy),
-                      ),
+                    : _placeholder(),
               ),
             ),
 
@@ -84,15 +72,20 @@ class ProductCard extends StatelessWidget {
                             fontSize: 11, color: AppColors.textGray),
                       ),
                     const Spacer(),
-                    Text(
-                      product.price > 0
-                          ? 'Từ ${fmt.format(product.price)}'
-                          : 'Liên hệ báo giá',
-                      style: const TextStyle(
-                        color: AppColors.primaryOrange,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
+                    Row(
+                      children: [
+                        const Text(
+                          'Xem chi tiết',
+                          style: TextStyle(
+                            color: AppColors.primaryOrange,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        const Icon(Icons.arrow_forward_ios,
+                            size: 10, color: AppColors.primaryOrange),
+                      ],
                     ),
                   ],
                 ),
@@ -103,4 +96,12 @@ class ProductCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _placeholder() => Container(
+        color: AppColors.primaryNavy.withValues(alpha: 0.07),
+        child: const Center(
+          child: Icon(Icons.local_shipping_outlined,
+              size: 44, color: AppColors.primaryNavy),
+        ),
+      );
 }
