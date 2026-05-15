@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../presentation/auth/login_screen.dart';
 import '../../presentation/auth/register_screen.dart';
 import '../../presentation/chat/chat_screen.dart';
+import '../../presentation/notification/notification_screen.dart';
 import '../../presentation/staff/staff_home_screen.dart';
 import '../../presentation/staff/order_detail_staff_screen.dart';
 import '../../presentation/staff/dealer_map_screen.dart';
@@ -23,6 +24,7 @@ abstract final class StaffRoutes {
   static const departments    = '/management/departments';
   static const staffMembers   = '/management/staff';
   static const createCustomer = '/customers/create';
+  static const notifications  = '/staff/notifications';
 
   static String orderOf(String id)    => '/order/$id';
   static String chatOf(String roomId) => '/chat/$roomId';
@@ -62,6 +64,7 @@ final staffRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: StaffRoutes.departments,   builder: (_, __) => const DepartmentManagementScreen()),
       GoRoute(path: StaffRoutes.staffMembers,  builder: (_, __) => const StaffMemberManagementScreen()),
       GoRoute(path: StaffRoutes.createCustomer, builder: (_, __) => const CreateCustomerScreen()),
+      GoRoute(path: StaffRoutes.notifications,  builder: (_, __) => const NotificationScreen()),
     ],
   );
 });

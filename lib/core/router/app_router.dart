@@ -2,11 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../presentation/auth/login_screen.dart';
+import '../../presentation/auth/register_screen.dart';
 import '../../presentation/chat/chat_screen.dart';
 import '../../presentation/chat/customer_chat_list_screen.dart';
 import '../../presentation/home/home_screen.dart';
 import '../../presentation/notification/notification_screen.dart';
-
 import '../../presentation/order/order_detail_screen.dart';
 import '../../presentation/order/payment_screen.dart';
 import '../../presentation/order/quotation_form_screen.dart';
@@ -22,6 +22,8 @@ import 'route_paths.dart';
 
 abstract final class AppRoutes {
   static const login         = '/login';
+  static const register      = '/register';
+  static const verifyOtp     = '/verify-otp';
   static const home          = '/home';
   static const catalogue     = '/home/catalogue';
   static const orders        = '/home/orders';
@@ -31,8 +33,10 @@ abstract final class AppRoutes {
   static const orderDetail   = '/order/:id';
   static const quotation     = '/quotation-form';
   static const chat          = '/chat/:roomId';
+  static const chatList      = '/chat-list';
   static const notifications = '/notifications';
-  static const addVehicle     = '/vehicle/add';
+  static const addVehicle    = '/vehicle/add';
+  static const vehicleList   = '/vehicle-list';
   static const createCustomer = '/staff/create-customer';
   static const payment        = '/payment';
 
@@ -103,8 +107,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.chat,
         builder: (_, s) => ChatScreen(roomId: s.pathParameters['roomId']!),
       ),
+      GoRoute(path: AppRoutes.register,       builder: (_, __) => const RegisterScreen()),
+      GoRoute(path: AppRoutes.verifyOtp,      redirect: (_, __) => AppRoutes.home),
+      GoRoute(path: AppRoutes.chatList,       builder: (_, __) => const CustomerChatListScreen()),
       GoRoute(path: AppRoutes.notifications,  builder: (_, __) => const NotificationScreen()),
       GoRoute(path: AppRoutes.addVehicle,     builder: (_, __) => const AddVehicleScreen()),
+      GoRoute(path: AppRoutes.vehicleList,    builder: (_, __) => const VehicleListScreen()),
       GoRoute(path: AppRoutes.createCustomer, builder: (_, __) => const CreateCustomerScreen()),
       GoRoute(
         path: AppRoutes.payment,
