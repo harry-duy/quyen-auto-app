@@ -22,8 +22,9 @@ abstract final class ApiConstants {
   // ─── Orders ────────────────────────────────────────────────────────────────
   static const String myOrders        = 'orders';
   static const String orderDetail     = 'orders/{id}';
-  static const String cancelOrder     = 'orders/{id}/cancel';
-  static const String createQuotation = 'quotations';
+  static const String cancelOrder          = 'orders/{id}/cancel';
+  static const String createQuotation      = 'quotations';
+  static const String createGuestQuotation = 'quotations/guest';
   static const String updateStatus    = 'orders/{id}/status';
 
   // ─── Warranty ──────────────────────────────────────────────────────────────
@@ -53,8 +54,13 @@ abstract final class ApiConstants {
   static const String staffRejectCancel    = 'staff/orders/{id}/cancel/reject';
 
   // ─── Staff: Quotations ────────────────────────────────────────────────────
-  static const String staffQuotations    = 'staff/quotations';
-  static const String staffApproveQuote  = 'staff/quotations/{id}/approve';
+  static const String staffQuotations        = 'staff/quotations';
+  static const String staffApproveQuote      = 'staff/quotations/{id}/approve';
+  static const String staffMarkContacted     = 'staff/quotations/{id}/contacted';
+  static const String staffPendingQuoteCount = 'staff/quotations/pending-count';
+
+  // ─── Staff: Customer Management ─────────────────────────────────────────
+  static const String staffCreateCustomer = 'staff/customers';
 
   // ─── Staff: Warranty ──────────────────────────────────────────────────────
   static const String staffWarrantyList   = 'staff/warranty';

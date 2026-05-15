@@ -71,6 +71,16 @@ final staffQuotationListProvider =
   return res.data ?? [];
 });
 
+final staffPendingQuoteCountProvider =
+    FutureProvider.autoDispose<int>((ref) async {
+  final api = ref.watch(apiServiceProvider);
+  final res = await api.get<int>(
+    ApiConstants.staffPendingQuoteCount,
+    fromData: (json) => (json as num).toInt(),
+  );
+  return res.data ?? 0;
+});
+
 // ─── Warranty Management ─────────────────────────────────────────────────────
 
 final staffWarrantyListProvider =
@@ -127,7 +137,35 @@ class StaffActionsNotifier extends Notifier<void> {
       data: {'quotedPrice': price, if (note != null) 'staffNote': note},
     );
     ref.invalidate(staffQuotationListProvider);
+    ref.invalidate(staffPendingQuoteCountProvider);
     ref.invalidate(staffDashboardProvider);
+  }
+
+  Future<void> markQuotationContacted(String quotationId) async {
+    await _api.put(
+      ApiConstants.resolve(
+          ApiConstants.staffMarkContacted, {'id': quotationId}),
+    );
+    ref.invalidate(staffQuotationListProvider);
+    ref.invalidate(staffPendingQuoteCountProvider);
+    ref.invalidate(staffDashboardProvider);
+  }
+
+  Future<void> createCustomerAccount({
+    required String fullName,
+    required String phone,
+    required String password,
+    String? email,
+  }) async {
+    await _api.post(
+      ApiConstants.staffCreateCustomer,
+      data: {
+        'fullName': fullName,
+        'phone': phone,
+        'password': password,
+        if (email != null && email.isNotEmpty) 'email': email,
+      },
+    );
   }
 
   Future<void> assignWarrantyTechnician(

@@ -106,6 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final isLoading = ref.watch(authProvider).isLoading;
@@ -188,58 +189,66 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       : const Text(AppStrings.login),
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Text(
-                        'hoac',
-                        style: TextStyle(
-                          color: AppColors.textGray,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                    const Expanded(child: Divider()),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: isLoading ? null : _loginWithZalo,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF0068FF),
-                    side: const BorderSide(
-                      color: Color(0xFF0068FF),
-                      width: 1.5,
-                    ),
-                    minimumSize: const Size(double.infinity, 52),
-                    shape: RoundedRectangleBorder(
+
+                // Customer-only: info about account creation
+                if (AppFlavor.isCustomer) ...[
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.infoBlue.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    child: const Row(children: [
+                      Icon(Icons.info_outline,
+                          color: AppColors.infoBlue, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Tài khoản sẽ được tạo bởi nhân viên Quyen Auto '
+                          'sau khi xác nhận hợp đồng. Bạn có thể xem catalogue '
+                          'và yêu cầu báo giá mà không cần đăng nhập.',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.infoBlue, height: 1.4),
+                        ),
+                      ),
+                    ]),
                   ),
-                  icon: const Icon(Icons.chat_bubble_outline, size: 20),
-                  label: const Text(
-                    'Dang nhap bang Zalo',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: isLoading ? null : () => context.go(AppRoutes.home),
+                    icon: const Icon(Icons.storefront_outlined, size: 20),
+                    label: const Text('Xem catalogue & báo giá'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 48),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Chua co tai khoan?',
-                      style: TextStyle(color: AppColors.textGray),
+                ],
+
+                // Staff-only: contact admin hint
+                if (AppFlavor.isStaff) ...[
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.infoBlue.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    TextButton(
-                      onPressed: isLoading
-                          ? null
-                          : () => context.push(AppRoutes.register),
-                      child: const Text(AppStrings.register),
-                    ),
-                  ],
-                ),
+                    child: const Row(children: [
+                      Icon(Icons.info_outline,
+                          color: AppColors.infoBlue, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Tài khoản nhân viên do quản trị viên tạo. '
+                          'Liên hệ quản lý nếu chưa có tài khoản.',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.infoBlue),
+                        ),
+                      ),
+                    ]),
+                  ),
+                ],
               ],
             ),
           ),

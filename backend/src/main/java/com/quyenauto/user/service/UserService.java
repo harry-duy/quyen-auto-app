@@ -74,6 +74,27 @@ public class UserService {
     }
 
     @Transactional
+    public UserResponse createCustomer(CreateCustomerRequest request) {
+        if (userRepository.existsByPhone(request.getPhone())) {
+            throw new BusinessException("Số điện thoại đã được sử dụng");
+        }
+        if (request.getEmail() != null && userRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException("Email đã được sử dụng");
+        }
+
+        User user = User.builder()
+                .fullName(request.getFullName())
+                .phone(request.getPhone())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .email(request.getEmail())
+                .role(UserRole.CUSTOMER)
+                .isActive(true)
+                .build();
+
+        return UserResponse.from(userRepository.save(user));
+    }
+
+    @Transactional
     public UserResponse updateUser(Long id, UpdateUserRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));

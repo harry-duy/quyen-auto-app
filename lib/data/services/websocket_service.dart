@@ -168,6 +168,12 @@ class WebSocketService {
     }
   }
 
+  void subscribeStaffQuotations(MessageCallback onMessage) {
+    const dest = '/topic/staff/quotations';
+    _subscriptionCallbacks[dest] = onMessage;
+    if (isConnected) _doSubscribe(dest, onMessage);
+  }
+
   void _doSubscribe(String destination, MessageCallback onMessage) {
     if (_activeSubscriptions.containsKey(destination)) return;
     if (_client == null || !isConnected) return;

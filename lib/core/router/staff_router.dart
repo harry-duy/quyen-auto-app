@@ -8,11 +8,25 @@ import '../../presentation/staff/staff_home_screen.dart';
 import '../../presentation/staff/order_detail_staff_screen.dart';
 import '../../presentation/staff/dealer_map_screen.dart';
 import '../../presentation/staff/department_management_screen.dart';
+import '../../presentation/staff/create_customer_screen.dart';
 import '../../presentation/staff/staff_member_management_screen.dart';
 import '../di/providers.dart';
 import 'route_paths.dart';
 
-export 'route_paths.dart';
+abstract final class StaffRoutes {
+  static const login          = '/login';
+  static const register       = '/register';
+  static const home           = '/home';
+  static const orderDetail    = '/order/:id';
+  static const chat           = '/chat/:roomId';
+  static const dealerMap      = '/dealers/map';
+  static const departments    = '/management/departments';
+  static const staffMembers   = '/management/staff';
+  static const createCustomer = '/customers/create';
+
+  static String orderOf(String id)    => '/order/$id';
+  static String chatOf(String roomId) => '/chat/$roomId';
+}
 
 final staffRouterProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(routerNotifierProvider);
@@ -44,9 +58,10 @@ final staffRouterProvider = Provider<GoRouter>((ref) {
         path: StaffRoutes.chat,
         builder: (_, s) => ChatScreen(roomId: s.pathParameters['roomId']!),
       ),
-      GoRoute(path: StaffRoutes.dealerMap,    builder: (_, __) => const DealerMapScreen()),
-      GoRoute(path: StaffRoutes.departments,  builder: (_, __) => const DepartmentManagementScreen()),
-      GoRoute(path: StaffRoutes.staffMembers, builder: (_, __) => const StaffMemberManagementScreen()),
+      GoRoute(path: StaffRoutes.dealerMap,       builder: (_, __) => const DealerMapScreen()),
+      GoRoute(path: StaffRoutes.departments,   builder: (_, __) => const DepartmentManagementScreen()),
+      GoRoute(path: StaffRoutes.staffMembers,  builder: (_, __) => const StaffMemberManagementScreen()),
+      GoRoute(path: StaffRoutes.createCustomer, builder: (_, __) => const CreateCustomerScreen()),
     ],
   );
 });

@@ -54,6 +54,15 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.ok(userService.updateUser(id, request)));
     }
 
+    @PostMapping("/staff/customers")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Tạo tài khoản khách hàng (staff tạo sau khi chốt hợp đồng)")
+    public ResponseEntity<ApiResponse<UserResponse>> createCustomer(
+            @Valid @RequestBody CreateCustomerRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(userService.createCustomer(request)));
+    }
+
     @PatchMapping("/admin/staff/{id}/toggle-active")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @Operation(summary = "Bật/tắt tài khoản nhân viên")

@@ -5,9 +5,13 @@ abstract class OrderRepository {
   Future<Order> getOrderById(String id);
   Future<Order> createQuotation({
     required String productId,
-    required String truckType,
-    required double truckLength,
-    required String requirements,
+    required String vehicleBrand,
+    required String bodyType,
+    required String bodySize,
+    double? lengthCm,
+    double? widthCm,
+    double? heightCm,
+    List<String>? options,
     String? note,
   });
 }

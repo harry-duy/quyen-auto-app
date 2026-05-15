@@ -34,16 +34,16 @@ class OrderRepositoryImpl implements OrderRepository {
     updatedAt:        r.estimatedDate,
   );
 
-  Order _fromQuotation(QuotationResponse r) => Order(
-    id: r.id.toString(),
-    orderCode: '#QUOTE-${r.id}',
-    productId: r.product?.id.toString() ?? '',
-    productName: r.product?.name ?? 'Yeu cau bao gia #${r.id}',
-    status: _parseStatus(r.status),
+  Order _fromQuotation(QuotationResponse q) => Order(
+    id:          q.id.toString(),
+    orderCode:   '#QUO-${q.id}',
+    productId:   q.id.toString(),
+    productName: q.productName ?? q.product?.name ?? 'Báo giá #${q.id}',
+    status:      OrderStatus.pending,
     totalAmount: 0,
-    note: r.note,
-    createdAt: r.createdAt,
-    updatedAt: null,
+    note:        q.note,
+    createdAt:   q.createdAt,
+    updatedAt:   null,
   );
 
   @override
@@ -75,16 +75,27 @@ class OrderRepositoryImpl implements OrderRepository {
   @override
   Future<Order> createQuotation({
     required String productId,
-    required String truckType,
-    required double truckLength,
-    required String requirements,
+    required String vehicleBrand,
+    required String bodyType,
+    required String bodySize,
+    double? lengthCm,
+    double? widthCm,
+    double? heightCm,
+    List<String>? options,
     String? note,
   }) async {
     final req = QuotationRequest(
-      productId:   int.parse(productId),
-      weightRange: '$truckLength tấn',
-      cargoType:   requirements,
-      note:        note,
+      productId:    int.parse(productId),
+      weightRange:  bodySize,
+      cargoType:    bodyType,
+      vehicleBrand: vehicleBrand,
+      bodyType:     bodyType,
+      bodySize:     bodySize,
+      lengthCm:     lengthCm,
+      widthCm:      widthCm,
+      heightCm:     heightCm,
+      options:      options,
+      note:         note,
     );
     final res = await _api.post<Order>(
       ApiConstants.createQuotation,

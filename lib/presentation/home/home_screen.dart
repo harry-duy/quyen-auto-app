@@ -26,8 +26,9 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex  = ref.watch(homeTabIndexProvider);
-    final ordersAsync   = ref.watch(orderListProvider);
-    final processingCount = ordersAsync.valueOrNull
+    final isLoggedIn    = ref.watch(isAuthenticatedProvider);
+    final ordersAsync   = isLoggedIn ? ref.watch(orderListProvider) : null;
+    final processingCount = ordersAsync?.valueOrNull
             ?.where((o) =>
                 o.status == OrderStatus.pending ||
                 o.status == OrderStatus.confirmed ||
@@ -35,10 +36,20 @@ class HomeScreen extends ConsumerWidget {
             .length ??
         0;
 
-    void switchTab(int i) =>
-        ref.read(homeTabIndexProvider.notifier).state = i;
+    void switchTab(int i) {
+      if (!isLoggedIn && i >= 2) {
+        context.push(AppRoutes.login);
+        return;
+      }
+      ref.read(homeTabIndexProvider.notifier).state = i;
+    }
 
-    final tabs = <Widget>[
+    final guestTabs = <Widget>[
+      HomeTab(onSwitchTab: switchTab),
+      const ProductListScreen(),
+    ];
+
+    final fullTabs = <Widget>[
       HomeTab(onSwitchTab: switchTab),
       const ProductListScreen(),
       const OrderListScreen(),
@@ -46,10 +57,13 @@ class HomeScreen extends ConsumerWidget {
       const ProfileScreen(),
     ];
 
+    final tabs = isLoggedIn ? fullTabs : guestTabs;
+    final safeIndex = currentIndex < tabs.length ? currentIndex : 0;
+
     return Scaffold(
-      body: IndexedStack(index: currentIndex, children: tabs),
+      body: IndexedStack(index: safeIndex, children: tabs),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
+        currentIndex: safeIndex,
         onTap: switchTab,
         selectedItemColor: AppColors.primaryOrange,
         unselectedItemColor: AppColors.textGray,
@@ -69,35 +83,42 @@ class HomeScreen extends ConsumerWidget {
             activeIcon: Icon(Icons.category),
             label: 'Catalogue',
           ),
-          BottomNavigationBarItem(
-            icon: badges.Badge(
-              showBadge: processingCount > 0,
-              badgeContent: Text(
-                '$processingCount',
-                style: const TextStyle(color: Colors.white, fontSize: 9),
+          if (isLoggedIn) ...[
+            BottomNavigationBarItem(
+              icon: badges.Badge(
+                showBadge: processingCount > 0,
+                badgeContent: Text(
+                  '$processingCount',
+                  style: const TextStyle(color: Colors.white, fontSize: 9),
+                ),
+                child: const Icon(Icons.receipt_long_outlined),
               ),
-              child: const Icon(Icons.receipt_long_outlined),
-            ),
-            activeIcon: badges.Badge(
-              showBadge: processingCount > 0,
-              badgeContent: Text(
-                '$processingCount',
-                style: const TextStyle(color: Colors.white, fontSize: 9),
+              activeIcon: badges.Badge(
+                showBadge: processingCount > 0,
+                badgeContent: Text(
+                  '$processingCount',
+                  style: const TextStyle(color: Colors.white, fontSize: 9),
+                ),
+                child: const Icon(Icons.receipt_long),
               ),
-              child: const Icon(Icons.receipt_long),
+              label: 'Đơn hàng',
             ),
-            label: 'Đơn hàng',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.build_outlined),
-            activeIcon: Icon(Icons.build),
-            label: 'Bảo hành',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Tài khoản',
-          ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.build_outlined),
+              activeIcon: Icon(Icons.build),
+              label: 'Bảo hành',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              activeIcon: Icon(Icons.person),
+              label: 'Tài khoản',
+            ),
+          ] else
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.login_outlined),
+              activeIcon: const Icon(Icons.login),
+              label: 'Đăng nhập',
+            ),
         ],
       ),
     );

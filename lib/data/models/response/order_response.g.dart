@@ -28,13 +28,29 @@ QuotationResponse _$QuotationResponseFromJson(Map<String, dynamic> json) =>
     QuotationResponse(
       id: (json['id'] as num).toInt(),
       customerId: (json['customerId'] as num).toInt(),
+      customerName: json['customerName'] as String?,
+      customerPhone: json['customerPhone'] as String?,
       product: json['product'] == null
           ? null
           : ProductResponse.fromJson(json['product'] as Map<String, dynamic>),
-      weightRange: json['weightRange'] as String?,
-      cargoType: json['cargoType'] as String?,
+      productName: json['productName'] as String?,
+      weightRange: json['weightRange'] as String? ?? '',
+      cargoType: json['cargoType'] as String? ?? '',
       note: json['note'] as String?,
+      vehicleBrand: json['vehicleBrand'] as String?,
+      bodyType: json['bodyType'] as String?,
+      bodySize: json['bodySize'] as String?,
+      lengthCm: (json['lengthCm'] as num?)?.toDouble(),
+      widthCm: (json['widthCm'] as num?)?.toDouble(),
+      heightCm: (json['heightCm'] as num?)?.toDouble(),
+      options:
+          (json['options'] as List<dynamic>?)?.map((e) => e as String).toList(),
       status: json['status'] as String,
+      contacted: json['contacted'] as bool? ?? false,
+      contactedByName: json['contactedByName'] as String?,
+      contactedAt: json['contactedAt'] == null
+          ? null
+          : DateTime.parse(json['contactedAt'] as String),
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
 
@@ -42,11 +58,24 @@ Map<String, dynamic> _$QuotationResponseToJson(QuotationResponse instance) =>
     <String, dynamic>{
       'id': instance.id,
       'customerId': instance.customerId,
+      'customerName': instance.customerName,
+      'customerPhone': instance.customerPhone,
       'product': instance.product,
+      'productName': instance.productName,
       'weightRange': instance.weightRange,
       'cargoType': instance.cargoType,
       'note': instance.note,
+      'vehicleBrand': instance.vehicleBrand,
+      'bodyType': instance.bodyType,
+      'bodySize': instance.bodySize,
+      'lengthCm': instance.lengthCm,
+      'widthCm': instance.widthCm,
+      'heightCm': instance.heightCm,
+      'options': instance.options,
       'status': instance.status,
+      'contacted': instance.contacted,
+      'contactedByName': instance.contactedByName,
+      'contactedAt': instance.contactedAt?.toIso8601String(),
       'createdAt': instance.createdAt.toIso8601String(),
     };
 

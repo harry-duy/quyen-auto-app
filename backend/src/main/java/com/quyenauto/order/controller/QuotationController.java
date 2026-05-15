@@ -23,13 +23,23 @@ public class QuotationController {
 
     private final QuotationService quotationService;
 
+    // ─── Customer endpoints ─────────────────────────────────────────────────
+
     @PostMapping("/quotations")
-    @Operation(summary = "Tạo yêu cầu báo giá (khách hàng)")
+    @Operation(summary = "Tạo yêu cầu báo giá (khách hàng đã đăng nhập)")
     public ResponseEntity<ApiResponse<QuotationResponse>> create(
             Authentication auth, @Valid @RequestBody CreateQuotationRequest request) {
         Long userId = Long.parseLong(auth.getName());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.created(quotationService.create(userId, request)));
+    }
+
+    @PostMapping("/quotations/guest")
+    @Operation(summary = "Yêu cầu báo giá (khách vãng lai, chỉ cần SĐT)")
+    public ResponseEntity<ApiResponse<QuotationResponse>> createGuest(
+            @Valid @RequestBody GuestQuotationRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(quotationService.createGuest(request)));
     }
 
     @GetMapping("/quotations")
@@ -46,6 +56,8 @@ public class QuotationController {
         return ResponseEntity.ok(ApiResponse.ok(quotationService.getById(id)));
     }
 
+    // ─── Staff endpoints ────────────────────────────────────────────────────
+
     @GetMapping("/staff/quotations")
     @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     @Operation(summary = "Tất cả báo giá (staff)")
@@ -58,6 +70,13 @@ public class QuotationController {
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.of(quotationService.getAll(pageable))));
     }
 
+    @GetMapping("/staff/quotations/pending-count")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Số báo giá chờ liên hệ")
+    public ResponseEntity<ApiResponse<Long>> pendingUncontactedCount() {
+        return ResponseEntity.ok(ApiResponse.ok(quotationService.countPendingUncontacted()));
+    }
+
     @PatchMapping("/staff/quotations/{id}/approve")
     @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     @Operation(summary = "Duyệt và báo giá")
@@ -66,5 +85,14 @@ public class QuotationController {
             @Valid @RequestBody QuoteApprovalRequest request) {
         Long staffId = Long.parseLong(auth.getName());
         return ResponseEntity.ok(ApiResponse.ok(quotationService.approve(id, staffId, request)));
+    }
+
+    @PatchMapping("/staff/quotations/{id}/contacted")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Đánh dấu đã liên hệ khách hàng")
+    public ResponseEntity<ApiResponse<QuotationResponse>> markContacted(
+            @PathVariable Long id, Authentication auth) {
+        Long staffId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(quotationService.markContacted(id, staffId)));
     }
 }
