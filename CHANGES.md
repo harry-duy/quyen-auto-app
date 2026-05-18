@@ -1,5 +1,39 @@
 # Lịch sử thay đổi — Quyen Auto App
 
+## [Unreleased] — Dữ liệu mẫu & Tài khoản test
+
+Migration **`V4__seed_sample_data.sql`** — tất cả tài khoản dùng **mật khẩu: `admin123`**
+
+### Tài khoản test
+
+| Tên | SĐT | Role | Ghi chú |
+|-----|-----|------|---------|
+| Admin (đã có) | `0908109929` | ADMIN | Từ V1 |
+| **Nguyễn Đức Tuần** | **`0909000001`** | **MANAGER** | Trưởng phòng Kinh Doanh |
+| Nguyễn Văn Hùng | `0909000002` | STAFF | Kinh Doanh |
+| Phạm Thị Lan | `0909000003` | STAFF | Kinh Doanh |
+| Lê Quốc Bảo | `0909000004` | STAFF | Kỹ Thuật Sản Xuất |
+| Trần Minh Đức | `0909000005` | STAFF | Kỹ Thuật Sản Xuất |
+| Võ Thị Mai | `0909000006` | STAFF | Chăm Sóc KH |
+| Nguyễn Thành Long | `0901111001` | CUSTOMER | KH mẫu |
+| Trần Minh Khoa | `0901111002` | CUSTOMER | KH mẫu |
+| Lê Thị Hoa | `0901111003` | CUSTOMER | KH mẫu |
+| Phạm Văn Tài | `0901111004` | CUSTOMER | KH mẫu |
+| Hoàng Thị Ngọc | `0901111005` | CUSTOMER | KH mẫu |
+
+### Dữ liệu mẫu được tạo
+
+- **4 phòng ban**: Kinh Doanh, Kỹ Thuật Sản Xuất, Chăm Sóc KH, Kế Toán
+- **3 danh mục sản phẩm**: Thùng Bảo Ôn / Thùng Đông Lạnh / Thùng Composite
+- **5 sản phẩm**: thùng 3.5T, 5T, đông lạnh Carrier, Thermo King, composite 1.5T
+- **5 đại lý**: HCM, Bình Dương, Đồng Nai, Long An, Cần Thơ (có tọa độ GPS)
+- **5 báo giá**: 3 PENDING + 1 QUOTED + 1 ACCEPTED
+- **3 đơn hàng**: QA-2025-001 (CONFIRMED) / QA-2025-002 (IN_PRODUCTION) / QA-2025-003 (COMPLETED)
+- **2 xe** + **1 yêu cầu bảo hành** PENDING
+- **2 thông báo** mẫu cho tài khoản Tuần
+
+---
+
 ## [Unreleased] — Management Hub cho MANAGER/ADMIN
 
 Tab "Quản lý" mới trong staff app, chỉ hiển thị khi role là MANAGER hoặc ADMIN.
