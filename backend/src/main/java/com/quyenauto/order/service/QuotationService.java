@@ -1,6 +1,7 @@
 package com.quyenauto.order.service;
 
 import com.quyenauto.common.exception.BusinessException;
+import com.quyenauto.notification.service.NotificationService;
 import com.quyenauto.order.dto.*;
 import com.quyenauto.order.entity.Quotation;
 import com.quyenauto.order.repository.QuotationRepository;
@@ -15,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 public class QuotationService {
@@ -22,6 +25,7 @@ public class QuotationService {
     private final QuotationRepository quotationRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final NotificationService notificationService;
 
     public Page<QuotationResponse> getByCustomer(Long customerId, Pageable pageable) {
         return quotationRepository.findByCustomerId(customerId, pageable).map(QuotationResponse::from);
@@ -66,6 +70,31 @@ public class QuotationService {
                 .status(Quotation.QuotationStatus.PENDING)
                 .build();
 
+        Quotation saved = quotationRepository.save(quotation);
+
+        // Gửi thông báo đến tất cả STAFF và MANAGER
+        String vehicleInfo = request.getVehicleModel() != null ? request.getVehicleModel() : product.getName();
+        notificationService.notifyAllStaff(
+                "Yêu cầu báo giá mới",
+                "KH " + customer.getFullName() + " yêu cầu báo giá: " + vehicleInfo,
+                "QUOTATION_NEW",
+                saved.getId().toString()
+        );
+
+        return QuotationResponse.from(saved);
+    }
+
+    @Transactional
+    public QuotationResponse markContacted(Long id, Long staffId) {
+        Quotation quotation = findById(id);
+        // Nếu đã có người liên hệ rồi thì giữ nguyên
+        if (quotation.getContactedAt() != null) {
+            return QuotationResponse.from(quotation);
+        }
+        User staff = userRepository.findById(staffId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"));
+        quotation.setContactedBy(staff);
+        quotation.setContactedAt(LocalDateTime.now());
         return QuotationResponse.from(quotationRepository.save(quotation));
     }
 

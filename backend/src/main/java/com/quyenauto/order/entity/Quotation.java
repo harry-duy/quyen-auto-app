@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "quotations")
@@ -75,6 +76,13 @@ public class Quotation extends BaseEntity {
 
     @Column(name = "staff_note", columnDefinition = "TEXT")
     private String staffNote;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contacted_by")
+    private User contactedBy;
+
+    @Column(name = "contacted_at")
+    private LocalDateTime contactedAt;
 
     public enum QuotationStatus {
         PENDING, QUOTED, ACCEPTED, REJECTED, EXPIRED

@@ -58,12 +58,23 @@ class OrderRepositoryImpl implements OrderRepository {
 
   @override
   Future<Order> createQuotation(QuotationRequest request) async {
+    // Backend POST /quotations trả về QuotationResponse, không phải OrderResponse
     final res = await _api.post<Order>(
       ApiConstants.createQuotation,
       data: request.toJson(),
-      fromData: (json) => _fromResponse(
-        OrderResponse.fromJson(json as Map<String, dynamic>),
-      ),
+      fromData: (json) {
+        final j = json as Map<String, dynamic>;
+        return Order(
+          id: j['id'].toString(),
+          orderCode: 'QT-${j['id']}',
+          productId: (j['productId'] ?? 0).toString(),
+          productName: j['productName'] as String? ?? 'Yêu cầu báo giá',
+          status: OrderStatus.pending,
+          totalAmount: 0,
+          note: j['note'] as String?,
+          createdAt: DateTime.parse(j['createdAt'] as String),
+        );
+      },
     );
     return res.data!;
   }

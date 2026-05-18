@@ -15,6 +15,7 @@ public class QuotationResponse {
     private Long id;
     private Long customerId;
     private String customerName;
+    private String customerPhone;
     private Long productId;
     private String productName;
 
@@ -27,8 +28,6 @@ public class QuotationResponse {
     private String acType;
     private String acModel;
     private Boolean innerWallInsulated;
-
-    // JSON thông số kỹ thuật đầy đủ
     private String specifications;
 
     // Field cũ giữ lại
@@ -41,6 +40,12 @@ public class QuotationResponse {
     private Long staffId;
     private String staffName;
     private String staffNote;
+
+    // Theo dõi liên hệ KH
+    private Long contactedById;
+    private String contactedByName;
+    private LocalDateTime contactedAt;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -49,6 +54,7 @@ public class QuotationResponse {
                 .id(q.getId())
                 .customerId(q.getCustomer().getId())
                 .customerName(q.getCustomer().getFullName())
+                .customerPhone(q.getCustomer().getPhone())
                 .productId(q.getProduct() != null ? q.getProduct().getId() : null)
                 .productName(q.getProduct() != null ? q.getProduct().getName() : null)
                 .vehicleModel(q.getVehicleModel())
@@ -68,6 +74,9 @@ public class QuotationResponse {
                 .staffId(q.getStaff() != null ? q.getStaff().getId() : null)
                 .staffName(q.getStaff() != null ? q.getStaff().getFullName() : null)
                 .staffNote(q.getStaffNote())
+                .contactedById(q.getContactedBy() != null ? q.getContactedBy().getId() : null)
+                .contactedByName(q.getContactedBy() != null ? q.getContactedBy().getFullName() : null)
+                .contactedAt(q.getContactedAt())
                 .createdAt(q.getCreatedAt())
                 .updatedAt(q.getUpdatedAt())
                 .build();
