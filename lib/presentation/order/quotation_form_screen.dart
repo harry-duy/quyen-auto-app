@@ -1014,7 +1014,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   }) {
     return Table(
       border: TableBorder.all(
-          color: AppColors.borderGray.withValues(alpha: 0.5), width: 0.8),
+          color: AppColors.borderLight.withValues(alpha: 0.5), width: 0.8),
       columnWidths: const {0: IntrinsicColumnWidth()},
       children: [
         TableRow(
