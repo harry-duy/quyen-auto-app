@@ -1,5 +1,40 @@
 # Lịch sử thay đổi — Quyen Auto App
 
+## [Unreleased] — Management Hub cho MANAGER/ADMIN
+
+Tab "Quản lý" mới trong staff app, chỉ hiển thị khi role là MANAGER hoặc ADMIN.
+
+### Vấn đề trước đây
+- `StaffMemberManagementScreen` và `DepartmentManagementScreen` đã tồn tại nhưng không có đường dẫn nào từ UI
+
+### Thay đổi Frontend (Flutter)
+
+#### `management_hub_screen.dart` (MỚI)
+Màn hình hub tổng hợp, được nhúng trong IndexedStack của StaffHomeScreen:
+- **User card**: Hiển thị tên, chức vụ và role badge (Admin/Manager/Staff)
+- **Stats**: Tổng số nhân viên (kèm số đang hoạt động), số phòng ban — pull-to-refresh
+- **Điều hướng**: Card "Quản lý nhân viên" → `StaffMemberManagementScreen`, Card "Phòng ban" → `DepartmentManagementScreen`
+
+#### `staff_home_screen.dart` — Cập nhật
+- Tabs và nav items được xây **động** dựa trên role người dùng:
+  - **STAFF**: 6 tabs — Dashboard / Đơn hàng / Báo giá / Bảo hành / Chat / Tài khoản
+  - **MANAGER / ADMIN**: 7 tabs — thêm tab "Quản lý" (icon `admin_panel_settings`) vào trước Tài khoản
+- `safeIndex` clamp tự động khi tabs thay đổi (tránh out-of-bounds khi đổi tài khoản)
+
+### Luồng hoạt động
+```
+Staff đăng nhập với role MANAGER/ADMIN
+    ↓
+StaffHomeScreen render 7 tabs (có tab Quản lý)
+    ↓
+Bấm tab "Quản lý" → ManagementHubScreen
+    ↓
+Bấm "Quản lý nhân viên" → push /management/staff → StaffMemberManagementScreen
+Bấm "Phòng ban"         → push /management/departments → DepartmentManagementScreen
+```
+
+---
+
 ## [Unreleased] — Dev Script: chạy tất cả trong một lệnh
 
 ### Vấn đề trước đây
