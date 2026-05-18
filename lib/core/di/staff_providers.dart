@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/api_constants.dart';
 import '../../data/models/response/dealer_response.dart';
 import '../../data/models/response/order_response.dart';
+import '../../data/models/response/quotation_response.dart';
 import '../../data/models/response/warranty_response.dart';
 import '../../data/services/api_service.dart';
 import '../../domain/entities/order.dart';
@@ -58,17 +59,33 @@ final staffOrderDetailProvider =
 
 // ─── Quotation Management ────────────────────────────────────────────────────
 
+final staffQuotationStatusFilter = StateProvider<String?>((ref) => null);
+
 final staffQuotationListProvider =
-    FutureProvider.autoDispose<List<QuotationResponse>>((ref) async {
+    FutureProvider.autoDispose<List<StaffQuotationResponse>>((ref) async {
   final api = ref.watch(apiServiceProvider);
-  final res = await api.get<List<QuotationResponse>>(
+  final status = ref.watch(staffQuotationStatusFilter);
+  final res = await api.get<List<StaffQuotationResponse>>(
     ApiConstants.staffQuotations,
-    queryParams: {'status': 'PENDING'},
-    fromData: (json) => (json as List)
-        .map((e) => QuotationResponse.fromJson(e as Map<String, dynamic>))
-        .toList(),
+    queryParams: {
+      'page': 0,
+      'size': 100,
+      if (status != null) 'status': status,
+    },
+    fromData: (json) => _parseQuotationPage(json),
   );
   return res.data ?? [];
+});
+
+final staffUncontactedCountProvider =
+    FutureProvider.autoDispose<int>((ref) async {
+  final api = ref.watch(apiServiceProvider);
+  final res = await api.get<List<StaffQuotationResponse>>(
+    ApiConstants.staffQuotations,
+    queryParams: {'page': 0, 'size': 200, 'status': 'PENDING'},
+    fromData: (json) => _parseQuotationPage(json),
+  );
+  return (res.data ?? []).where((q) => !q.isContacted).length;
 });
 
 // ─── Warranty Management ─────────────────────────────────────────────────────
@@ -121,13 +138,26 @@ class StaffActionsNotifier extends Notifier<void> {
 
   Future<void> approveQuotation(
       String quotationId, double price, String? note) async {
-    await _api.put(
+    await _api.patch(
       ApiConstants.resolve(
           ApiConstants.staffApproveQuote, {'id': quotationId}),
-      data: {'price': price, if (note != null) 'note': note},
+      data: {
+        'quotedPrice': price,
+        if (note != null) 'staffNote': note,
+      },
     );
     ref.invalidate(staffQuotationListProvider);
+    ref.invalidate(staffUncontactedCountProvider);
     ref.invalidate(staffDashboardProvider);
+  }
+
+  Future<void> markQuotationContacted(String quotationId) async {
+    await _api.patch(
+      ApiConstants.resolve(
+          ApiConstants.staffQuotationContact, {'id': quotationId}),
+    );
+    ref.invalidate(staffQuotationListProvider);
+    ref.invalidate(staffUncontactedCountProvider);
   }
 
   Future<void> assignWarrantyTechnician(
@@ -175,4 +205,14 @@ Order _orderFromJson(Map<String, dynamic> j) {
     createdAt: r.createdAt ?? DateTime.now(),
     updatedAt: r.estimatedDate,
   );
+}
+
+/// Handles both a plain List and a PageResponse map with a 'content' field.
+List<StaffQuotationResponse> _parseQuotationPage(dynamic json) {
+  final List<dynamic> items = json is List
+      ? json
+      : (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
+  return items
+      .map((e) => StaffQuotationResponse.fromJson(e as Map<String, dynamic>))
+      .toList();
 }
