@@ -22,7 +22,8 @@ abstract final class ApiConstants {
   // ─── Orders ────────────────────────────────────────────────────────────────
   static const String myOrders        = 'orders/my';
   static const String orderDetail     = 'orders/{id}';
-  static const String createQuotation = 'orders/quotation';
+  static const String createQuotation = 'quotations';
+  static const String myQuotations    = 'quotations';
   static const String updateStatus    = 'orders/{id}/status';
 
   // ─── Warranty ──────────────────────────────────────────────────────────────
@@ -48,8 +49,9 @@ abstract final class ApiConstants {
   static const String staffUpdateStatus = 'staff/orders/{id}/status';
 
   // ─── Staff: Quotations ────────────────────────────────────────────────────
-  static const String staffQuotations    = 'staff/quotations';
-  static const String staffApproveQuote  = 'staff/quotations/{id}/approve';
+  static const String staffQuotations        = 'staff/quotations';
+  static const String staffApproveQuote      = 'staff/quotations/{id}/approve';
+  static const String staffQuotationContact  = 'staff/quotations/{id}/contact';
 
   // ─── Staff: Warranty ──────────────────────────────────────────────────────
   static const String staffWarrantyList   = 'staff/warranty';
