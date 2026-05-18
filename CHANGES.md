@@ -1,5 +1,36 @@
 # Lịch sử thay đổi — Quyen Auto App
 
+## [Unreleased] — Dev Script: chạy tất cả trong một lệnh
+
+### Vấn đề trước đây
+- Phải mở 3 terminal riêng, chạy thủ công từng service
+
+### Thay đổi
+
+#### `Makefile` (MỚI)
+| Target | Lệnh tương đương |
+|---|---|
+| `make dev` | Mở Backend + Customer app + Staff app cùng lúc |
+| `make backend` | `cd backend && ./mvnw spring-boot:run` |
+| `make customer` | `flutter run --flavor customer -t lib/main.dart` |
+| `make staff` | `flutter run --flavor staff -t lib/main_staff.dart` |
+| `make build` | Build backend JAR (skip tests) |
+| `make clean` | Xóa toàn bộ build artifacts |
+
+#### `scripts/dev.ps1` (MỚI)
+Script PowerShell được gọi bởi `make dev`:
+- Nếu **Windows Terminal** (`wt.exe`) có sẵn → mở 3 tabs trong 1 cửa sổ
+- Nếu không → mở 3 cửa sổ PowerShell riêng biệt
+
+### Cách dùng
+```bash
+# Từ Git Bash hoặc terminal trong thư mục project
+make dev
+```
+> **Lưu ý:** Chạy 2 Flutter app cùng lúc cần 2 thiết bị/emulator (1 cho Customer, 1 cho Staff).
+
+---
+
 ## [Unreleased] — FCM Push Notification + WebSocket Real-time cho Staff
 
 Triển khai hệ thống thông báo đẩy (push notification) và WebSocket real-time để nhân viên nhận thông báo ngay lập tức khi khách hàng gửi yêu cầu báo giá — không cần tự mở app refresh.
