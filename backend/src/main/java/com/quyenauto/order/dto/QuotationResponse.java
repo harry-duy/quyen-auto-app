@@ -17,9 +17,25 @@ public class QuotationResponse {
     private String customerName;
     private Long productId;
     private String productName;
+
+    // Thông tin cơ bản theo mẫu báo giá
+    private String vehicleModel;
+    private Integer quantity;
+    private Integer chassisWidth;
+    private String boxCode;
+    private String boxType;
+    private String acType;
+    private String acModel;
+    private Boolean innerWallInsulated;
+
+    // JSON thông số kỹ thuật đầy đủ
+    private String specifications;
+
+    // Field cũ giữ lại
     private String weightRange;
     private String cargoType;
     private String note;
+
     private BigDecimal quotedPrice;
     private String status;
     private Long staffId;
@@ -35,6 +51,15 @@ public class QuotationResponse {
                 .customerName(q.getCustomer().getFullName())
                 .productId(q.getProduct() != null ? q.getProduct().getId() : null)
                 .productName(q.getProduct() != null ? q.getProduct().getName() : null)
+                .vehicleModel(q.getVehicleModel())
+                .quantity(q.getQuantity())
+                .chassisWidth(q.getChassisWidth())
+                .boxCode(q.getBoxCode())
+                .boxType(q.getBoxType())
+                .acType(q.getAcType())
+                .acModel(q.getAcModel())
+                .innerWallInsulated(q.getInnerWallInsulated())
+                .specifications(q.getSpecifications())
                 .weightRange(q.getWeightRange())
                 .cargoType(q.getCargoType())
                 .note(q.getNote())

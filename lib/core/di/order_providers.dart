@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../data/models/request/quotation_request.dart';
 import '../../domain/entities/order.dart';
 import 'service_providers.dart';
 
@@ -55,22 +56,10 @@ class QuotationNotifier extends AsyncNotifier<Order?> {
   @override
   Future<Order?> build() async => null;
 
-  Future<bool> submit({
-    required String productId,
-    required String truckType,
-    required double truckLength,
-    required String requirements,
-    String? note,
-  }) async {
+  Future<bool> submit(QuotationRequest request) async {
     state = const AsyncLoading();
     final result = await AsyncValue.guard(
-      () => ref.read(orderRepositoryProvider).createQuotation(
-            productId: productId,
-            truckType: truckType,
-            truckLength: truckLength,
-            requirements: requirements,
-            note: note,
-          ),
+      () => ref.read(orderRepositoryProvider).createQuotation(request),
     );
     state = result;
     return result.hasValue && result.value != null;

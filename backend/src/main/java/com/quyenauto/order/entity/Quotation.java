@@ -31,6 +31,33 @@ public class Quotation extends BaseEntity {
     @Column(name = "cargo_type", length = 100)
     private String cargoType;
 
+    @Column(name = "vehicle_model", length = 100)
+    private String vehicleModel;
+
+    @Column(name = "quantity")
+    private Integer quantity;
+
+    @Column(name = "chassis_width")
+    private Integer chassisWidth;
+
+    @Column(name = "box_code", length = 20)
+    private String boxCode;
+
+    @Column(name = "box_type", length = 30)
+    private String boxType;
+
+    @Column(name = "ac_type", length = 20)
+    private String acType;
+
+    @Column(name = "ac_model", length = 100)
+    private String acModel;
+
+    @Column(name = "inner_wall_insulated")
+    private Boolean innerWallInsulated;
+
+    @Column(name = "specifications", columnDefinition = "JSON")
+    private String specifications;
+
     @Column(columnDefinition = "TEXT")
     private String note;
 
