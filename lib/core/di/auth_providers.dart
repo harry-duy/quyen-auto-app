@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
+import 'notification_providers.dart';
 import 'service_providers.dart';
 
 // ─── Auth State ──────────────────────────────────────────────────────────────
@@ -16,6 +17,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
     if (!loggedIn) return null;
 
     _connectWebSocket();
+    _registerPushNotifications();
 
     try {
       return await _repo.getProfile();
@@ -33,6 +35,12 @@ class AuthNotifier extends AsyncNotifier<User?> {
     }
   }
 
+  Future<void> _registerPushNotifications() async {
+    try {
+      await ref.read(pushNotificationServiceProvider).init();
+    } catch (_) {}
+  }
+
   Future<void> login(
       {required String phone, required String password}) async {
     state = const AsyncLoading();
@@ -40,6 +48,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
         () => _repo.login(phone: phone, password: password));
     if (state.hasValue && state.value != null) {
       _connectWebSocket();
+      _registerPushNotifications();
     }
   }
 
@@ -57,6 +66,7 @@ class AuthNotifier extends AsyncNotifier<User?> {
     );
     if (state.hasValue && state.value != null) {
       _connectWebSocket();
+      _registerPushNotifications();
     }
   }
 
@@ -65,10 +75,14 @@ class AuthNotifier extends AsyncNotifier<User?> {
     state = await AsyncValue.guard(() => _repo.loginWithZalo(zaloCode));
     if (state.hasValue && state.value != null) {
       _connectWebSocket();
+      _registerPushNotifications();
     }
   }
 
   Future<void> logout() async {
+    try {
+      await ref.read(pushNotificationServiceProvider).removeToken();
+    } catch (_) {}
     ref.read(webSocketServiceProvider).disconnect();
     await _repo.logout();
     state = const AsyncData(null);

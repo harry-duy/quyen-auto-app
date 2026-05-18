@@ -46,3 +46,8 @@ app.*.map.json
 
 # Environment
 .env
+
+# Firebase credentials (sensitive — never commit)
+**/google-services.json
+**/GoogleService-Info.plist
+backend/firebase-service-account.json

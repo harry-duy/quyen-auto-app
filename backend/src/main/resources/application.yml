@@ -41,6 +41,9 @@ app:
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:8080}
 
+  firebase:
+    credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-service-account.json}
+
 springdoc:
   api-docs:
     path: /api-docs

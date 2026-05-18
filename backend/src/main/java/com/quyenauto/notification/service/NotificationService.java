@@ -11,15 +11,20 @@ import com.quyenauto.user.entity.UserRole;
 import com.quyenauto.user.repository.UserRepository;
 import com.quyenauto.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -27,6 +32,8 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final FcmTokenRepository fcmTokenRepository;
     private final UserRepository userRepository;
+    private final FirebasePushService firebasePushService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public Page<NotificationResponse> getByUser(Long userId, Pageable pageable) {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
@@ -86,8 +93,11 @@ public class NotificationService {
                 .findByRoleIn(staffRoles, PageRequest.of(0, 200))
                 .getContent();
 
+        List<Long> staffIds = new ArrayList<>();
+
         for (User staff : staffUsers) {
             if (!staff.getIsActive()) continue;
+
             Notification notification = Notification.builder()
                     .user(staff)
                     .title(title)
@@ -96,7 +106,28 @@ public class NotificationService {
                     .refId(refId)
                     .isRead(false)
                     .build();
-            notificationRepository.save(notification);
+            Notification saved = notificationRepository.save(notification);
+            staffIds.add(staff.getId());
+
+            // WebSocket: push real-time to each staff user's personal queue
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(staff.getId()),
+                    "/queue/notifications",
+                    Map.of(
+                            "id", saved.getId(),
+                            "title", title,
+                            "body", body,
+                            "type", type,
+                            "refId", refId,
+                            "isRead", false
+                    )
+            );
+        }
+
+        // FCM: push notification to all staff devices (async, non-blocking)
+        if (!staffIds.isEmpty()) {
+            firebasePushService.sendToUsers(staffIds, title, body, type, refId);
+            log.info("Notified {} staff via DB + WebSocket + FCM: {}", staffIds.size(), type);
         }
     }
 }

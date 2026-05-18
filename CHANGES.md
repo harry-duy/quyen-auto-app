@@ -1,5 +1,112 @@
 # Lịch sử thay đổi — Quyen Auto App
 
+## [Unreleased] — FCM Push Notification + WebSocket Real-time cho Staff
+
+Triển khai hệ thống thông báo đẩy (push notification) và WebSocket real-time để nhân viên nhận thông báo ngay lập tức khi khách hàng gửi yêu cầu báo giá — không cần tự mở app refresh.
+
+### Vấn đề trước đây
+
+- Backend chỉ lưu notification vào DB, không gửi push ra ngoài app
+- Staff phải **tự mở app và refresh** mới thấy có báo giá mới
+- FCM token được lưu nhưng **không bao giờ sử dụng**
+- WebSocket chỉ dùng cho chat, không broadcast notification
+- Màn hình "Thông báo" chỉ là placeholder "Coming Soon"
+
+### Thay đổi Backend
+
+#### Dependency
+- **`pom.xml`** — Thêm `firebase-admin:9.2.0` (Firebase Admin SDK cho Java)
+
+#### Configuration
+- **`application.yml`** — Thêm `app.firebase.credentials-path` config
+- **`FirebaseConfig.java`** (MỚI) — Khởi tạo Firebase App từ service account JSON; graceful skip nếu chưa cấu hình
+- **`QuyenAutoApplication.java`** — Thêm `@EnableAsync` cho async FCM push
+
+#### Service
+- **`FirebasePushService.java`** (MỚI) — Service gửi FCM push:
+  - `sendToUser()` — Gửi push đến tất cả thiết bị của 1 user
+  - `sendToUsers()` — Gửi push đến danh sách users
+  - Tự động xóa stale FCM token khi thiết bị unregister
+  - Chạy `@Async` — không block main thread
+  - Android: HIGH priority + sound + FLUTTER_NOTIFICATION_CLICK
+  - iOS: sound + badge
+
+- **`NotificationService.notifyAllStaff()`** — Nâng cấp từ DB-only → 3 kênh:
+  1. **DB** — Lưu notification record (như cũ)
+  2. **WebSocket** — Push real-time đến `/user/{userId}/queue/notifications`
+  3. **FCM** — Push notification đến thiết bị qua Firebase (async)
+
+### Thay đổi Frontend (Flutter)
+
+#### Data Layer
+- **`push_notification_service.dart`** (MỚI) — Service quản lý FCM:
+  - Khởi tạo Firebase + request permission
+  - Đăng ký FCM token với server (`POST /notifications/fcm-token`)
+  - Lắng nghe foreground + background + onOpenedApp messages
+  - Auto-refresh token khi Firebase rotate
+  - Cleanup token khi logout
+
+- **`websocket_service.dart`** — Thêm `subscribeNotifications()` cho real-time
+
+#### Providers
+- **`notification_providers.dart`** — Viết lại hoàn toàn:
+  - `pushNotificationServiceProvider` — DI cho FCM service
+  - `NotificationListNotifier` — `AutoDisposeAsyncNotifier` thay vì `FutureProvider`:
+    - Auto-polling mỗi 30 giây
+    - Lắng nghe WebSocket real-time
+    - Lắng nghe FCM foreground messages
+    - `refresh()` method cho pull-to-refresh
+
+- **`auth_providers.dart`** — Tích hợp FCM vào auth flow:
+  - `_registerPushNotifications()` gọi sau login/register/zaloLogin
+  - `logout()` gọi `removeToken()` trước khi clear session
+
+#### Entry Points
+- **`main.dart`** — Thêm `Firebase.initializeApp()` (customer app)
+- **`main_staff.dart`** — Thêm `Firebase.initializeApp()` (staff app)
+
+#### UI
+- **`notification_screen.dart`** — Viết lại từ placeholder thành màn hình đầy đủ:
+  - Pull-to-refresh
+  - Icon + màu khác nhau theo type (báo giá/đơn hàng/bảo hành/chat)
+  - Highlight unread (nền cam nhạt)
+  - Time ago format (vừa xong / phút / giờ / ngày)
+  - Empty state + error state
+
+---
+
+### Luồng thông báo mới
+
+```
+KH bấm "Gửi báo giá" trên app Customer
+    ↓
+POST /quotations → QuotationService.create()
+    ↓
+notifyAllStaff() chạy 3 kênh song song:
+    ├── [1] INSERT notification vào DB ✅
+    ├── [2] WebSocket → /user/{staffId}/queue/notifications ✅
+    └── [3] FCM push → Firebase → thiết bị staff (async) ✅
+    ↓
+Staff nhận thông báo:
+    ├── Đang mở app → WebSocket real-time, list tự refresh
+    ├── App ở background → FCM push notification hiện trên thanh trạng thái
+    └── App đã tắt → FCM push đánh thức thiết bị hiện notification
+```
+
+### Cấu hình cần thiết
+
+#### Backend
+1. Tạo Firebase project tại https://console.firebase.google.com
+2. Tải file **service account JSON** (Project Settings → Service Accounts → Generate New Private Key)
+3. Đặt file vào server và set env: `FIREBASE_CREDENTIALS_PATH=/path/to/firebase-service-account.json`
+
+#### Flutter
+1. Thêm `google-services.json` (Android) vào `android/app/`
+2. Thêm `GoogleService-Info.plist` (iOS) vào `ios/Runner/`
+3. Cả hai file lấy từ Firebase Console → Project Settings → Your Apps
+
+---
+
 ## [Unreleased] — Tạo báo giá nâng cao
 
 Thiết kế lại toàn bộ form tạo báo giá theo mẫu Excel thực tế của công ty (file `Tạo báo giá.xlsx`).
