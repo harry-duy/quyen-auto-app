@@ -78,6 +78,12 @@ class _AuthInterceptor extends Interceptor {
       return handler.next(err);
     }
 
+    // Không refresh cho auth endpoints (login sai pass trả 401 không phải expired)
+    final path = err.requestOptions.path;
+    if (path.startsWith('auth/')) {
+      return handler.next(err);
+    }
+
     _log.w('Access token expired — attempting refresh...');
 
     final refreshToken = await _tokenService.getRefreshToken();

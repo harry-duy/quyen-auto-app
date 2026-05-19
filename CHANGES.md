@@ -1,5 +1,48 @@
 # Lịch sử thay đổi — Quyen Auto App
 
+## [Unreleased] — Runtime Bugfixes
+
+Các lỗi runtime phát hiện khi chạy thực tế sau khi login thành công.
+
+### Flutter
+
+#### `dashboard_screen.dart` — Crash khi render biểu đồ doanh thu
+- **Lỗi**: `type 'double' is not a subtype of type 'List<dynamic>?'` tại `_RevenueChart`
+- **Nguyên nhân**: Code dùng `data['monthlyRevenue']` — trường này là `BigDecimal` (tháng hiện tại, số đơn lẻ). Biểu đồ 6 tháng thực sự nằm ở `data['revenueChart']` (một `List`).
+- **Fix**: Đổi sang `data['revenueChart']`, format nhãn tháng thành `T${item['month']}` (backend trả số nguyên 1–12).
+
+#### `api_service.dart` — Nhập sai mật khẩu bị logout
+- **Lỗi**: Login 401 (sai mật khẩu) khiến `_AuthInterceptor` cố refresh token rồi xóa hết token → bật ra màn hình login không rõ lý do
+- **Fix**: Bỏ qua refresh logic cho tất cả endpoint bắt đầu bằng `auth/`
+
+### Backend
+
+#### `OrderService`, `QuotationService`, `WarrantyService` — 500 trên staff endpoints
+- **Lỗi**: `/staff/orders`, `/staff/quotations`, `/staff/warranty` trả về 500
+- **Nguyên nhân**: Các method đọc không có `@Transactional`. Repository mở/đóng session riêng; `.map(Response::from)` truy cập quan hệ `FetchType.LAZY` (customer, vehicle) sau khi session đã đóng → `LazyInitializationException`.
+- **Fix**: Thêm `@Transactional(readOnly = true)` ở class level cho cả 3 service. Method ghi đã có `@Transactional` riêng, không ảnh hưởng.
+
+#### `application-dev.yml` — MySQL password sai, Flyway validation fail
+- **Fix**: Đúng password MySQL (`159357bapD`), thêm `spring.flyway.clean-on-validate-error: true` cho dev
+
+#### `V4__seed_sample_data.sql` — SQL "subquery returns more than 1 row"
+- **Lỗi**: `WHERE name LIKE '%5 Tấn%'` khớp cả 'Thùng Bảo Ôn 3.5 Tấn' lẫn 'Thùng Bảo Ôn 5 Tấn'
+- **Fix**: Đổi thành exact match `= 'Thùng Bảo Ôn 5 Tấn'`; sửa BCrypt hash sang hash đúng của `admin123`
+
+### Files thay đổi
+
+| File | Loại | Thay đổi |
+|------|------|----------|
+| `lib/presentation/staff/dashboard_screen.dart` | Sửa | Dùng `revenueChart` thay `monthlyRevenue`, fix nhãn tháng |
+| `lib/data/services/api_service.dart` | Sửa | Skip refresh cho `auth/` endpoints |
+| `backend/.../order/service/OrderService.java` | Sửa | Thêm `@Transactional(readOnly = true)` |
+| `backend/.../order/service/QuotationService.java` | Sửa | Thêm `@Transactional(readOnly = true)` |
+| `backend/.../warranty/service/WarrantyService.java` | Sửa | Thêm `@Transactional(readOnly = true)` |
+| `backend/src/main/resources/application-dev.yml` | Sửa | MySQL password + Flyway clean-on-validate |
+| `backend/.../db/migration/V4__seed_sample_data.sql` | Sửa | Fix LIKE → exact match, fix BCrypt hash |
+
+---
+
 ## [Unreleased] — Production hardening & deployment infrastructure
 
 Toàn bộ các vấn đề bảo mật và hạ tầng được phát hiện trong quá trình đánh giá production.

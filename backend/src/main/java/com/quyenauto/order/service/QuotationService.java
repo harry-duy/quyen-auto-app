@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class QuotationService {
 
     private final QuotationRepository quotationRepository;

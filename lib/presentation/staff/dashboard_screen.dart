@@ -240,20 +240,20 @@ class _RevenueChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final monthlyRevenue =
-        (data['monthlyRevenue'] as List<dynamic>?) ?? [];
+    final revenueChart =
+        (data['revenueChart'] as List<dynamic>?) ?? [];
 
-    if (monthlyRevenue.isEmpty) {
+    if (revenueChart.isEmpty) {
       return const _EmptyState(message: 'Chưa có dữ liệu doanh thu');
     }
 
     final bars = <BarChartGroupData>[];
     final labels = <String>[];
 
-    for (var i = 0; i < monthlyRevenue.length && i < 6; i++) {
-      final item = monthlyRevenue[i] as Map<String, dynamic>;
+    for (var i = 0; i < revenueChart.length && i < 6; i++) {
+      final item = revenueChart[i] as Map<String, dynamic>;
       final revenue = (item['revenue'] as num?)?.toDouble() ?? 0;
-      final month = item['month']?.toString() ?? 'T${i + 1}';
+      final month = item['month'] != null ? 'T${item['month']}' : 'T${i + 1}';
 
       bars.add(BarChartGroupData(
         x: i,

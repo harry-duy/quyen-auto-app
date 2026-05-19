@@ -4,7 +4,7 @@
 -- =====================================================================
 
 -- ─── Hash dùng chung cho password "admin123" ─────────────────────────
--- $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+-- $2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi
 
 -- ─── Departments ─────────────────────────────────────────────────────
 INSERT INTO departments (name, description) VALUES
@@ -19,7 +19,7 @@ INSERT INTO departments (name, description) VALUES
 -- SĐT: 0909000001  |  Mật khẩu: admin123
 INSERT INTO users (full_name, phone, password_hash, role, department_id, position, employee_code)
 SELECT 'Nguyễn Đức Tuần', '0909000001',
-       '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+       '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi',
        'MANAGER',
        (SELECT id FROM departments WHERE name = 'Kinh Doanh'),
        'Trưởng phòng Kinh Doanh', 'QA002';
@@ -27,14 +27,14 @@ SELECT 'Nguyễn Đức Tuần', '0909000001',
 -- Nhân viên Kinh Doanh
 INSERT INTO users (full_name, phone, password_hash, role, department_id, position, employee_code)
 SELECT 'Nguyễn Văn Hùng', '0909000002',
-       '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+       '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi',
        'STAFF',
        (SELECT id FROM departments WHERE name = 'Kinh Doanh'),
        'Nhân viên Kinh Doanh', 'QA003';
 
 INSERT INTO users (full_name, phone, password_hash, role, department_id, position, employee_code)
 SELECT 'Phạm Thị Lan', '0909000003',
-       '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+       '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi',
        'STAFF',
        (SELECT id FROM departments WHERE name = 'Kinh Doanh'),
        'Nhân viên Kinh Doanh', 'QA004';
@@ -42,14 +42,14 @@ SELECT 'Phạm Thị Lan', '0909000003',
 -- Nhân viên Kỹ Thuật
 INSERT INTO users (full_name, phone, password_hash, role, department_id, position, employee_code)
 SELECT 'Lê Quốc Bảo', '0909000004',
-       '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+       '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi',
        'STAFF',
        (SELECT id FROM departments WHERE name = 'Kỹ Thuật Sản Xuất'),
        'Kỹ thuật viên', 'QA005';
 
 INSERT INTO users (full_name, phone, password_hash, role, department_id, position, employee_code)
 SELECT 'Trần Minh Đức', '0909000005',
-       '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+       '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi',
        'STAFF',
        (SELECT id FROM departments WHERE name = 'Kỹ Thuật Sản Xuất'),
        'Kỹ thuật viên trưởng', 'QA006';
@@ -57,7 +57,7 @@ SELECT 'Trần Minh Đức', '0909000005',
 -- Nhân viên CSKH
 INSERT INTO users (full_name, phone, password_hash, role, department_id, position, employee_code)
 SELECT 'Võ Thị Mai', '0909000006',
-       '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy',
+       '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi',
        'STAFF',
        (SELECT id FROM departments WHERE name = 'Chăm Sóc Khách Hàng'),
        'Nhân viên CSKH', 'QA007';
@@ -70,15 +70,15 @@ WHERE name = 'Kinh Doanh';
 -- ─── Khách hàng (CUSTOMER) ────────────────────────────────────────────
 INSERT INTO users (full_name, phone, email, password_hash, role) VALUES
     ('Nguyễn Thành Long',  '0901111001', 'long.nguyen@gmail.com',
-     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'CUSTOMER'),
+     '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi', 'CUSTOMER'),
     ('Trần Minh Khoa',     '0901111002', 'khoa.tran@gmail.com',
-     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'CUSTOMER'),
+     '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi', 'CUSTOMER'),
     ('Lê Thị Hoa',         '0901111003', 'hoa.le@yahoo.com',
-     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'CUSTOMER'),
+     '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi', 'CUSTOMER'),
     ('Phạm Văn Tài',       '0901111004', NULL,
-     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'CUSTOMER'),
+     '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi', 'CUSTOMER'),
     ('Hoàng Thị Ngọc',     '0901111005', NULL,
-     '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', 'CUSTOMER');
+     '$2a$10$2PCTAysv7yNADgTIFh8jEOS2yAHlZwQfssk0iTDJK1sBNjjtVURNi', 'CUSTOMER');
 
 -- ─── Product Categories ───────────────────────────────────────────────
 INSERT INTO product_categories (name, description, sort_order) VALUES
@@ -150,7 +150,7 @@ INSERT INTO quotations (customer_id, product_id, vehicle_model, weight_range, ca
                         contacted_by, contacted_at)
 SELECT
     (SELECT id FROM users WHERE phone = '0901111004'),
-    (SELECT id FROM products WHERE name LIKE '%5 Tấn%' AND category_id = (SELECT id FROM product_categories WHERE name = 'Thùng Bảo Ôn')),
+    (SELECT id FROM products WHERE name = 'Thùng Bảo Ôn 5 Tấn'),
     'Hyundai HD72', '5 tấn', 'Rau củ quả',
     'Cần thùng 2 ngăn có lỗ thông hơi',
     108000000, 'QUOTED',
