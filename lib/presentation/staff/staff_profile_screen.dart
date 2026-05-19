@@ -206,6 +206,7 @@ class StaffProfileScreen extends ConsumerWidget {
                 );
                 if (confirmed == true) {
                   await ref.read(authProvider.notifier).logout();
+                  if (context.mounted) context.go(StaffRoutes.login);
                 }
               },
               icon: const Icon(Icons.logout, color: AppColors.errorRed),
