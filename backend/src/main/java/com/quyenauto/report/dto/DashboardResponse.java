@@ -12,9 +12,10 @@ import java.util.List;
 @AllArgsConstructor
 public class DashboardResponse {
     private long totalOrders;
-    private long pendingOrders;
+    private long newOrders;          // PENDING orders (for stat card)
+    private long inProduction;       // IN_PRODUCTION orders (for stat card)
     private long pendingQuotations;
-    private long pendingWarranties;
+    private long activeWarranties;   // PENDING + IN_PROGRESS warranties (for stat card)
     private BigDecimal totalRevenue;
     private BigDecimal monthlyRevenue;
     private List<MonthlyRevenue> revenueChart;

@@ -23,20 +23,24 @@ public class ReportService {
     private final WarrantyRequestRepository warrantyRepository;
 
     public DashboardResponse getDashboard() {
-        long totalOrders = orderRepository.count();
-        long pendingOrders = orderRepository.countByStatus(Order.OrderStatus.PENDING);
+        long totalOrders      = orderRepository.count();
+        long newOrders        = orderRepository.countByStatus(Order.OrderStatus.PENDING);
+        long inProduction     = orderRepository.countByStatus(Order.OrderStatus.IN_PRODUCTION);
         long pendingQuotations = quotationRepository.countByStatus(Quotation.QuotationStatus.PENDING);
-        long pendingWarranties = warrantyRepository.countByStatus(WarrantyRequest.WarrantyStatus.PENDING);
+        long activeWarranties = warrantyRepository.countByStatus(WarrantyRequest.WarrantyStatus.PENDING)
+                              + warrantyRepository.countByStatus(WarrantyRequest.WarrantyStatus.IN_PROGRESS);
 
-        var totalRevenue = orderRepository.sumRevenueByStatus(Order.OrderStatus.COMPLETED);
+        var totalRevenue   = orderRepository.sumRevenueByStatus(Order.OrderStatus.COMPLETED);
 
         LocalDate now = LocalDate.now();
-        var monthlyRevenue = orderRepository.sumMonthlyRevenueByStatus(Order.OrderStatus.COMPLETED, now.getMonthValue(), now.getYear());
+        var monthlyRevenue = orderRepository.sumMonthlyRevenueByStatus(
+                Order.OrderStatus.COMPLETED, now.getMonthValue(), now.getYear());
 
         List<DashboardResponse.MonthlyRevenue> revenueChart = new ArrayList<>();
         for (int i = 5; i >= 0; i--) {
             LocalDate month = now.minusMonths(i);
-            var rev = orderRepository.sumMonthlyRevenueByStatus(Order.OrderStatus.COMPLETED, month.getMonthValue(), month.getYear());
+            var rev = orderRepository.sumMonthlyRevenueByStatus(
+                    Order.OrderStatus.COMPLETED, month.getMonthValue(), month.getYear());
             revenueChart.add(DashboardResponse.MonthlyRevenue.builder()
                     .month(month.getMonthValue())
                     .year(month.getYear())
@@ -46,9 +50,10 @@ public class ReportService {
 
         return DashboardResponse.builder()
                 .totalOrders(totalOrders)
-                .pendingOrders(pendingOrders)
+                .newOrders(newOrders)
+                .inProduction(inProduction)
                 .pendingQuotations(pendingQuotations)
-                .pendingWarranties(pendingWarranties)
+                .activeWarranties(activeWarranties)
                 .totalRevenue(totalRevenue)
                 .monthlyRevenue(monthlyRevenue)
                 .revenueChart(revenueChart)
