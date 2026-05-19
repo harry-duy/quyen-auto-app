@@ -458,6 +458,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   Widget build(BuildContext context) {
     final isLoggedIn = ref.watch(isAuthenticatedProvider);
     final isLoading = ref.watch(quotationProvider).isLoading || _guestSubmitting;
+    final productsAsync = ref.watch(productListProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -512,7 +513,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
               subtitle: const Text('Loại xe, kích thước thùng'),
               isActive: _currentStep >= 0,
               state: _currentStep > 0 ? StepState.complete : StepState.indexed,
-              content: _buildStep1(),
+              content: _buildStep1(productsAsync),
             ),
             Step(
               title: const Text('Phụ kiện & trang bị'),
@@ -533,7 +534,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
               subtitle: const Text('Option khác, ghi chú thêm'),
               isActive: _currentStep >= 3,
               state: StepState.indexed,
-              content: _buildStep4(),
+              content: _buildStep4(isLoggedIn),
             ),
           ],
         ),
@@ -543,8 +544,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
 
   // ─── Step 1 ───────────────────────────────────────────────────────────────
 
-  Widget _buildStep1() {
-    final productsAsync = ref.watch(productListProvider);
+  Widget _buildStep1(AsyncValue productsAsync) {
     final isRefrigerated = _boxCategory == _kBoxCategories[0];
 
     return Column(
@@ -1121,9 +1121,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
 
   // ─── Step 4 ───────────────────────────────────────────────────────────────
 
-  Widget _buildStep4() {
-    final isLoggedIn = ref.watch(isAuthenticatedProvider);
-
+  Widget _buildStep4(bool isLoggedIn) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1161,7 +1159,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
               prefixIcon: Icon(Icons.phone_outlined),
             ),
             validator: (v) {
-              if (!ref.read(isAuthenticatedProvider)) {
+              if (!isLoggedIn) {
                 if (v == null || v.trim().isEmpty) {
                   return 'Vui lòng nhập số điện thoại';
                 }
