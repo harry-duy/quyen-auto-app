@@ -44,24 +44,32 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: notifier,
     debugLogDiagnostics: true,
 
-    // Auth guard
+    // Auth guard — public routes accessible without login
     redirect: (context, state) {
       final isLoggedIn   = ref.read(isAuthenticatedProvider);
       final loc          = state.matchedLocation;
       final onAuthScreen = loc == AppRoutes.login || loc == AppRoutes.register;
 
-      if (!isLoggedIn && !onAuthScreen) return AppRoutes.login;
-      if (isLoggedIn  && onAuthScreen)  return AppRoutes.home;
+      // Already logged in → skip auth screens
+      if (isLoggedIn && onAuthScreen) return AppRoutes.home;
+
+      // Routes that require login
+      final needsAuth = loc.startsWith('/order/') ||
+          loc.startsWith('/chat/') ||
+          loc == AppRoutes.notifications ||
+          loc == AppRoutes.addVehicle;
+
+      if (!isLoggedIn && needsAuth) return AppRoutes.login;
       return null;
     },
 
     routes: [
       // Auth
-      GoRoute(path: AppRoutes.login,    builder: (_, __) => const LoginScreen()),
-      GoRoute(path: AppRoutes.register, builder: (_, __) => const RegisterScreen()),
+      GoRoute(path: AppRoutes.login,    builder: (_, _) => const LoginScreen()),
+      GoRoute(path: AppRoutes.register, builder: (_, _) => const RegisterScreen()),
 
       // Main shell (HomeScreen handles BottomNav + IndexedStack internally)
-      GoRoute(path: AppRoutes.home, builder: (_, __) => const HomeScreen()),
+      GoRoute(path: AppRoutes.home, builder: (_, _) => const HomeScreen()),
 
       // Full-screen overlay pages (pushed on top of the shell)
       GoRoute(
@@ -82,8 +90,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.chat,
         builder: (_, s) => ChatScreen(roomId: s.pathParameters['roomId']!),
       ),
-      GoRoute(path: AppRoutes.notifications, builder: (_, __) => const NotificationScreen()),
-      GoRoute(path: AppRoutes.addVehicle,    builder: (_, __) => const AddVehicleScreen()),
+      GoRoute(path: AppRoutes.notifications, builder: (_, _) => const NotificationScreen()),
+      GoRoute(path: AppRoutes.addVehicle,    builder: (_, _) => const AddVehicleScreen()),
     ],
   );
 });

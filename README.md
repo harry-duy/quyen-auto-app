@@ -27,7 +27,7 @@ make clean        # Dọn build artifacts
 
 | Tên | Số điện thoại | Role | Phòng ban |
 |-----|--------------|------|-----------|
-| Admin | `0908109929` | ADMIN | Ban Giám Đốc |
+| Admin | `0909000000` | ADMIN | Ban Giám Đốc |
 | Nguyễn Đức Tuần | `0909000001` | MANAGER | Kinh Doanh |
 | Nguyễn Văn Hùng | `0909000002` | STAFF | Kinh Doanh |
 | Phạm Thị Lan | `0909000003` | STAFF | Kinh Doanh |

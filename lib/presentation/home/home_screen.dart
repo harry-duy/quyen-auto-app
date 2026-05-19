@@ -35,8 +35,16 @@ class HomeScreen extends ConsumerWidget {
             .length ??
         0;
 
-    void switchTab(int i) =>
-        ref.read(homeTabIndexProvider.notifier).state = i;
+    final isLoggedIn = ref.watch(isAuthenticatedProvider);
+
+    // Tabs 2 (Đơn hàng), 3 (Bảo hành), 4 (Tài khoản) require login
+    void switchTab(int i) {
+      if (!isLoggedIn && i >= 2) {
+        context.push(AppRoutes.login);
+        return;
+      }
+      ref.read(homeTabIndexProvider.notifier).state = i;
+    }
 
     final tabs = <Widget>[
       HomeTab(onSwitchTab: switchTab),
@@ -413,7 +421,7 @@ class _BannerCard extends StatelessWidget {
               CachedNetworkImage(
                 imageUrl: product.imageUrls.first,
                 fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => const Center(
+                errorWidget: (_, _, _) => const Center(
                   child: Icon(Icons.local_shipping,
                       color: AppColors.textWhite, size: 60),
                 ),
@@ -523,12 +531,12 @@ class _FeaturedProductsSection extends StatelessWidget {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: products.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
                     itemBuilder: (_, i) => _ProductCard(product: products[i]),
                   ),
             loading: () =>
                 const Center(child: CircularProgressIndicator()),
-            error: (_, __) => const Center(
+            error: (_, _) => const Center(
               child: Icon(Icons.error_outline, color: AppColors.errorRed),
             ),
           ),
@@ -574,7 +582,7 @@ class _ProductCard extends StatelessWidget {
                   ? CachedNetworkImage(
                       imageUrl: product.imageUrls.first,
                       fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => const Center(
+                      errorWidget: (_, _, _) => const Center(
                         child: Icon(Icons.local_shipping_outlined,
                             color: AppColors.primaryNavy, size: 36),
                       ),
