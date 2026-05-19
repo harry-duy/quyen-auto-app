@@ -1,5 +1,133 @@
 # Lịch sử thay đổi — Quyen Auto App
 
+## [Unreleased] — Production hardening & deployment infrastructure
+
+Toàn bộ các vấn đề bảo mật và hạ tầng được phát hiện trong quá trình đánh giá production.
+
+### Bảo mật (Security)
+
+#### JWT secret không còn có giá trị mặc định
+- **Trước**: `application.yml` hardcode fallback `quyen-auto-default-jwt-secret-key-change-in-production-2024` → bất kỳ ai cũng có thể forge token nếu quên set env var
+- **Sau**: `${JWT_SECRET}` không có fallback — app sẽ fail-fast khi khởi động nếu thiếu
+- Dev profile tự override `app.jwt.secret` bằng giá trị riêng để không cần set env var khi develop
+
+#### Swagger UI bị tắt trên production
+- **Trước**: `/swagger-ui/**` và `/api-docs/**` luôn public, lộ toàn bộ API schema
+- **Sau**: `application-prod.yml` set `springdoc.swagger-ui.enabled=false` và `springdoc.api-docs.enabled=false`
+- Dev vẫn hoạt động bình thường
+
+#### WebSocket CORS được giới hạn
+- **Trước**: `WebSocketConfig` dùng `setAllowedOriginPatterns("*")` — bypass toàn bộ CORS
+- **Sau**: Inject `${app.cors.allowed-origins}` và dùng cùng danh sách với HTTP CORS config
+
+#### CORS allowed headers được giới hạn
+- **Trước**: `setAllowedHeaders(List.of("*"))` — cho phép tất cả headers
+- **Sau**: Chỉ cho phép `Authorization`, `Content-Type`, `Accept`, `X-Requested-With`
+
+#### Access token expiry giảm trên production
+- **Trước**: 24 giờ cố định cho cả dev và prod
+- **Sau**: Prod override xuống 15 phút (`900000ms`) qua `application-prod.yml`; configurable qua `JWT_ACCESS_EXPIRY` env var
+
+### Observability
+
+#### Spring Boot Actuator
+- Thêm `spring-boot-starter-actuator` vào `pom.xml`
+- Expose `/actuator/health` và `/actuator/info` (public, không cần auth)
+- `show-details: never` — không lộ thông tin nội bộ
+- `/actuator/health` được thêm vào `SecurityConfig` permitAll list
+
+### Infrastructure
+
+#### Dockerfile (backend/Dockerfile)
+- Multi-stage build: builder (JDK 17) + runtime (JRE 17 Alpine)
+- Non-root user (`appuser`) để giảm attack surface
+- Container-aware JVM flags (`-XX:+UseContainerSupport`, `-XX:MaxRAMPercentage=75.0`)
+- `HEALTHCHECK` tích hợp sẵn gọi `/actuator/health`
+
+#### Docker Compose
+- **`docker-compose.yml`** — Dev: MySQL 8.0 + Redis 7 + Backend, tất cả có health check
+- **`docker-compose.prod.yml`** — Production: đọc tất cả secrets từ env var, backend dùng pre-built image, có Nginx
+
+#### Nginx (`nginx/nginx.conf`)
+- Rate limiting: auth endpoints `10r/m`, API chung `30r/m`
+- HTTP → HTTPS redirect (301)
+- TLS 1.2/1.3 với modern cipher suites
+- Security headers: `X-Frame-Options`, `X-Content-Type-Options`, `HSTS`
+- WebSocket proxy với proper `Upgrade`/`Connection` headers
+
+#### GitHub Actions CI/CD (`.github/workflows/ci.yml`)
+- Trigger: push/PR vào `main`
+- Job `backend`: spin up MySQL + Redis service containers → chạy tests → build JAR → upload artifact
+- Job `docker`: build và push Docker image lên Docker Hub (chỉ khi merge vào main)
+- Maven dependency cache để tăng tốc build
+
+#### Test profile (`application-test.yml`)
+- H2 in-memory (MODE=MySQL) thay vì MySQL thật
+- Flyway tắt trong tests
+- JWT secret có fallback an toàn cho CI
+
+### Flutter
+
+#### `.env.production.example`
+- Template env file cho production build
+- `BASE_URL` dùng `https://` và domain thật
+- `WS_URL` dùng `wss://` (WebSocket over TLS)
+
+### Files thay đổi
+
+| File | Loại | Thay đổi |
+|------|------|----------|
+| `backend/src/main/resources/application.yml` | Sửa | Bỏ JWT default, thêm Actuator config |
+| `backend/src/main/resources/application-dev.yml` | Sửa | Thêm JWT secret cho dev |
+| `backend/src/main/resources/application-prod.yml` | Sửa | Tắt Swagger, giảm token expiry 15 min |
+| `backend/src/main/resources/application-test.yml` | Mới | H2 in-memory profile cho CI |
+| `backend/src/main/java/.../config/SecurityConfig.java` | Sửa | Thêm `/actuator/health` vào permitAll |
+| `backend/src/main/java/.../config/CorsConfig.java` | Sửa | Giới hạn allowed headers |
+| `backend/src/main/java/.../config/WebSocketConfig.java` | Sửa | CORS dùng configured origins thay vì `*` |
+| `backend/pom.xml` | Sửa | Thêm `spring-boot-starter-actuator` |
+| `backend/Dockerfile` | Mới | Multi-stage production build |
+| `docker-compose.yml` | Mới | Dev environment (MySQL + Redis + Backend) |
+| `docker-compose.prod.yml` | Mới | Production environment với Nginx |
+| `nginx/nginx.conf` | Mới | Reverse proxy với SSL + rate limiting |
+| `.github/workflows/ci.yml` | Mới | GitHub Actions CI/CD pipeline |
+| `.env.production.example` | Mới | Flutter production env template |
+
+### Hướng dẫn deploy production
+
+**Yêu cầu bắt buộc** trước khi chạy `docker-compose.prod.yml`:
+
+```bash
+# 1. Tạo JWT secret (min 32 chars)
+openssl rand -base64 48
+
+# 2. Tạo file .env.prod
+cat > .env.prod <<EOF
+DB_ROOT_PASSWORD=<strong-root-password>
+DB_NAME=quyen_auto
+DB_USERNAME=quyenauto
+DB_PASSWORD=<strong-db-password>
+REDIS_PASSWORD=<strong-redis-password>
+JWT_SECRET=<generated-above>
+CORS_ORIGINS=https://yourdomain.com
+MAIL_USERNAME=your@gmail.com
+MAIL_PASSWORD=<gmail-app-password>
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+APP_VERSION=latest
+EOF
+
+# 3. Đặt SSL certificate vào nginx/ssl/
+# fullchain.pem + privkey.pem (từ Let's Encrypt hoặc CA)
+
+# 4. Đặt firebase-service-account.json vào volume firebase_creds
+
+# 5. Chạy
+docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d
+```
+
+---
+
 ## [Unreleased] — Dữ liệu mẫu & Tài khoản test
 
 Migration **`V4__seed_sample_data.sql`** — tất cả tài khoản dùng **mật khẩu: `admin123`**

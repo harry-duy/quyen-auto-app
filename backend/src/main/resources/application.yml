@@ -29,9 +29,9 @@ spring:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:quyen-auto-default-jwt-secret-key-change-in-production-2024}
-    access-token-expiration: 86400000    # 24h
-    refresh-token-expiration: 2592000000 # 30d
+    secret: ${JWT_SECRET}
+    access-token-expiration: ${JWT_ACCESS_EXPIRY:86400000}
+    refresh-token-expiration: ${JWT_REFRESH_EXPIRY:2592000000}
 
   cloudinary:
     cloud-name: ${CLOUDINARY_CLOUD_NAME:}
@@ -43,6 +43,15 @@ app:
 
   firebase:
     credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-service-account.json}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
 
 springdoc:
   api-docs:

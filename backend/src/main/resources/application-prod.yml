@@ -25,6 +25,16 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
 
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+app:
+  jwt:
+    access-token-expiration: 900000  # 15 min on prod
+
 logging:
   level:
     com.quyenauto: INFO
