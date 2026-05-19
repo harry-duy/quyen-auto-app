@@ -62,8 +62,8 @@ abstract final class ApiConstants {
   static const String staffDashboard = 'staff/dashboard';
 
   // ─── Departments ────────────────────────────────────────────────────────────
-  static const String departments       = 'admin/departments';
-  static const String departmentDetail  = 'admin/departments/{id}';
+  static const String departments       = 'departments';
+  static const String departmentDetail  = 'departments/{id}';
 
   // ─── Staff Management (admin/manager) ─────────────────────────────────────
   static const String staffMembers       = 'admin/staff';
@@ -75,6 +75,10 @@ abstract final class ApiConstants {
   // ─── Profile Update ────────────────────────────────────────────────────────
   static const String updateProfile     = 'auth/me';
   static const String changePassword    = 'auth/change-password';
+
+  // ─── Admin: Products ──────────────────────────────────────────────────────
+  static const String adminProducts      = 'admin/products';
+  static const String adminProductDetail = 'admin/products/{id}';
 
   // ─── Reports ───────────────────────────────────────────────────────────────
   static const String reportDashboard = 'reports/dashboard';

@@ -15,10 +15,15 @@ class ManagementHubScreen extends ConsumerWidget {
     final user = ref.watch(authProvider).valueOrNull;
     final staffAsync = ref.watch(staffMemberListProvider);
     final deptAsync = ref.watch(departmentListProvider);
+    final productsAsync = user?.role.isAdmin == true
+        ? ref.watch(adminProductListProvider)
+        : const AsyncData(<AdminProduct>[]);
 
     final staffList = staffAsync.valueOrNull ?? [];
     final activeCount = staffList.where((s) => s.isActive).length;
     final deptCount = deptAsync.valueOrNull?.length ?? 0;
+    final productCount = productsAsync.valueOrNull?.length ?? 0;
+    final isAdmin = user?.role.isAdmin ?? false;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -27,6 +32,7 @@ class ManagementHubScreen extends ConsumerWidget {
         onRefresh: () async {
           ref.invalidate(staffMemberListProvider);
           ref.invalidate(departmentListProvider);
+          if (isAdmin) ref.invalidate(adminProductListProvider);
         },
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -68,7 +74,7 @@ class ManagementHubScreen extends ConsumerWidget {
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textDark)),
-                        Text(user.position ?? 'Quản trị viên',
+                        Text(user.position ?? user.role.label,
                             style: const TextStyle(
                                 fontSize: 12, color: AppColors.textGray)),
                       ],
@@ -102,10 +108,22 @@ class ManagementHubScreen extends ConsumerWidget {
                   color: AppColors.primaryOrange,
                 ),
               ),
+              if (isAdmin) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.inventory_2,
+                    label: 'Sản phẩm',
+                    value: productsAsync.isLoading ? '…' : '$productCount',
+                    sub: 'Đang hiển thị',
+                    color: Colors.purple,
+                  ),
+                ),
+              ],
             ]),
             const SizedBox(height: 24),
 
-            // ── Navigation tiles ─────────────────────────────────────────
+            // ── HR section (MANAGER + ADMIN) ─────────────────────────────
             const _SectionHeader('Nhân sự'),
             const SizedBox(height: 8),
             _NavCard(
@@ -125,6 +143,21 @@ class ManagementHubScreen extends ConsumerWidget {
               color: AppColors.primaryNavy,
               onTap: () => context.push(StaffRoutes.departments),
             ),
+
+            // ── Product section (ADMIN only) ─────────────────────────────
+            if (isAdmin) ...[
+              const SizedBox(height: 24),
+              const _SectionHeader('Sản phẩm & Danh mục'),
+              const SizedBox(height: 8),
+              _NavCard(
+                icon: Icons.inventory_2_outlined,
+                title: 'Quản lý sản phẩm',
+                subtitle: 'Thêm, chỉnh sửa, ẩn/hiện sản phẩm',
+                badge: productsAsync.isLoading ? null : '$productCount SP',
+                color: Colors.purple,
+                onTap: () => context.push(StaffRoutes.productManagement),
+              ),
+            ],
           ],
         ),
       ),

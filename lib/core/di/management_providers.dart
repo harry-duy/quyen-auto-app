@@ -149,11 +149,113 @@ class ManagementActionsNotifier extends Notifier<void> {
     );
     ref.invalidate(staffMemberListProvider);
   }
+
+  // Product CRUD (ADMIN only)
+  Future<void> createProduct({
+    required String name,
+    required int categoryId,
+    required double basePrice,
+    String? description,
+    String? specifications,
+  }) async {
+    await _api.post(
+      ApiConstants.adminProducts,
+      data: {
+        'name': name,
+        'categoryId': categoryId,
+        'basePrice': basePrice,
+        if (description != null && description.isNotEmpty) 'description': description,
+        if (specifications != null && specifications.isNotEmpty) 'specifications': specifications,
+      },
+    );
+    ref.invalidate(adminProductListProvider);
+  }
+
+  Future<void> updateProduct({
+    required String id,
+    required String name,
+    required int categoryId,
+    required double basePrice,
+    String? description,
+    String? specifications,
+  }) async {
+    await _api.put(
+      ApiConstants.resolve(ApiConstants.adminProductDetail, {'id': id}),
+      data: {
+        'name': name,
+        'categoryId': categoryId,
+        'basePrice': basePrice,
+        if (description != null && description.isNotEmpty) 'description': description,
+        if (specifications != null && specifications.isNotEmpty) 'specifications': specifications,
+      },
+    );
+    ref.invalidate(adminProductListProvider);
+  }
+
+  Future<void> deleteProduct(String id) async {
+    await _api.delete(
+      ApiConstants.resolve(ApiConstants.adminProductDetail, {'id': id}),
+    );
+    ref.invalidate(adminProductListProvider);
+  }
 }
 
 final managementActionsProvider =
     NotifierProvider<ManagementActionsNotifier, void>(
         ManagementActionsNotifier.new);
+
+// ─── Products (Admin only) ───────────────────────────────────────────────────
+
+class AdminProduct {
+  final String id;
+  final String name;
+  final String? description;
+  final String? specifications;
+  final double basePrice;
+  final String? categoryId;
+  final String? categoryName;
+  final bool isActive;
+  final List<String> imageUrls;
+
+  const AdminProduct({
+    required this.id,
+    required this.name,
+    this.description,
+    this.specifications,
+    required this.basePrice,
+    this.categoryId,
+    this.categoryName,
+    required this.isActive,
+    required this.imageUrls,
+  });
+}
+
+final adminProductListProvider =
+    FutureProvider.autoDispose<List<AdminProduct>>((ref) async {
+  final api = ref.watch(apiServiceProvider);
+  final res = await api.get<List<AdminProduct>>(
+    ApiConstants.productList,
+    queryParams: {'page': 0, 'size': 200},
+    fromData: (json) {
+      final page = json as Map<String, dynamic>;
+      final content = page['content'] as List? ?? [];
+      return content.map((e) => _adminProductFromJson(e as Map<String, dynamic>)).toList();
+    },
+  );
+  return res.data ?? [];
+});
+
+final productCategoryListProvider =
+    FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async {
+  final api = ref.watch(apiServiceProvider);
+  final res = await api.get<List<Map<String, dynamic>>>(
+    'products/categories',
+    fromData: (json) => (json as List)
+        .map((e) => e as Map<String, dynamic>)
+        .toList(),
+  );
+  return res.data ?? [];
+});
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -169,6 +271,18 @@ Department _departmentFromJson(Map<String, dynamic> j) {
     isActive: r.isActive,
   );
 }
+
+AdminProduct _adminProductFromJson(Map<String, dynamic> j) => AdminProduct(
+  id: (j['id'] ?? '').toString(),
+  name: j['name'] as String? ?? '',
+  description: j['description'] as String?,
+  specifications: j['specifications'] as String?,
+  basePrice: (j['basePrice'] as num?)?.toDouble() ?? 0,
+  categoryId: j['categoryId']?.toString(),
+  categoryName: j['categoryName'] as String?,
+  isActive: j['isActive'] as bool? ?? true,
+  imageUrls: (j['imageUrls'] as List<dynamic>?)?.cast<String>() ?? [],
+);
 
 User _staffFromJson(Map<String, dynamic> j) {
   final r = StaffProfileResponse.fromJson(j);
