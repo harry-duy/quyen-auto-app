@@ -478,35 +478,41 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
           onStepCancel: () {
             if (_currentStep > 0) setState(() => _currentStep--);
           },
-          controlsBuilder: (context, details) => Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : details.onStepContinue,
-                    child: isLoading && _currentStep == 3
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                                strokeWidth: 2.5, color: Colors.white),
-                          )
-                        : Text(_currentStep < 3
-                            ? 'Tiếp theo'
-                            : (isLoggedIn ? 'Gửi báo giá' : 'Gửi yêu cầu')),
-                  ),
-                ),
-                if (_currentStep > 0) ...[
-                  const SizedBox(width: 12),
-                  OutlinedButton(
+          controlsBuilder: (context, details) {
+            // Step 4: submit button is embedded in content; show only "Quay lại" here
+            if (_currentStep == 3) {
+              return Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: OutlinedButton(
                     onPressed: details.onStepCancel,
                     child: const Text('Quay lại'),
                   ),
+                ),
+              );
+            }
+            return Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : details.onStepContinue,
+                      child: const Text('Tiếp theo'),
+                    ),
+                  ),
+                  if (_currentStep > 0) ...[
+                    const SizedBox(width: 12),
+                    OutlinedButton(
+                      onPressed: details.onStepCancel,
+                      child: const Text('Quay lại'),
+                    ),
+                  ],
                 ],
-              ],
-            ),
-          ),
+              ),
+            );
+          },
           steps: [
             Step(
               title: const Text('Thông tin cơ bản'),
@@ -534,7 +540,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
               subtitle: const Text('Option khác, ghi chú thêm'),
               isActive: _currentStep >= 3,
               state: StepState.indexed,
-              content: _buildStep4(isLoggedIn),
+              content: _buildStep4(isLoggedIn, isLoading),
             ),
           ],
         ),
@@ -1121,7 +1127,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
 
   // ─── Step 4 ───────────────────────────────────────────────────────────────
 
-  Widget _buildStep4(bool isLoggedIn) {
+  Widget _buildStep4(bool isLoggedIn, bool isLoading) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1242,6 +1248,38 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
             alignLabelWithHint: true,
           ),
         ),
+
+        const SizedBox(height: 28),
+
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton.icon(
+            onPressed: isLoading ? null : _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryOrange,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+              elevation: 2,
+            ),
+            icon: isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2.5, color: Colors.white),
+                  )
+                : const Icon(Icons.send_rounded, size: 20),
+            label: Text(
+              isLoggedIn ? 'Gửi báo giá' : 'Gửi yêu cầu',
+              style: const TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 8),
       ],
     );
   }
