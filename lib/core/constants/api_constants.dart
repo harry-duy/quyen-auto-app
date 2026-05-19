@@ -62,8 +62,8 @@ abstract final class ApiConstants {
   static const String staffDashboard = 'staff/dashboard';
 
   // ─── Departments ────────────────────────────────────────────────────────────
-  static const String departments       = 'departments';
-  static const String departmentDetail  = 'departments/{id}';
+  static const String departments       = 'admin/departments';
+  static const String departmentDetail  = 'admin/departments/{id}';
 
   // ─── Staff Management (admin/manager) ─────────────────────────────────────
   static const String staffMembers       = 'admin/staff';

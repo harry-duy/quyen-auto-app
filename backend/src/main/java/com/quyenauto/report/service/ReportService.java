@@ -9,6 +9,7 @@ import com.quyenauto.warranty.entity.WarrantyRequest;
 import com.quyenauto.warranty.repository.WarrantyRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ReportService {
 
     private final OrderRepository orderRepository;
