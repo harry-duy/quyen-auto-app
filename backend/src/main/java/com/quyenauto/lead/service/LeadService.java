@@ -22,6 +22,7 @@ public class LeadService {
         lead.setProductId(req.getProductId());
         lead.setProductName(req.getProductName());
         lead.setNote(req.getNote());
+        lead.setSpecifications(req.getSpecifications());
         leadRepository.save(lead);
     }
 
@@ -50,6 +51,7 @@ public class LeadService {
                 .productId(l.getProductId())
                 .productName(l.getProductName())
                 .note(l.getNote())
+                .specifications(l.getSpecifications())
                 .contacted(l.isContacted())
                 .createdAt(l.getCreatedAt())
                 .build();

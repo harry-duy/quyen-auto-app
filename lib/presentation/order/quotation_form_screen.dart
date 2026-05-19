@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -145,6 +147,11 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
 
   final _noteCtrl = TextEditingController();
 
+  // Guest contact info (shown in Step 4 when not logged in)
+  final _guestPhoneCtrl = TextEditingController();
+  final _guestNameCtrl = TextEditingController();
+  bool _guestSubmitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -173,6 +180,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
         _airTubeStdQtyCtrl, _airTubeHrzQtyCtrl, _protectionPartQtyCtrl,
         _airChamberCapQtyCtrl, _tankCapQtyCtrl, _traceCargoQtyCtrl,
         _noteCtrl,
+        _guestPhoneCtrl, _guestNameCtrl,
       ];
 
   // ─── Build spec JSON ─────────────────────────────────────────────────────
@@ -270,6 +278,15 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
     }
     FocusScope.of(context).unfocus();
 
+    final isLoggedIn = ref.read(isAuthenticatedProvider);
+    if (isLoggedIn) {
+      await _submitAsUser();
+    } else {
+      await _submitAsGuest();
+    }
+  }
+
+  Future<void> _submitAsUser() async {
     final request = QuotationRequest(
       productId: int.parse(_selectedProductId!),
       vehicleModel: _vehicleModelCtrl.text.trim(),
@@ -288,8 +305,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
     if (!mounted) return;
 
     if (success) {
-      final order = ref.read(quotationProvider).value!;
-      _showSuccessDialog(order.orderCode);
+      _showSuccessDialog(ref.read(quotationProvider).value!.orderCode);
     } else {
       final err = ref.read(quotationProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -302,6 +318,94 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _submitAsGuest() async {
+    setState(() => _guestSubmitting = true);
+    try {
+      final api = ref.read(apiServiceProvider);
+      final productName = ref
+          .read(productListProvider)
+          .valueOrNull
+          ?.where((p) => p.id == _selectedProductId)
+          .firstOrNull
+          ?.name;
+
+      await api.post(ApiConstants.guestLead, data: {
+        'phone': _guestPhoneCtrl.text.trim(),
+        if (_guestNameCtrl.text.trim().isNotEmpty)
+          'name': _guestNameCtrl.text.trim(),
+        if (_selectedProductId != null)
+          'productId': int.tryParse(_selectedProductId!),
+        'productName': ?productName,
+        'specifications': jsonEncode(_buildSpecifications()),
+        if (_noteCtrl.text.trim().isNotEmpty) 'note': _noteCtrl.text.trim(),
+      });
+      if (!mounted) return;
+      _showGuestSuccessDialog();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Có lỗi xảy ra. Vui lòng thử lại.'),
+          backgroundColor: AppColors.errorRed,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _guestSubmitting = false);
+    }
+  }
+
+  void _showGuestSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.successGreen.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_circle_outline,
+                  color: AppColors.successGreen, size: 40),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Đã gửi yêu cầu!',
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Nhân viên Quyen Auto sẽ liên hệ với bạn trong thời gian sớm nhất.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 13, color: AppColors.textGray, height: 1.5),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.go(AppRoutes.home);
+              },
+              child: const Text('Về trang chủ'),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSuccessDialog(String orderCode) {
@@ -353,11 +457,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoggedIn = ref.watch(isAuthenticatedProvider);
-    if (!isLoggedIn) {
-      return _GuestLeadScreen(preselectedProductId: widget.preselectedProductId);
-    }
-
-    final isLoading = ref.watch(quotationProvider).isLoading;
+    final isLoading = ref.watch(quotationProvider).isLoading || _guestSubmitting;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -391,7 +491,9 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                             child: CircularProgressIndicator(
                                 strokeWidth: 2.5, color: Colors.white),
                           )
-                        : Text(_currentStep < 3 ? 'Tiếp theo' : 'Gửi báo giá'),
+                        : Text(_currentStep < 3
+                            ? 'Tiếp theo'
+                            : (isLoggedIn ? 'Gửi báo giá' : 'Gửi yêu cầu')),
                   ),
                 ),
                 if (_currentStep > 0) ...[
@@ -1020,9 +1122,70 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   // ─── Step 4 ───────────────────────────────────────────────────────────────
 
   Widget _buildStep4() {
+    final isLoggedIn = ref.watch(isAuthenticatedProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Thông tin liên hệ — chỉ hiện khi chưa đăng nhập
+        if (!isLoggedIn) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primaryOrange.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                  color: AppColors.primaryOrange.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.phone_in_talk_outlined,
+                    color: AppColors.primaryOrange, size: 20),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Để lại số điện thoại để nhân viên liên hệ gửi báo giá',
+                    style: TextStyle(fontSize: 13, color: AppColors.textDark),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _guestPhoneCtrl,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+              labelText: 'Số điện thoại *',
+              hintText: '0901234567',
+              prefixIcon: Icon(Icons.phone_outlined),
+            ),
+            validator: (v) {
+              if (!ref.read(isAuthenticatedProvider)) {
+                if (v == null || v.trim().isEmpty) {
+                  return 'Vui lòng nhập số điện thoại';
+                }
+                if (!RegExp(r'^0[3-9]\d{8}$').hasMatch(v.trim())) {
+                  return 'Số điện thoại không hợp lệ';
+                }
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _guestNameCtrl,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(
+              labelText: 'Họ tên (tuỳ chọn)',
+              prefixIcon: Icon(Icons.person_outline),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Divider(),
+          const SizedBox(height: 16),
+        ],
+
         _label('Option khác'),
         const SizedBox(height: 8),
 
@@ -1255,230 +1418,3 @@ class _TableCell extends StatelessWidget {
   }
 }
 
-// ─── Guest Lead Screen ────────────────────────────────────────────────────────
-
-class _GuestLeadScreen extends ConsumerStatefulWidget {
-  final String? preselectedProductId;
-  const _GuestLeadScreen({this.preselectedProductId});
-
-  @override
-  ConsumerState<_GuestLeadScreen> createState() => _GuestLeadScreenState();
-}
-
-class _GuestLeadScreenState extends ConsumerState<_GuestLeadScreen> {
-  final _formKey   = GlobalKey<FormState>();
-  final _phoneCtrl = TextEditingController();
-  final _nameCtrl  = TextEditingController();
-  final _noteCtrl  = TextEditingController();
-  bool _loading    = false;
-  bool _submitted  = false;
-
-  @override
-  void dispose() {
-    _phoneCtrl.dispose();
-    _nameCtrl.dispose();
-    _noteCtrl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
-
-    try {
-      final api = ref.read(apiServiceProvider);
-      await api.post(
-        ApiConstants.guestLead,
-        data: {
-          'phone': _phoneCtrl.text.trim(),
-          if (_nameCtrl.text.trim().isNotEmpty) 'name': _nameCtrl.text.trim(),
-          if (widget.preselectedProductId != null)
-            'productId': int.tryParse(widget.preselectedProductId!),
-          if (_noteCtrl.text.trim().isNotEmpty) 'note': _noteCtrl.text.trim(),
-        },
-      );
-      setState(() => _submitted = true);
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Có lỗi xảy ra. Vui lòng thử lại.'),
-            backgroundColor: AppColors.errorRed,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('Yêu cầu báo giá')),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: _submitted ? _buildSuccessView() : _buildForm(),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSuccessView() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const SizedBox(height: 48),
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: AppColors.successGreen.withValues(alpha: 0.12),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.check_circle_outline,
-              color: AppColors.successGreen, size: 48),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          'Đã gửi yêu cầu!',
-          style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primaryNavy),
-        ),
-        const SizedBox(height: 12),
-        const Text(
-          'Nhân viên Quyen Auto sẽ liên hệ với bạn\ntrong thời gian sớm nhất.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 15, color: AppColors.textGray, height: 1.5),
-        ),
-        const SizedBox(height: 40),
-        ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Quay lại'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildForm() {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text(
-            'Để lại thông tin liên hệ',
-            style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryNavy),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Nhân viên sẽ tư vấn và gửi báo giá chi tiết cho bạn sớm nhất.',
-            style: TextStyle(fontSize: 14, color: AppColors.textGray, height: 1.5),
-          ),
-          const SizedBox(height: 32),
-
-          TextFormField(
-            controller: _phoneCtrl,
-            keyboardType: TextInputType.phone,
-            textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(
-              labelText: 'Số điện thoại *',
-              hintText: '0901234567',
-              prefixIcon: Icon(Icons.phone_outlined),
-            ),
-            validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Vui lòng nhập số điện thoại';
-              final phone = v.trim().replaceAll(RegExp(r'\s'), '');
-              if (!RegExp(r'^0[3-9]\d{8}$').hasMatch(phone)) {
-                return 'Số điện thoại không hợp lệ';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: 16),
-
-          TextFormField(
-            controller: _nameCtrl,
-            textInputAction: TextInputAction.next,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              labelText: 'Họ tên',
-              hintText: 'Nguyễn Văn A (tuỳ chọn)',
-              prefixIcon: Icon(Icons.person_outline),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          TextFormField(
-            controller: _noteCtrl,
-            maxLines: 3,
-            textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(
-              labelText: 'Ghi chú',
-              hintText: 'Loại xe, kích thước, yêu cầu đặc biệt... (tuỳ chọn)',
-              prefixIcon: Icon(Icons.edit_note_outlined),
-              alignLabelWithHint: true,
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          ElevatedButton(
-            onPressed: _loading ? null : _submit,
-            child: _loading
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2.5, color: Colors.white),
-                  )
-                : const Text('Gửi yêu cầu báo giá'),
-          ),
-          const SizedBox(height: 16),
-
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.infoBlue.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(children: [
-              const Icon(Icons.info_outline, color: AppColors.infoBlue, size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text.rich(
-                  TextSpan(
-                    text: 'Đã có tài khoản? ',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textGray),
-                    children: [
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: GestureDetector(
-                          onTap: () => context.push(AppRoutes.login),
-                          child: const Text(
-                            'Đăng nhập',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.primaryOrange,
-                                fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                      ),
-                      const TextSpan(text: ' để theo dõi đơn hàng của bạn.'),
-                    ],
-                  ),
-                ),
-              ),
-            ]),
-          ),
-        ],
-      ),
-    );
-  }
-}

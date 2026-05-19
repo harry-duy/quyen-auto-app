@@ -26,6 +26,9 @@ public class Lead extends BaseEntity {
     @Column(columnDefinition = "TEXT")
     private String note;
 
+    @Column(columnDefinition = "TEXT")
+    private String specifications;
+
     @Column(name = "is_contacted", nullable = false)
     private boolean contacted = false;
 }

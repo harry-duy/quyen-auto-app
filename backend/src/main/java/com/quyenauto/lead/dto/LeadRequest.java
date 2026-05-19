@@ -9,4 +9,5 @@ public class LeadRequest {
     private Long productId;
     private String productName;
     private String note;
+    private String specifications;
 }
