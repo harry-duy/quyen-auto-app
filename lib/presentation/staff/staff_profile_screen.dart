@@ -13,6 +13,15 @@ class StaffProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
+
+    if (authState.isLoading) {
+      return const Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        appBar: null,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final user = authState.valueOrNull;
 
     return Scaffold(
@@ -55,7 +64,7 @@ class StaffProfileScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          user?.fullName ?? 'Staff',
+                          user?.fullName ?? '',
                           style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
