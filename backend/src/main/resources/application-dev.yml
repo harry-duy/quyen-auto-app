@@ -26,6 +26,10 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
 
+app:
+  jwt:
+    secret: dev-only-jwt-secret-key-do-not-use-in-production-min32chars
+
 logging:
   level:
     com.quyenauto: DEBUG

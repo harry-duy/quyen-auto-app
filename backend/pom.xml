@@ -103,6 +103,12 @@
             <version>9.2.0</version>
         </dependency>
 
+        <!-- ─── Actuator ─────────────────────────────────────────────────── -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- ─── Swagger / OpenAPI ────────────────────────────────────────── -->
         <dependency>
             <groupId>org.springdoc</groupId>
