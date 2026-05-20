@@ -215,22 +215,52 @@ class _ProductDetailViewState extends State<_ProductDetailView> {
                       height: 1.6,
                     ),
                   ),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.quotation, extra: product.id),
-        backgroundColor: AppColors.primaryOrange,
-        foregroundColor: AppColors.textWhite,
-        icon: const Icon(Icons.request_quote_outlined),
-        label: const Text('Yêu cầu báo giá',
-            style: TextStyle(fontWeight: FontWeight.w600)),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: SizedBox(
+            height: 52,
+            child: ElevatedButton.icon(
+              onPressed: () =>
+                  context.push(AppRoutes.quotation, extra: product.id),
+              icon: const Icon(Icons.request_quote_outlined, size: 20),
+              label: const Text(
+                'Yêu cầu báo giá',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryOrange,
+                foregroundColor: AppColors.textWhite,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
