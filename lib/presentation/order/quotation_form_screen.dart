@@ -14,6 +14,34 @@ import '../../data/models/request/quotation_request.dart';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const _kBoxCategories = ['THÙNG ĐÔNG LẠNH-BẢO ÔN', 'THÙNG TẢI KÍN'];
+
+const _kVehicleModels = [
+  // ── ISUZU ────────────────────────────────────────────────
+  'ISUZU QMR77HE5 (2.5T)',
+  'ISUZU QKR270 (1.9T)',
+  'ISUZU NPR85HE (3.5T)',
+  'ISUZU NQR75LE (5T)',
+  'ISUZU FRR90 (6.2T)',
+  'ISUZU FSR-N 2026 (7T)',
+  'ISUZU FVM1500 (15T)',
+  // ── HINO ─────────────────────────────────────────────────
+  'HINO 300 XZU342 (3.5T)',
+  'HINO 300 XZU720 (5T)',
+  'HINO 500 FC9JLSW (6.4T)',
+  'HINO 500 FG8JPSW (10T)',
+  'HINO 500 FG (14T)',
+  // ── HYUNDAI ──────────────────────────────────────────────
+  'HYUNDAI HD35 (1.5T)',
+  'HYUNDAI HD65 (2.5T)',
+  'HYUNDAI HD72 (3.5T)',
+  'HYUNDAI HD99 (7T)',
+  'HYUNDAI HD120 (8T)',
+  // ── MITSUBISHI FUSO ──────────────────────────────────────
+  'MITSUBISHI FUSO Canter (3.5T)',
+  'MITSUBISHI FUSO Fighter (7T)',
+  // ── Loại khác ────────────────────────────────────────────
+  'Loại khác',
+];
 const _kBoxTypes = ['F2LB', 'F2LC', 'F2LA', 'L', 'S'];
 const _kFloorTypes = ['C', 'L', 'U', 'M'];
 const _kAcTypes = ['TN', 'Oxy', 'S2'];
@@ -55,7 +83,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   // ─── Step 1: Thông tin cơ bản ────────────────────────────────────────────
   String _boxCategory = _kBoxCategories[0];
   String? _selectedProductId;
-  final _vehicleModelCtrl = TextEditingController();
+  String? _vehicleModel;
   final _quantityCtrl = TextEditingController(text: '1');
   final _chassisWidthCtrl = TextEditingController();
   final _boxCodeCtrl = TextEditingController();
@@ -167,7 +195,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   }
 
   List<TextEditingController> get _allControllers => [
-        _vehicleModelCtrl, _quantityCtrl, _chassisWidthCtrl, _boxCodeCtrl,
+        _quantityCtrl, _chassisWidthCtrl, _boxCodeCtrl,
         _acModelCtrl,
         _outerLengthCtrl, _outerWidthCtrl, _outerHeightCtrl,
         _innerLengthCtrl, _innerWidthCtrl, _innerHeightCtrl,
@@ -289,7 +317,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   Future<void> _submitAsUser() async {
     final request = QuotationRequest(
       productId: int.parse(_selectedProductId!),
-      vehicleModel: _vehicleModelCtrl.text.trim(),
+      vehicleModel: _vehicleModel ?? '',
       quantity: int.tryParse(_quantityCtrl.text) ?? 1,
       chassisWidth: int.tryParse(_chassisWidthCtrl.text),
       boxCode: _boxCodeCtrl.text.trim().isEmpty ? null : _boxCodeCtrl.text.trim(),
@@ -638,14 +666,18 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
         // Kiểu loại xe
         _label('Kiểu loại xe *'),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: _vehicleModelCtrl,
+        DropdownButtonFormField<String>(
+          initialValue: _vehicleModel,
           decoration: const InputDecoration(
-            hintText: 'VD: ISUZU QMR77HE5',
             prefixIcon: Icon(Icons.directions_car_outlined),
+            labelText: 'Chọn kiểu loại xe *',
           ),
-          validator: (v) =>
-              (v == null || v.trim().isEmpty) ? 'Vui lòng nhập kiểu loại xe' : null,
+          isExpanded: true,
+          items: _kVehicleModels
+              .map((m) => DropdownMenuItem(value: m, child: Text(m, overflow: TextOverflow.ellipsis)))
+              .toList(),
+          onChanged: (v) => setState(() => _vehicleModel = v),
+          validator: (v) => v == null ? 'Vui lòng chọn kiểu loại xe' : null,
         ),
 
         const SizedBox(height: 16),

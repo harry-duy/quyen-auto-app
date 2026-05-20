@@ -11,10 +11,10 @@ import '../widgets/product_card.dart';
 
 const _kCategories = [
   (value: null, label: 'Tất cả'),
-  (value: 'REFRIGERATED', label: 'Tải lạnh'),
-  (value: 'INSULATED', label: 'Bảo ôn'),
-  (value: 'ENCLOSED', label: 'Tải kín'),
-  (value: 'CUSTOM', label: 'Thiết kế'),
+  (value: 'Thùng Tải Lạnh', label: 'Tải lạnh'),
+  (value: 'Thùng Bảo Ôn', label: 'Bảo ôn'),
+  (value: 'Thùng Tải Kín', label: 'Tải kín'),
+  (value: 'Thùng Chuyên Dùng', label: 'Chuyên dùng'),
 ];
 
 // ─── Providers ───────────────────────────────────────────────────────────────
@@ -33,8 +33,8 @@ class _ProductListNotifier extends StateNotifier<AsyncValue<List<Product>>> {
 
   _ProductListNotifier(this._ref) : super(const AsyncLoading()) {
     _load(reset: true);
-    _ref.listen(productCategoryProvider, (_, __) => _load(reset: true));
-    _ref.listen(_searchQueryProvider, (_, __) => _load(reset: true));
+    _ref.listen(productCategoryProvider, (_, _) => _load(reset: true));
+    _ref.listen(_searchQueryProvider, (_, _) => _load(reset: true));
   }
 
   bool get hasMore => _hasMore;
@@ -308,7 +308,7 @@ class _ShimmerGrid extends StatelessWidget {
           mainAxisSpacing: 12,
         ),
         itemCount: 4,
-        itemBuilder: (_, __) => Container(
+        itemBuilder: (_, _) => Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),

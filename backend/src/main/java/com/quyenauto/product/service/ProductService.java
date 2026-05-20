@@ -29,12 +29,17 @@ public class ProductService {
                 .stream().map(CategoryResponse::from).toList();
     }
 
-    public Page<ProductResponse> getProducts(Long categoryId, String keyword, Pageable pageable) {
+    public Page<ProductResponse> getProducts(Long categoryId, String categoryName,
+                                              String keyword, Pageable pageable) {
         Page<Product> page;
         if (keyword != null && !keyword.isBlank()) {
             page = productRepository.search(keyword, pageable);
         } else if (categoryId != null) {
             page = productRepository.findByCategoryIdAndIsActiveTrue(categoryId, pageable);
+        } else if (categoryName != null && !categoryName.isBlank()) {
+            page = categoryRepository.findByName(categoryName)
+                    .map(cat -> productRepository.findByCategoryIdAndIsActiveTrue(cat.getId(), pageable))
+                    .orElseGet(() -> org.springframework.data.domain.Page.empty(pageable));
         } else {
             page = productRepository.findByIsActiveTrue(pageable);
         }

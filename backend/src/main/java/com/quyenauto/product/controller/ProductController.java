@@ -34,9 +34,11 @@ public class ProductController {
     @Operation(summary = "Danh sách sản phẩm (phân trang, lọc theo danh mục / tìm kiếm)")
     public ResponseEntity<ApiResponse<PageResponse<ProductResponse>>> getProducts(
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String categoryName,
             @RequestParam(required = false) String keyword,
             @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.ok(PageResponse.of(productService.getProducts(categoryId, keyword, pageable))));
+        return ResponseEntity.ok(ApiResponse.ok(PageResponse.of(
+                productService.getProducts(categoryId, categoryName, keyword, pageable))));
     }
 
     @GetMapping("/products/{id}")

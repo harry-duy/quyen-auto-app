@@ -19,11 +19,11 @@ class ProductRepositoryImpl implements ProductRepository {
   Product _fromResponse(ProductResponse r) => Product(
         id: r.id.toString(),
         name: r.name,
-        description: r.description,
-        price: r.priceRangeMin,
-        category: r.category,
-        imageUrls: r.images.map((img) => img.url).toList(),
-        truckType: r.weightCapacity,
+        description: r.description ?? '',
+        price: r.basePrice ?? 0,
+        category: r.categoryName ?? '',
+        imageUrls: r.imageUrls,
+        truckType: null,
         inStock: r.isActive,
       );
 
@@ -32,9 +32,8 @@ class ProductRepositoryImpl implements ProductRepository {
     return !result.contains(ConnectivityResult.none);
   }
 
-  String _listCacheKey(int page, String? category, String? search) {
-    return 'products_p${page}_c${category ?? 'all'}_s${search ?? ''}';
-  }
+  String _listCacheKey(int page, String? category, String? search) =>
+      'products_p${page}_c${category ?? 'all'}_s${search ?? ''}';
 
   @override
   Future<List<Product>> getProducts({
@@ -51,18 +50,24 @@ class ProductRepositoryImpl implements ProductRepository {
         queryParams: {
           'page': page,
           'size': size,
-          if (category != null) 'category': category,
-          if (search != null) 'search': search,
+          'categoryName': ?category,
+          'keyword': ?search,
         },
-        fromData: (json) => (json as List)
-            .map((e) => _fromResponse(
-                ProductResponse.fromJson(e as Map<String, dynamic>)))
-            .toList(),
+        fromData: (json) {
+          // Backend returns paginated: {"content":[...], "page":0, ...}
+          final list = json is List
+              ? json
+              : (json as Map<String, dynamic>)['content'] as List;
+          return list
+              .map((e) => _fromResponse(
+                  ProductResponse.fromJson(e as Map<String, dynamic>)))
+              .toList();
+        },
       );
 
       final products = res.data ?? [];
 
-      // Cache the raw JSON for offline use
+      // Cache for offline
       try {
         final rawList = products
             .map((p) => {
@@ -107,8 +112,8 @@ class ProductRepositoryImpl implements ProductRepository {
   Future<Product> getProductById(String id) async {
     final res = await _api.get<Product>(
       ApiConstants.resolve(ApiConstants.productDetail, {'id': id}),
-      fromData: (json) =>
-          _fromResponse(ProductResponse.fromJson(json as Map<String, dynamic>)),
+      fromData: (json) => _fromResponse(
+          ProductResponse.fromJson(json as Map<String, dynamic>)),
     );
     return res.data!;
   }
