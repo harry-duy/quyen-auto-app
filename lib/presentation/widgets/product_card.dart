@@ -8,6 +8,24 @@ import '../../core/constants/app_colors.dart';
 import '../../core/router/app_router.dart';
 import '../../domain/entities/product.dart';
 
+/// Fallback images from quyenauto.com when the backend has no image yet.
+/// Keyed by partial category name (case-insensitive contains check).
+const _kCategoryFallbacks = <String, String>{
+  'lạnh':    'https://quyenauto.com/wp-content/uploads/2021/05/F1L.2020-Isuzu-700x700.png',
+  'bảo ôn':  'https://quyenauto.com/wp-content/uploads/2020/12/F1-HINO-432-tach-nen700x700.png',
+  'tải kín': 'https://quyenauto.com/wp-content/uploads/2018/11/TK-HINO-FG.png',
+  'composite':'https://quyenauto.com/wp-content/uploads/2022/12/TAI-KIN-DUOI-6T-VIEW1.png',
+  'chuyên':  'https://quyenauto.com/wp-content/uploads/2023/06/Combo-4-xe-thiet-ke-Quyen-Auto.png',
+};
+
+String? _fallbackFor(String category) {
+  final lower = category.toLowerCase();
+  for (final entry in _kCategoryFallbacks.entries) {
+    if (lower.contains(entry.key)) return entry.value;
+  }
+  return null;
+}
+
 class ProductCard extends StatelessWidget {
   final Product product;
   const ProductCard({super.key, required this.product});
@@ -35,26 +53,32 @@ class ProductCard extends StatelessWidget {
               child: SizedBox(
                 height: 120,
                 width: double.infinity,
-                child: product.imageUrls.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: product.imageUrls.first,
-                        fit: BoxFit.cover,
-                        placeholder: (_, _) => Shimmer.fromColors(
-                          baseColor: AppColors.borderLight,
-                          highlightColor: AppColors.surface,
-                          child: Container(color: AppColors.borderLight),
-                        ),
-                        errorWidget: (_, _, _) => Container(
+                child: () {
+                        final url = product.imageUrls.isNotEmpty
+                            ? product.imageUrls.first
+                            : _fallbackFor(product.category);
+                        if (url != null) {
+                          return CachedNetworkImage(
+                            imageUrl: url,
+                            fit: BoxFit.cover,
+                            placeholder: (_, _) => Shimmer.fromColors(
+                              baseColor: AppColors.borderLight,
+                              highlightColor: AppColors.surface,
+                              child: Container(color: AppColors.borderLight),
+                            ),
+                            errorWidget: (_, _, _) => Container(
+                              color: AppColors.primaryNavy.withValues(alpha: 0.07),
+                              child: const Icon(Icons.local_shipping_outlined,
+                                  size: 44, color: AppColors.primaryNavy),
+                            ),
+                          );
+                        }
+                        return Container(
                           color: AppColors.primaryNavy.withValues(alpha: 0.07),
                           child: const Icon(Icons.local_shipping_outlined,
                               size: 44, color: AppColors.primaryNavy),
-                        ),
-                      )
-                    : Container(
-                        color: AppColors.primaryNavy.withValues(alpha: 0.07),
-                        child: const Icon(Icons.local_shipping_outlined,
-                            size: 44, color: AppColors.primaryNavy),
-                      ),
+                        );
+                      }(),
               ),
             ),
 
