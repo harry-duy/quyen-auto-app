@@ -57,7 +57,7 @@ class ProductRepositoryImpl implements ProductRepository {
           // Backend returns paginated: {"content":[...], "page":0, ...}
           final list = json is List
               ? json
-              : (json as Map<String, dynamic>)['content'] as List;
+              : (json as Map<String, dynamic>)['content'] as List? ?? [];
           return list
               .map((e) => _fromResponse(
                   ProductResponse.fromJson(e as Map<String, dynamic>)))
@@ -98,7 +98,7 @@ class ProductRepositoryImpl implements ProductRepository {
                 description: e['description'] as String,
                 price: (e['price'] as num).toDouble(),
                 category: e['category'] as String,
-                imageUrls: List<String>.from(e['imageUrls'] as List),
+                imageUrls: List<String>.from(e['imageUrls'] as List? ?? []),
                 truckType: e['truckType'] as String?,
                 inStock: e['inStock'] as bool,
               ))

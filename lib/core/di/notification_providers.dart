@@ -48,7 +48,7 @@ class NotificationListNotifier extends AutoDisposeAsyncNotifier<List<Notificatio
       queryParams: {'page': 0, 'size': 50},
       fromData: (json) {
         final map = json as Map<String, dynamic>;
-        final list = (map['content'] ?? map) as List;
+        final list = (map['content'] as List?) ?? [];
         return list
             .map((e) => NotificationResponse.fromJson(e as Map<String, dynamic>))
             .toList();

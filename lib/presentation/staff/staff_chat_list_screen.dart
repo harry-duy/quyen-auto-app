@@ -14,9 +14,16 @@ final _staffChatRoomsProvider =
   final api = ref.watch(apiServiceProvider);
   final res = await api.get<List<ChatRoomResponse>>(
     ApiConstants.chatRooms,
-    fromData: (json) => (json as List)
-        .map((e) => ChatRoomResponse.fromJson(e as Map<String, dynamic>))
-        .toList(),
+    fromData: (json) {
+      final list = json == null
+          ? <dynamic>[]
+          : json is List
+              ? json
+              : (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
+      return list
+          .map((e) => ChatRoomResponse.fromJson(e as Map<String, dynamic>))
+          .toList();
+    },
   );
   return res.data ?? [];
 });
