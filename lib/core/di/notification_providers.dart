@@ -5,6 +5,7 @@ import 'package:logger/logger.dart';
 
 import '../../data/models/response/notification_response.dart';
 import '../../data/services/push_notification_service.dart';
+import 'auth_providers.dart';
 import 'service_providers.dart';
 import '../../core/constants/api_constants.dart';
 
@@ -71,18 +72,13 @@ class NotificationListNotifier extends AutoDisposeAsyncNotifier<List<Notificatio
   void _listenWebSocket() {
     try {
       final ws = ref.read(webSocketServiceProvider);
-      final tokenService = ref.read(tokenServiceProvider);
+      final authUser = ref.read(authProvider).valueOrNull;
+      if (authUser == null || !ws.isConnected) return;
 
-      tokenService.getAccessToken().then((token) {
-        if (token == null || !ws.isConnected) return;
-
-        // The userId is encoded in the JWT — we use a wildcard-style subscription
-        // Backend sends to /user/{userId}/queue/notifications
-        // STOMP user destination resolves automatically when authenticated
-        ws.subscribeNotifications('', (body) {
-          _log.i('WS notification received');
-          _onNewNotification();
-        });
+      // Backend sends to /user/{userId}/queue/notifications via SimpMessagingTemplate.convertAndSendToUser
+      ws.subscribeNotifications(authUser.id, (body) {
+        _log.i('WS notification received for user ${authUser.id}');
+        _onNewNotification();
       });
     } catch (e) {
       _log.w('WS notification subscription skipped: $e');

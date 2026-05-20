@@ -66,8 +66,20 @@ class WebSocketService {
   }
 
   void subscribeChat(String roomId, MessageCallback onMessage) {
-    final dest = '/topic/room/$roomId';
+    final dest = '/topic/chat.room.$roomId';
     _subscribe(dest, onMessage);
+  }
+
+  void subscribeNewRooms(MessageCallback onMessage) {
+    _subscribe('/topic/chat.new-room', onMessage);
+  }
+
+  void subscribeRoomClaimed(String roomId, MessageCallback onMessage) {
+    _subscribe('/topic/chat.claimed.$roomId', onMessage);
+  }
+
+  void unsubscribeChat(String roomId) {
+    unsubscribe('/topic/chat.room.$roomId');
   }
 
   void subscribeNotifications(String userId, MessageCallback onMessage) {

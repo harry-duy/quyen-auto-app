@@ -1,5 +1,14 @@
 $root = Split-Path -Parent $PSScriptRoot
 
+# Load backend/.env into the current process so Spring Boot picks up DB_PASSWORD etc.
+$envFile = Join-Path $root 'backend\.env'
+if (Test-Path $envFile) {
+    Get-Content $envFile | Where-Object { $_ -match '^\s*[^#]\S+=.*' } | ForEach-Object {
+        $parts = $_ -split '=', 2
+        [System.Environment]::SetEnvironmentVariable($parts[0].Trim(), $parts[1].Trim(), 'Process')
+    }
+}
+
 $backendCmd  = '.\mvnw.cmd spring-boot:run'
 $customerCmd = 'flutter run --flavor customer -t lib/main.dart'
 $staffCmd    = 'flutter run --flavor staff -t lib/main_staff.dart'

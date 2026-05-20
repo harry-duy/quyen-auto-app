@@ -2,6 +2,8 @@ package com.quyenauto.chat.controller;
 
 import com.quyenauto.chat.dto.ChatMessageResponse;
 import com.quyenauto.chat.dto.ChatRoomResponse;
+import com.quyenauto.chat.dto.SendMessageRequest;
+import com.quyenauto.chat.dto.StartChatRequest;
 import com.quyenauto.chat.service.ChatService;
 import com.quyenauto.common.dto.ApiResponse;
 import com.quyenauto.common.dto.PageResponse;
@@ -52,5 +54,30 @@ public class ChatController {
     public ResponseEntity<ApiResponse<ChatRoomResponse>> getOrCreateRoom(
             @RequestParam Long customerId, @RequestParam Long staffId) {
         return ResponseEntity.ok(ApiResponse.ok(chatService.getOrCreateRoom(customerId, staffId)));
+    }
+
+    @PostMapping("/rooms/start")
+    @Operation(summary = "Khách hàng mở chat mới (gửi tới tất cả staff)")
+    public ResponseEntity<ApiResponse<ChatRoomResponse>> startChat(
+            @RequestBody StartChatRequest request, Authentication auth) {
+        Long customerId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(chatService.startChat(customerId, request)));
+    }
+
+    @PatchMapping("/rooms/{roomId}/claim")
+    @Operation(summary = "Nhân viên tiếp nhận phòng chat đang chờ")
+    public ResponseEntity<ApiResponse<ChatRoomResponse>> claimRoom(
+            @PathVariable Long roomId, Authentication auth) {
+        Long staffId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(chatService.claimRoom(roomId, staffId)));
+    }
+
+    @PostMapping("/rooms/{roomId}/messages")
+    @Operation(summary = "Gửi tin nhắn")
+    public ResponseEntity<ApiResponse<ChatMessageResponse>> sendMessage(
+            @PathVariable Long roomId, @RequestBody SendMessageRequest request, Authentication auth) {
+        Long senderId = Long.parseLong(auth.getName());
+        request.setRoomId(roomId);
+        return ResponseEntity.ok(ApiResponse.ok(chatService.sendMessage(senderId, request)));
     }
 }

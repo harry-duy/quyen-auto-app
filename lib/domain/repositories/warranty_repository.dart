@@ -1,7 +1,11 @@
 import '../entities/warranty.dart';
+import '../../data/models/response/warranty_response.dart';
 
 abstract class WarrantyRepository {
   Future<List<Vehicle>> getMyVehicles();
-  Future<Vehicle> getVehicleById(String id);
-  Future<void> requestWarranty({required String vehicleId, required String issue, String? imageUrl});
+  Future<List<WarrantyRequestResponse>> getMyWarranties();
+  Future<WarrantyRequestResponse> createWarrantyRequest({
+    required int vehicleId,
+    required String issueDescription,
+  });
 }

@@ -3,8 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:go_router/go_router.dart';
+
 import '../../core/constants/app_colors.dart';
+import '../../core/di/chat_providers.dart';
 import '../../core/di/providers.dart';
+import '../../core/router/app_router.dart';
 import '../../domain/entities/order.dart';
 
 class OrderDetailScreen extends ConsumerWidget {
@@ -54,13 +58,13 @@ class OrderDetailScreen extends ConsumerWidget {
 
 // ─── Detail View ─────────────────────────────────────────────────────────────
 
-class _OrderDetailView extends StatelessWidget {
+class _OrderDetailView extends ConsumerWidget {
   final Order order;
   final String orderId;
   const _OrderDetailView({required this.order, required this.orderId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final fmt =
         NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
     final dateFmt = DateFormat('HH:mm — dd/MM/yyyy');
@@ -168,24 +172,62 @@ class _OrderDetailView extends StatelessWidget {
           const SizedBox(height: 80),
         ]),
       ),
-      bottomNavigationBar: canCancel
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-                child: OutlinedButton.icon(
-                  onPressed: () => _confirmCancel(context),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.errorRed,
-                    side: const BorderSide(color: AppColors.errorRed),
-                    minimumSize: const Size(double.infinity, 52),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _startChat(context, ref),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryNavy,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(0, 52),
                   ),
-                  icon: const Icon(Icons.cancel_outlined),
-                  label: const Text('Hủy đơn hàng'),
+                  icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                  label: const Text('Liên hệ'),
                 ),
               ),
-            )
-          : null,
+              if (canCancel) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _confirmCancel(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.errorRed,
+                      side: const BorderSide(color: AppColors.errorRed),
+                      minimumSize: const Size(0, 52),
+                    ),
+                    icon: const Icon(Icons.cancel_outlined, size: 18),
+                    label: const Text('Hủy đơn'),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
     );
+  }
+
+  Future<void> _startChat(BuildContext context, WidgetRef ref) async {
+    try {
+      final room = await ref
+          .read(chatActionsProvider.notifier)
+          .startChat(orderCode: order.orderCode);
+      if (context.mounted) {
+        context.push(AppRoutes.chatOf(room.id.toString()));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('Không thể mở chat: $e'),
+              backgroundColor: AppColors.errorRed),
+        );
+      }
+    }
   }
 
   void _confirmCancel(BuildContext context) {

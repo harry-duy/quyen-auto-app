@@ -3,37 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/constants/api_constants.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/di/service_providers.dart';
+import '../../core/di/chat_providers.dart';
 import '../../core/router/staff_router.dart';
 import '../../data/models/response/chat_response.dart';
-
-final _staffChatRoomsProvider =
-    FutureProvider.autoDispose<List<ChatRoomResponse>>((ref) async {
-  final api = ref.watch(apiServiceProvider);
-  final res = await api.get<List<ChatRoomResponse>>(
-    ApiConstants.chatRooms,
-    fromData: (json) {
-      final list = json == null
-          ? <dynamic>[]
-          : json is List
-              ? json
-              : (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
-      return list
-          .map((e) => ChatRoomResponse.fromJson(e as Map<String, dynamic>))
-          .toList();
-    },
-  );
-  return res.data ?? [];
-});
 
 class StaffChatListScreen extends ConsumerWidget {
   const StaffChatListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final roomsAsync = ref.watch(_staffChatRoomsProvider);
+    final roomsAsync = ref.watch(chatRoomsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -56,8 +36,7 @@ class StaffChatListScreen extends ConsumerWidget {
             );
           }
           return RefreshIndicator(
-            onRefresh: () async =>
-                ref.invalidate(_staffChatRoomsProvider),
+            onRefresh: () async => ref.invalidate(chatRoomsProvider),
             child: ListView.separated(
               itemCount: rooms.length,
               separatorBuilder: (_, _) =>
@@ -84,43 +63,87 @@ class StaffChatListScreen extends ConsumerWidget {
   }
 }
 
-class _ChatRoomTile extends StatelessWidget {
+class _ChatRoomTile extends ConsumerWidget {
   final ChatRoomResponse room;
   const _ChatRoomTile({required this.room});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final timeFmt = DateFormat('HH:mm');
-    final lastMsg = room.lastMessage;
+    final initials = room.customerName.isNotEmpty
+        ? room.customerName[0].toUpperCase()
+        : 'K';
 
     return ListTile(
       contentPadding:
           const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      leading: CircleAvatar(
-        radius: 24,
-        backgroundColor: AppColors.primaryNavy,
-        backgroundImage:
-            room.staffAvatar != null ? NetworkImage(room.staffAvatar!) : null,
-        child: room.staffAvatar == null
-            ? Text(
-                room.staffName.isNotEmpty
-                    ? room.staffName[0].toUpperCase()
-                    : 'C',
-                style: const TextStyle(
-                    color: AppColors.textWhite,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16))
-            : null,
+      leading: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: room.isWaiting
+                ? AppColors.primaryOrange
+                : AppColors.primaryNavy,
+            backgroundImage: room.customerAvatar != null
+                ? NetworkImage(room.customerAvatar!)
+                : null,
+            child: room.customerAvatar == null
+                ? Text(initials,
+                    style: const TextStyle(
+                        color: AppColors.textWhite,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16))
+                : null,
+          ),
+          if (room.isWaiting)
+            const Positioned(
+              bottom: -2,
+              right: -2,
+              child: CircleAvatar(
+                radius: 8,
+                backgroundColor: Colors.white,
+                child: CircleAvatar(
+                  radius: 6,
+                  backgroundColor: AppColors.primaryOrange,
+                  child: Icon(Icons.hourglass_top,
+                      size: 8, color: Colors.white),
+                ),
+              ),
+            ),
+        ],
       ),
-      title: Text('Khách hàng #${room.customerId}',
-          style: TextStyle(
-              fontSize: 14,
-              fontWeight:
-                  room.unreadCount > 0 ? FontWeight.w700 : FontWeight.w500,
-              color: AppColors.textDark)),
-      subtitle: lastMsg != null
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              room.customerName,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight:
+                      room.unreadCount > 0 ? FontWeight.w700 : FontWeight.w500,
+                  color: AppColors.textDark),
+            ),
+          ),
+          if (room.orderCode != null)
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primaryNavy.withAlpha(20),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                room.orderCode!,
+                style: const TextStyle(
+                    fontSize: 10, color: AppColors.primaryNavy),
+              ),
+            ),
+        ],
+      ),
+      subtitle: room.lastMessage != null
           ? Text(
-              lastMsg.content,
+              room.lastMessage!,
               style: TextStyle(
                   fontSize: 12,
                   color: room.unreadCount > 0
@@ -135,12 +158,14 @@ class _ChatRoomTile extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (lastMsg != null)
-            Text(timeFmt.format(lastMsg.createdAt),
-                style: const TextStyle(
-                    fontSize: 10, color: AppColors.textGray)),
-          if (room.unreadCount > 0) ...[
-            const SizedBox(height: 4),
+          if (room.lastMessageAt != null)
+            Text(timeFmt.format(room.lastMessageAt!),
+                style:
+                    const TextStyle(fontSize: 10, color: AppColors.textGray)),
+          const SizedBox(height: 4),
+          if (room.isWaiting)
+            _ClaimButton(room: room)
+          else if (room.unreadCount > 0)
             Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -154,10 +179,51 @@ class _ChatRoomTile extends StatelessWidget {
                       fontSize: 10,
                       fontWeight: FontWeight.w600)),
             ),
-          ],
         ],
       ),
-      onTap: () => context.push(StaffRoutes.chatOf(room.id.toString())),
+      onTap: room.isWaiting
+          ? null
+          : () => context.push(StaffRoutes.chatOf(room.id.toString())),
+    );
+  }
+}
+
+class _ClaimButton extends ConsumerWidget {
+  final ChatRoomResponse room;
+  const _ClaimButton({required this.room});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return ElevatedButton(
+      onPressed: () async {
+        try {
+          await ref
+              .read(chatActionsProvider.notifier)
+              .claimRoom(room.id.toString());
+          if (context.mounted) {
+            context.push(StaffRoutes.chatOf(room.id.toString()));
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text('Lỗi: $e'),
+                  backgroundColor: AppColors.errorRed),
+            );
+          }
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primaryOrange,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle:
+            const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+      ),
+      child: const Text('Tiếp nhận'),
     );
   }
 }

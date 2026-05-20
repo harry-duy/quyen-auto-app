@@ -28,11 +28,14 @@ abstract final class ApiConstants {
 
   // ─── Warranty ──────────────────────────────────────────────────────────────
   static const String vehicles         = 'warranty/vehicles';
-  static const String warrantyRequests = 'warranty/requests';
+  static const String warrantyRequests = 'warranty';
 
   // ─── Chat ──────────────────────────────────────────────────────────────────
   static const String chatRooms    = 'chat/rooms';
   static const String chatMessages = 'chat/rooms/{roomId}/messages';
+  static const String chatStart    = 'chat/rooms/start';
+  static const String chatClaim    = 'chat/rooms/{roomId}/claim';
+  static const String chatMarkRead = 'chat/rooms/{roomId}/read';
 
   // ─── Notifications ─────────────────────────────────────────────────────────
   static const String notificationList     = 'notifications';
@@ -54,9 +57,10 @@ abstract final class ApiConstants {
   static const String staffQuotationContact  = 'staff/quotations/{id}/contact';
 
   // ─── Staff: Warranty ──────────────────────────────────────────────────────
-  static const String staffWarrantyList   = 'staff/warranty';
-  static const String staffWarrantyUpdate = 'staff/warranty/{id}';
-  static const String staffWarrantyAssign = 'staff/warranty/{id}/assign';
+  static const String staffWarrantyList     = 'staff/warranty';
+  static const String staffWarrantyResult   = 'staff/warranty/{id}/result';
+  static const String staffWarrantyAssign   = 'staff/warranty/{id}/assign';
+  static const String staffWarrantyVehicles = 'staff/warranty/vehicles';
 
   // ─── Staff: Dashboard ─────────────────────────────────────────────────────
   static const String staffDashboard = 'staff/dashboard';

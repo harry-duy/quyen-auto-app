@@ -57,7 +57,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final needsAuth = loc.startsWith('/order/') ||
           loc.startsWith('/chat/') ||
           loc == AppRoutes.notifications ||
-          loc == AppRoutes.addVehicle;
+          loc == AppRoutes.addVehicle ||
+          loc == AppRoutes.quotation;
 
       if (!isLoggedIn && needsAuth) return AppRoutes.login;
       return null;

@@ -1,6 +1,8 @@
 package com.quyenauto.warranty.service;
 
 import com.quyenauto.common.exception.BusinessException;
+import com.quyenauto.product.entity.Product;
+import com.quyenauto.product.repository.ProductRepository;
 import com.quyenauto.warranty.dto.*;
 import com.quyenauto.warranty.entity.Vehicle;
 import com.quyenauto.warranty.entity.WarrantyLog;
@@ -16,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -24,6 +28,40 @@ public class WarrantyService {
     private final WarrantyRequestRepository warrantyRepository;
     private final VehicleRepository vehicleRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+
+    public List<VehicleResponse> getVehiclesByOwner(Long ownerId) {
+        return vehicleRepository.findByOwnerId(ownerId)
+                .stream().map(VehicleResponse::from).toList();
+    }
+
+    @Transactional
+    public VehicleResponse createVehicle(CreateVehicleRequest request) {
+        User owner = userRepository.findById(request.getOwnerId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy khách hàng"));
+
+        if (vehicleRepository.existsByChassisNumber(request.getChassisNumber())) {
+            throw new BusinessException(HttpStatus.CONFLICT, "Số khung đã tồn tại trong hệ thống");
+        }
+
+        Product product = null;
+        if (request.getProductId() != null) {
+            product = productRepository.findById(request.getProductId())
+                    .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
+        }
+
+        Vehicle vehicle = Vehicle.builder()
+                .owner(owner)
+                .product(product)
+                .plateNumber(request.getPlateNumber())
+                .chassisNumber(request.getChassisNumber())
+                .purchaseDate(request.getPurchaseDate())
+                .contractCode(request.getContractCode())
+                .warrantyExpiryDate(request.getWarrantyExpiryDate())
+                .build();
+
+        return VehicleResponse.from(vehicleRepository.save(vehicle));
+    }
 
     public Page<WarrantyResponse> getByCustomer(Long customerId, Pageable pageable) {
         return warrantyRepository.findByCustomerId(customerId, pageable).map(WarrantyResponse::from);

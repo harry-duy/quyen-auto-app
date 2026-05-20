@@ -161,21 +161,24 @@ class StaffActionsNotifier extends Notifier<void> {
   }
 
   Future<void> assignWarrantyTechnician(
-      String warrantyId, String technicianName) async {
-    await _api.put(
+      String warrantyId, int technicianId, String? scheduledDate) async {
+    await _api.patch(
       ApiConstants.resolve(
           ApiConstants.staffWarrantyAssign, {'id': warrantyId}),
-      data: {'technician': technicianName},
+      data: {
+        'technicianId': technicianId,
+        'scheduledDate': ?scheduledDate,
+      },
     );
     ref.invalidate(staffWarrantyListProvider);
   }
 
   Future<void> updateWarrantyResult(
-      String warrantyId, String result, String? note) async {
-    await _api.put(
+      String warrantyId, String status, String result, String? note) async {
+    await _api.patch(
       ApiConstants.resolve(
-          ApiConstants.staffWarrantyUpdate, {'id': warrantyId}),
-      data: {'result': result, 'note': ?note},
+          ApiConstants.staffWarrantyResult, {'id': warrantyId}),
+      data: {'status': status, 'result': result, 'note': ?note},
     );
     ref.invalidate(staffWarrantyListProvider);
     ref.invalidate(staffDashboardProvider);
