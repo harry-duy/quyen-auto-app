@@ -5,31 +5,27 @@
       "name": "Customer App (debug)",
       "request": "launch",
       "type": "dart",
-      "program": "lib/main.dart",
-      "args": ["--flavor", "customer"]
+      "program": "lib/main.dart"
     },
     {
       "name": "Staff App (debug)",
       "request": "launch",
       "type": "dart",
-      "program": "lib/main_staff.dart",
-      "args": ["--flavor", "staff"]
+      "program": "lib/main_staff.dart"
     },
     {
       "name": "Customer App (profile)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "flutterMode": "profile",
-      "args": ["--flavor", "customer"]
+      "flutterMode": "profile"
     },
     {
       "name": "Staff App (profile)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main_staff.dart",
-      "flutterMode": "profile",
-      "args": ["--flavor", "staff"]
+      "flutterMode": "profile"
     }
   ]
 }

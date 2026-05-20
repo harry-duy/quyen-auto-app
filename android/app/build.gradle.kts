@@ -21,25 +21,11 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.quyenauto.quyen_auto_app"
+        applicationId = "com.quyenauto.customer"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-    }
-
-    flavorDimensions += "app"
-    productFlavors {
-        create("customer") {
-            dimension = "app"
-            applicationId = "com.quyenauto.customer"
-            resValue("string", "app_name", "Quyen Auto")
-        }
-        create("staff") {
-            dimension = "app"
-            applicationId = "com.quyenauto.staff"
-            resValue("string", "app_name", "Quyen Auto Staff")
-        }
     }
 
     buildTypes {
