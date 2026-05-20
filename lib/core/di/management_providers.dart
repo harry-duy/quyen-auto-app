@@ -15,7 +15,7 @@ final departmentListProvider =
   final api = ref.watch(apiServiceProvider);
   final res = await api.get<List<Department>>(
     ApiConstants.departments,
-    fromData: (json) => (json as List)
+    fromData: (json) => _asList(json)
         .map((e) => _departmentFromJson(e as Map<String, dynamic>))
         .toList(),
   );
@@ -47,7 +47,7 @@ final staffMemberListProvider =
       'size': 100,
       'departmentId': ?deptFilter,
     },
-    fromData: (json) => (json as List)
+    fromData: (json) => _asList(json)
         .map((e) => _staffFromJson(e as Map<String, dynamic>))
         .toList(),
   );
@@ -250,7 +250,7 @@ final productCategoryListProvider =
   final api = ref.watch(apiServiceProvider);
   final res = await api.get<List<Map<String, dynamic>>>(
     'products/categories',
-    fromData: (json) => (json as List)
+    fromData: (json) => _asList(json)
         .map((e) => e as Map<String, dynamic>)
         .toList(),
   );
@@ -258,6 +258,13 @@ final productCategoryListProvider =
 });
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/// Handles null, plain List, or Spring Boot Page `{"content":[...]}`.
+List<dynamic> _asList(dynamic json) {
+  if (json == null) return [];
+  if (json is List) return json;
+  return (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
+}
 
 Department _departmentFromJson(Map<String, dynamic> j) {
   final r = DepartmentResponse.fromJson(j);

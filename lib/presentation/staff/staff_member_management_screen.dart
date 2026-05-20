@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/di/auth_providers.dart';
 import '../../core/di/management_providers.dart';
 import '../../core/utils/validators.dart';
 import '../../domain/entities/user.dart';
@@ -14,14 +15,21 @@ class StaffMemberManagementScreen extends ConsumerWidget {
     final membersAsync = ref.watch(staffMemberListProvider);
     final deptFilter = ref.watch(staffMemberDepartmentFilter);
     final deptsAsync = ref.watch(departmentListProvider);
+    // Current logged-in user — used to gate which roles can be assigned
+    final caller = ref.watch(authProvider).valueOrNull;
+    final callerRole = caller?.role ?? UserRole.staff;
+    final canCreate = callerRole.isManagerOrAbove;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(title: const Text('Quản lý nhân viên')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreateStaffForm(context, ref),
-        child: const Icon(Icons.person_add),
-      ),
+      floatingActionButton: canCreate
+          ? FloatingActionButton(
+              onPressed: () =>
+                  _showCreateStaffForm(context, ref, callerRole),
+              child: const Icon(Icons.person_add),
+            )
+          : null,
       body: Column(
         children: [
           // Department filter
@@ -77,8 +85,10 @@ class StaffMemberManagementScreen extends ConsumerWidget {
                   child: ListView.builder(
                     padding: const EdgeInsets.all(12),
                     itemCount: members.length,
-                    itemBuilder: (_, i) =>
-                        _StaffMemberCard(member: members[i]),
+                    itemBuilder: (_, i) => _StaffMemberCard(
+                          member: members[i],
+                          callerRole: callerRole,
+                        ),
                   ),
                 );
               },
@@ -130,7 +140,8 @@ class _FilterChipItem extends StatelessWidget {
 
 class _StaffMemberCard extends ConsumerWidget {
   final User member;
-  const _StaffMemberCard({required this.member});
+  final UserRole callerRole;
+  const _StaffMemberCard({required this.member, required this.callerRole});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -256,7 +267,7 @@ class _StaffMemberCard extends ConsumerWidget {
     if (action == 'toggle') {
       _confirmToggle(context, ref, member);
     } else if (action == 'edit') {
-      _showEditForm(context, ref, member);
+      _showEditForm(context, ref, member, callerRole);
     }
   }
 
@@ -306,7 +317,8 @@ class _StaffMemberCard extends ConsumerWidget {
     );
   }
 
-  void _showEditForm(BuildContext context, WidgetRef ref, User member) {
+  void _showEditForm(
+      BuildContext context, WidgetRef ref, User member, UserRole callerRole) {
     final nameCtrl = TextEditingController(text: member.fullName);
     final emailCtrl = TextEditingController(text: member.email ?? '');
     final posCtrl = TextEditingController(text: member.position ?? '');
@@ -314,6 +326,8 @@ class _StaffMemberCard extends ConsumerWidget {
     String? selectedDeptId = member.departmentId;
     final deptsAsync = ref.read(departmentListProvider);
     final depts = deptsAsync.valueOrNull ?? [];
+    // Roles that this caller is allowed to assign
+    final allowedRoles = _allowedRoles(callerRole);
 
     showModalBottomSheet(
       context: context,
@@ -362,19 +376,17 @@ class _StaffMemberCard extends ConsumerWidget {
               ),
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
-                initialValue: selectedRole,
+                initialValue: allowedRoles.any((r) => r['value'] == selectedRole)
+                    ? selectedRole
+                    : allowedRoles.first['value'],
                 decoration: const InputDecoration(
                   labelText: 'Vai trò',
                   border: OutlineInputBorder(),
                 ),
-                items: const [
-                  DropdownMenuItem<String>(
-                      value: 'STAFF', child: Text('Nhân viên')),
-                  DropdownMenuItem<String>(
-                      value: 'MANAGER', child: Text('Quản lý')),
-                  DropdownMenuItem<String>(
-                      value: 'ADMIN', child: Text('Quản trị viên')),
-                ],
+                items: allowedRoles
+                    .map((r) => DropdownMenuItem<String>(
+                        value: r['value'], child: Text(r['label']!)))
+                    .toList(),
                 onChanged: (v) => setState(() => selectedRole = v),
               ),
               const SizedBox(height: 10),
@@ -448,14 +460,33 @@ class _StaffMemberCard extends ConsumerWidget {
   }
 }
 
-void _showCreateStaffForm(BuildContext context, WidgetRef ref) {
+/// Returns the role options this [caller] is allowed to assign.
+/// - ADMIN  → STAFF + MANAGER + ADMIN
+/// - MANAGER → STAFF only
+List<Map<String, String>> _allowedRoles(UserRole caller) {
+  if (caller.isAdmin) {
+    return const [
+      {'value': 'STAFF',   'label': 'Nhân viên'},
+      {'value': 'MANAGER', 'label': 'Quản lý'},
+      {'value': 'ADMIN',   'label': 'Quản trị viên'},
+    ];
+  }
+  // MANAGER can only create / edit to STAFF
+  return const [
+    {'value': 'STAFF', 'label': 'Nhân viên'},
+  ];
+}
+
+void _showCreateStaffForm(
+    BuildContext context, WidgetRef ref, UserRole callerRole) {
   final nameCtrl = TextEditingController();
   final phoneCtrl = TextEditingController();
   final emailCtrl = TextEditingController();
   final passCtrl = TextEditingController();
   final posCtrl = TextEditingController();
   final formKey = GlobalKey<FormState>();
-  String selectedRole = 'STAFF';
+  final allowedRoles = _allowedRoles(callerRole);
+  String selectedRole = allowedRoles.first['value']!;
   String? selectedDeptId;
   final deptsAsync = ref.read(departmentListProvider);
   final depts = deptsAsync.valueOrNull ?? [];
@@ -543,14 +574,10 @@ void _showCreateStaffForm(BuildContext context, WidgetRef ref) {
                     prefixIcon: Icon(Icons.badge_outlined),
                     border: OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem<String>(
-                        value: 'STAFF', child: Text('Nhân viên')),
-                    DropdownMenuItem<String>(
-                        value: 'MANAGER', child: Text('Quản lý')),
-                    DropdownMenuItem<String>(
-                        value: 'ADMIN', child: Text('Quản trị viên')),
-                  ],
+                  items: allowedRoles
+                      .map((r) => DropdownMenuItem<String>(
+                          value: r['value'], child: Text(r['label']!)))
+                      .toList(),
                   onChanged: (v) {
                     if (v != null) setState(() => selectedRole = v);
                   },

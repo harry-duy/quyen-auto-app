@@ -207,11 +207,13 @@ Order _orderFromJson(Map<String, dynamic> j) {
   );
 }
 
-/// Extracts a flat list from either a plain JSON array or a Spring Boot
-/// Page wrapper `{"content":[...], "totalElements":...}`.
-List<dynamic> _toList(dynamic json) => json is List
-    ? json
-    : (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
+/// Extracts a flat list from either a plain JSON array, a Spring Boot
+/// Page wrapper `{"content":[...]}`, or null (returns []).
+List<dynamic> _toList(dynamic json) {
+  if (json == null) return [];
+  if (json is List) return json;
+  return (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
+}
 
 /// Handles both a plain List and a PageResponse map with a 'content' field.
 List<StaffQuotationResponse> _parseQuotationPage(dynamic json) {
