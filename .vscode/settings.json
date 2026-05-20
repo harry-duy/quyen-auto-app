@@ -1,0 +1,6 @@
+{
+  "dart.flutterAdditionalArgs": ["--flavor", "customer"],
+  "launch": {
+    "defaultConfiguration": "Customer App (debug)"
+  }
+}

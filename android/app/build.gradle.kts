@@ -28,6 +28,18 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "app"
+    productFlavors {
+        create("customer") {
+            dimension = "app"
+            applicationId = "com.quyenauto.customer"
+        }
+        create("staff") {
+            dimension = "app"
+            applicationId = "com.quyenauto.staff"
+        }
+    }
+
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
