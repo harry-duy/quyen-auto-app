@@ -10,6 +10,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/di/providers.dart';
 import '../../core/router/app_router.dart';
 import '../../data/models/request/quotation_request.dart';
+import '../../domain/entities/product.dart';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -575,7 +576,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
 
   // ─── Step 1 ───────────────────────────────────────────────────────────────
 
-  Widget _buildStep1(AsyncValue productsAsync) {
+  Widget _buildStep1(AsyncValue<List<Product>> productsAsync) {
     final isRefrigerated = _boxCategory == _kBoxCategories[0];
 
     return Column(
