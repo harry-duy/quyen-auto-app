@@ -80,6 +80,11 @@ abstract final class ApiConstants {
   static const String adminProducts      = 'admin/products';
   static const String adminProductDetail = 'admin/products/{id}';
 
+  // ─── Staff: Customer Management ──────────────────────────────────────────
+  static const String staffCustomers       = 'staff/customers';
+  static const String staffCustomerDetail  = 'staff/customers/{id}';
+  static const String staffCustomerToggle  = 'staff/customers/{id}/toggle-active';
+
   // ─── Leads (guest contact requests) ───────────────────────────────────────
   static const String guestLead  = 'leads';
   static const String staffLeads = 'leads';

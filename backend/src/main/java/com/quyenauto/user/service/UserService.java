@@ -108,6 +108,39 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // ─── Customer Management ─────────────────────────────────────────────────
+
+    public Page<UserResponse> getCustomers(String keyword, Pageable pageable) {
+        if (keyword != null && !keyword.isBlank()) {
+            return userRepository.searchByRoleAndKeyword(UserRole.CUSTOMER, keyword, pageable)
+                    .map(UserResponse::from);
+        }
+        return userRepository.findByRole(UserRole.CUSTOMER, pageable).map(UserResponse::from);
+    }
+
+    @Transactional
+    public UserResponse createCustomer(CreateCustomerRequest request) {
+        if (userRepository.existsByPhone(request.getPhone())) {
+            throw new BusinessException("Số điện thoại đã được sử dụng");
+        }
+        if (request.getEmail() != null && !request.getEmail().isBlank()
+                && userRepository.existsByEmail(request.getEmail())) {
+            throw new BusinessException("Email đã được sử dụng");
+        }
+
+        User user = User.builder()
+                .fullName(request.getFullName())
+                .phone(request.getPhone())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .email(request.getEmail() != null && request.getEmail().isBlank()
+                        ? null : request.getEmail())
+                .role(UserRole.CUSTOMER)
+                .isActive(true)
+                .build();
+
+        return UserResponse.from(userRepository.save(user));
+    }
+
     @Transactional
     public UserResponse updateProfile(Long userId, UpdateUserRequest request) {
         User user = userRepository.findById(userId)
