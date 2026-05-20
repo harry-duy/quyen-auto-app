@@ -368,11 +368,11 @@ class _StaffMemberCard extends ConsumerWidget {
                   border: OutlineInputBorder(),
                 ),
                 items: const [
-                  DropdownMenuItem(
+                  DropdownMenuItem<String>(
                       value: 'STAFF', child: Text('Nhân viên')),
-                  DropdownMenuItem(
+                  DropdownMenuItem<String>(
                       value: 'MANAGER', child: Text('Quản lý')),
-                  DropdownMenuItem(
+                  DropdownMenuItem<String>(
                       value: 'ADMIN', child: Text('Quản trị viên')),
                 ],
                 onChanged: (v) => setState(() => selectedRole = v),
@@ -386,7 +386,7 @@ class _StaffMemberCard extends ConsumerWidget {
                     border: OutlineInputBorder(),
                   ),
                   items: depts
-                      .map((d) => DropdownMenuItem(
+                      .map((d) => DropdownMenuItem<String>(
                           value: d.id, child: Text(d.name)))
                       .toList(),
                   onChanged: (v) =>
@@ -544,11 +544,11 @@ void _showCreateStaffForm(BuildContext context, WidgetRef ref) {
                     border: OutlineInputBorder(),
                   ),
                   items: const [
-                    DropdownMenuItem(
+                    DropdownMenuItem<String>(
                         value: 'STAFF', child: Text('Nhân viên')),
-                    DropdownMenuItem(
+                    DropdownMenuItem<String>(
                         value: 'MANAGER', child: Text('Quản lý')),
-                    DropdownMenuItem(
+                    DropdownMenuItem<String>(
                         value: 'ADMIN', child: Text('Quản trị viên')),
                   ],
                   onChanged: (v) {
@@ -565,7 +565,7 @@ void _showCreateStaffForm(BuildContext context, WidgetRef ref) {
                       border: OutlineInputBorder(),
                     ),
                     items: depts
-                        .map((d) => DropdownMenuItem(
+                        .map((d) => DropdownMenuItem<String>(
                             value: d.id, child: Text(d.name)))
                         .toList(),
                     onChanged: (v) =>

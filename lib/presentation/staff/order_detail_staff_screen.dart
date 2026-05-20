@@ -155,14 +155,14 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
                     border: OutlineInputBorder(),
                   ),
                   items: const [
-                    DropdownMenuItem(
+                    DropdownMenuItem<String>(
                         value: 'CONFIRMED', child: Text('Xác nhận đơn')),
-                    DropdownMenuItem(
+                    DropdownMenuItem<String>(
                         value: 'IN_PRODUCTION',
                         child: Text('Bắt đầu sản xuất')),
-                    DropdownMenuItem(
+                    DropdownMenuItem<String>(
                         value: 'COMPLETED', child: Text('Hoàn thành')),
-                    DropdownMenuItem(
+                    DropdownMenuItem<String>(
                         value: 'CANCELLED', child: Text('Hủy đơn')),
                   ],
                   onChanged: (v) => setState(() => _selectedStatus = v),

@@ -276,11 +276,11 @@ class _WarrantyCard extends ConsumerWidget {
                   border: OutlineInputBorder(),
                 ),
                 items: const [
-                  DropdownMenuItem(
+                  DropdownMenuItem<String>(
                       value: 'RESOLVED', child: Text('Đã xử lý xong')),
-                  DropdownMenuItem(
+                  DropdownMenuItem<String>(
                       value: 'REJECTED', child: Text('Từ chối bảo hành')),
-                  DropdownMenuItem(
+                  DropdownMenuItem<String>(
                       value: 'IN_PROGRESS',
                       child: Text('Đang tiếp tục xử lý')),
                 ],
