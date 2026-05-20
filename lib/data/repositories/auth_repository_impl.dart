@@ -37,7 +37,7 @@ class AuthRepositoryImpl implements AuthRepository {
         'fullName': fullName,
         'phone':    phone,
         'password': password,
-        if (email != null) 'email': email,
+        'email': ?email,
       },
       fromData: (json) => json as Map<String, dynamic>,
     );

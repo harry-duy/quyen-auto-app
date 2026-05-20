@@ -38,7 +38,7 @@ final staffOrderListProvider =
     queryParams: {
       'page': 0,
       'size': 50,
-      if (status != null) 'status': status,
+      'status': ?status,
     },
     fromData: (json) => (json as List)
         .map((e) => _orderFromJson(e as Map<String, dynamic>))
@@ -70,7 +70,7 @@ final staffQuotationListProvider =
     queryParams: {
       'page': 0,
       'size': 100,
-      if (status != null) 'status': status,
+      'status': ?status,
     },
     fromData: (json) => _parseQuotationPage(json),
   );
@@ -129,7 +129,7 @@ class StaffActionsNotifier extends Notifier<void> {
       String orderId, String newStatus, String? note) async {
     await _api.put(
       ApiConstants.resolve(ApiConstants.staffUpdateStatus, {'id': orderId}),
-      data: {'status': newStatus, if (note != null) 'note': note},
+      data: {'status': newStatus, 'note': ?note},
     );
     ref.invalidate(staffOrderListProvider);
     ref.invalidate(staffOrderDetailProvider(orderId));
@@ -143,7 +143,7 @@ class StaffActionsNotifier extends Notifier<void> {
           ApiConstants.staffApproveQuote, {'id': quotationId}),
       data: {
         'quotedPrice': price,
-        if (note != null) 'staffNote': note,
+        'staffNote': ?note,
       },
     );
     ref.invalidate(staffQuotationListProvider);
@@ -175,7 +175,7 @@ class StaffActionsNotifier extends Notifier<void> {
     await _api.put(
       ApiConstants.resolve(
           ApiConstants.staffWarrantyUpdate, {'id': warrantyId}),
-      data: {'result': result, if (note != null) 'note': note},
+      data: {'result': result, 'note': ?note},
     );
     ref.invalidate(staffWarrantyListProvider);
     ref.invalidate(staffDashboardProvider);

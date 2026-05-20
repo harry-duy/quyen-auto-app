@@ -46,9 +46,9 @@ final staffRouterProvider = Provider<GoRouter>((ref) {
     },
 
     routes: [
-      GoRoute(path: StaffRoutes.login,    builder: (_, __) => const LoginScreen()),
-      GoRoute(path: StaffRoutes.register, builder: (_, __) => const RegisterScreen()),
-      GoRoute(path: StaffRoutes.home,     builder: (_, __) => const StaffHomeScreen()),
+      GoRoute(path: StaffRoutes.login,    builder: (_, _) => const LoginScreen()),
+      GoRoute(path: StaffRoutes.register, builder: (_, _) => const RegisterScreen()),
+      GoRoute(path: StaffRoutes.home,     builder: (_, _) => const StaffHomeScreen()),
       GoRoute(
         path: StaffRoutes.orderDetail,
         builder: (_, s) => OrderDetailStaffScreen(id: s.pathParameters['id']!),
@@ -57,10 +57,10 @@ final staffRouterProvider = Provider<GoRouter>((ref) {
         path: StaffRoutes.chat,
         builder: (_, s) => ChatScreen(roomId: s.pathParameters['roomId']!),
       ),
-      GoRoute(path: StaffRoutes.dealerMap,          builder: (_, __) => const DealerMapScreen()),
-      GoRoute(path: StaffRoutes.departments,         builder: (_, __) => const DepartmentManagementScreen()),
-      GoRoute(path: StaffRoutes.staffMembers,        builder: (_, __) => const StaffMemberManagementScreen()),
-      GoRoute(path: StaffRoutes.productManagement,   builder: (_, __) => const ProductManagementScreen()),
+      GoRoute(path: StaffRoutes.dealerMap,          builder: (_, _) => const DealerMapScreen()),
+      GoRoute(path: StaffRoutes.departments,         builder: (_, _) => const DepartmentManagementScreen()),
+      GoRoute(path: StaffRoutes.staffMembers,        builder: (_, _) => const StaffMemberManagementScreen()),
+      GoRoute(path: StaffRoutes.productManagement,   builder: (_, _) => const ProductManagementScreen()),
     ],
   );
 });

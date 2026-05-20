@@ -153,7 +153,7 @@ class _ProductCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(product.imageUrls.first,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const Icon(
+                      errorBuilder: (_, _, _) => const Icon(
                           Icons.inventory_2_outlined,
                           color: AppColors.primaryNavy)),
                 )
@@ -305,7 +305,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
 
                     if (categories.isNotEmpty)
                       DropdownButtonFormField<String>(
-                        value: selectedCategoryId,
+                        initialValue: selectedCategoryId,
                         decoration: const InputDecoration(
                           labelText: 'Danh mục *',
                           prefixIcon: Icon(Icons.category_outlined),

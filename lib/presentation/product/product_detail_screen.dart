@@ -92,7 +92,7 @@ class _ProductDetailViewState extends State<_ProductDetailView> {
                             imageUrl: product.imageUrls[i],
                             fit: BoxFit.cover,
                             width: double.infinity,
-                            errorWidget: (_, __, ___) => _imageFallback(),
+                            errorWidget: (_, _, _) => _imageFallback(),
                           ),
                         ),
                         if (product.imageUrls.length > 1)

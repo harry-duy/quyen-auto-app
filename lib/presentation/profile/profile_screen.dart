@@ -119,7 +119,7 @@ class _ProfileHeader extends StatelessWidget {
           child: user?.avatarUrl != null
               ? ClipOval(
                   child: Image.network(user!.avatarUrl!, fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Center(
+                      errorBuilder: (_, _, _) => Center(
                         child: Text(initials,
                             style: const TextStyle(color: AppColors.textWhite, fontSize: 26, fontWeight: FontWeight.w800)),
                       )))

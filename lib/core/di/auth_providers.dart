@@ -100,7 +100,7 @@ final isAuthenticatedProvider = Provider<bool>((ref) {
 
 class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
-    _ref.listen<AsyncValue<User?>>(authProvider, (_, __) => notifyListeners());
+    _ref.listen<AsyncValue<User?>>(authProvider, (_, _) => notifyListeners());
   }
   final Ref _ref;
 }

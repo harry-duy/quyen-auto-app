@@ -45,7 +45,7 @@ final staffMemberListProvider =
     queryParams: {
       'page': 0,
       'size': 100,
-      if (deptFilter != null) 'departmentId': deptFilter,
+      'departmentId': ?deptFilter,
     },
     fromData: (json) => (json as List)
         .map((e) => _staffFromJson(e as Map<String, dynamic>))
@@ -72,7 +72,7 @@ class ManagementActionsNotifier extends Notifier<void> {
       ApiConstants.departments,
       data: {
         'name': name,
-        if (description != null) 'description': description,
+        'description': ?description,
         if (managerId != null) 'managerId': int.parse(managerId),
       },
     );
@@ -89,7 +89,7 @@ class ManagementActionsNotifier extends Notifier<void> {
       ApiConstants.resolve(ApiConstants.departmentDetail, {'id': id}),
       data: {
         'name': name,
-        if (description != null) 'description': description,
+        'description': ?description,
         if (managerId != null) 'managerId': int.parse(managerId),
       },
     );
@@ -114,9 +114,9 @@ class ManagementActionsNotifier extends Notifier<void> {
         'phone': phone,
         'password': password,
         'role': role,
-        if (email != null) 'email': email,
+        'email': ?email,
         if (departmentId != null) 'departmentId': int.parse(departmentId),
-        if (position != null) 'position': position,
+        'position': ?position,
       },
     );
     ref.invalidate(staffMemberListProvider);
@@ -133,11 +133,11 @@ class ManagementActionsNotifier extends Notifier<void> {
     await _api.put(
       ApiConstants.resolve(ApiConstants.staffMemberUpdate, {'id': id}),
       data: {
-        if (fullName != null) 'fullName': fullName,
-        if (email != null) 'email': email,
-        if (role != null) 'role': role,
+        'fullName': ?fullName,
+        'email': ?email,
+        'role': ?role,
         if (departmentId != null) 'departmentId': int.parse(departmentId),
-        if (position != null) 'position': position,
+        'position': ?position,
       },
     );
     ref.invalidate(staffMemberListProvider);

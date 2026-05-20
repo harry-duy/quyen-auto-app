@@ -48,7 +48,7 @@ class WarrantyRepositoryImpl implements WarrantyRepository {
       data: {
         'vehicleId': vehicleId,
         'issue':     issue,
-        if (imageUrl != null) 'imageUrl': imageUrl,
+        'imageUrl': ?imageUrl,
       },
     );
   }

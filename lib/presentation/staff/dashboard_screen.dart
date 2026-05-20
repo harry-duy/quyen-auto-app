@@ -66,7 +66,7 @@ class StaffDashboardScreen extends ConsumerWidget {
               loading: () => const SizedBox(
                   height: 220,
                   child: Center(child: CircularProgressIndicator())),
-              error: (_, __) => const SizedBox.shrink(),
+              error: (_, _) => const SizedBox.shrink(),
             ),
             const SizedBox(height: 24),
 

@@ -22,7 +22,7 @@ class ShimmerList extends StatelessWidget {
       child: ListView.builder(
         itemCount: itemCount,
         padding: const EdgeInsets.all(16),
-        itemBuilder: (_, __) => Container(
+        itemBuilder: (_, _) => Container(
           margin: const EdgeInsets.only(bottom: 12),
           height: 80,
           decoration: BoxDecoration(

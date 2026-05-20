@@ -35,7 +35,7 @@ class OrderRepositoryImpl implements OrderRepository {
       queryParams: {
         'page': page,
         'size': size,
-        if (status != null) 'status': status,
+        'status': ?status,
       },
       fromData: (json) => (json as List)
           .map((e) =>

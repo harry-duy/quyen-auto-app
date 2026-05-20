@@ -53,7 +53,7 @@ class StaffChatListScreen extends ConsumerWidget {
                 ref.invalidate(_staffChatRoomsProvider),
             child: ListView.separated(
               itemCount: rooms.length,
-              separatorBuilder: (_, __) =>
+              separatorBuilder: (_, _) =>
                   const Divider(height: 1, indent: 72),
               itemBuilder: (_, i) => _ChatRoomTile(room: rooms[i]),
             ),

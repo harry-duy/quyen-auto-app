@@ -39,12 +39,12 @@ class ProductCard extends StatelessWidget {
                     ? CachedNetworkImage(
                         imageUrl: product.imageUrls.first,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) => Shimmer.fromColors(
+                        placeholder: (_, _) => Shimmer.fromColors(
                           baseColor: AppColors.borderLight,
                           highlightColor: AppColors.surface,
                           child: Container(color: AppColors.borderLight),
                         ),
-                        errorWidget: (_, __, ___) => Container(
+                        errorWidget: (_, _, _) => Container(
                           color: AppColors.primaryNavy.withValues(alpha: 0.07),
                           child: const Icon(Icons.local_shipping_outlined,
                               size: 44, color: AppColors.primaryNavy),
