@@ -352,12 +352,9 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
     setState(() => _guestSubmitting = true);
     try {
       final api = ref.read(apiServiceProvider);
-      final productName = ref
-          .read(productListProvider)
-          .valueOrNull
-          ?.where((p) => p.id == _selectedProductId)
-          .firstOrNull
-          ?.name;
+      final allProducts = ref.read(productListProvider).valueOrNull ?? [];
+      final matchedProducts = allProducts.where((p) => p.id == _selectedProductId);
+      final productName = matchedProducts.isEmpty ? null : matchedProducts.first.name;
 
       await api.post(ApiConstants.guestLead, data: {
         'phone': _guestPhoneCtrl.text.trim(),
@@ -631,8 +628,8 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
         const SizedBox(height: 8),
         productsAsync.when(
           data: (products) {
-            final selected =
-                products.where((p) => p.id == _selectedProductId).firstOrNull;
+            final filtered = products.where((p) => p.id == _selectedProductId);
+            final selected = filtered.isEmpty ? null : filtered.first;
             if (selected != null) {
               return _selectedProductCard(selected.name, selected.truckType);
             }

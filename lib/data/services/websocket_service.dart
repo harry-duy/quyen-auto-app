@@ -42,7 +42,7 @@ class WebSocketService {
         },
         stompConnectHeaders: {'Authorization': 'Bearer $token'},
         webSocketConnectHeaders: {'Authorization': 'Bearer $token'},
-        reconnectDelay: const Duration(seconds: 5),
+        reconnectDelay: const Duration(seconds: 30),
       ),
     );
     _client!.activate();
