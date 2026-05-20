@@ -37,10 +37,15 @@ class OrderRepositoryImpl implements OrderRepository {
         'size': size,
         'status': ?status,
       },
-      fromData: (json) => (json as List)
-          .map((e) =>
-              _fromResponse(OrderResponse.fromJson(e as Map<String, dynamic>)))
-          .toList(),
+      fromData: (json) {
+        final list = json is List
+            ? json
+            : (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
+        return list
+            .map((e) => _fromResponse(
+                OrderResponse.fromJson(e as Map<String, dynamic>)))
+            .toList();
+      },
     );
     return res.data ?? [];
   }

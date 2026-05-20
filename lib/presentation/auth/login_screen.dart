@@ -140,13 +140,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 // Logo
                 Center(
-                  child: Image.asset(
-                    AppFlavor.isStaff
-                        ? 'assets/images/LOGO QA-white-red.png'
-                        : 'assets/images/LOGO QA.png',
-                    width: 200,
-                    height: 120,
-                    fit: BoxFit.contain,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/LOGO QA.png',
+                        width: 180,
+                        height: 110,
+                        fit: BoxFit.contain,
+                      ),
+                      if (AppFlavor.isStaff) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryNavy,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            'NHÂN VIÊN',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),

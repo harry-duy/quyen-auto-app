@@ -21,9 +21,14 @@ class WarrantyRepositoryImpl implements WarrantyRepository {
   Future<List<Vehicle>> getMyVehicles() async {
     final res = await _api.get<List<Vehicle>>(
       ApiConstants.vehicles,
-      fromData: (json) => (json as List)
-          .map((e) => _mapVehicle(e as Map<String, dynamic>))
-          .toList(),
+      fromData: (json) {
+        final list = json is List
+            ? json
+            : (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
+        return list
+            .map((e) => _mapVehicle(e as Map<String, dynamic>))
+            .toList();
+      },
     );
     return res.data ?? [];
   }

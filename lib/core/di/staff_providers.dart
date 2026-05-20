@@ -40,7 +40,7 @@ final staffOrderListProvider =
       'size': 50,
       'status': ?status,
     },
-    fromData: (json) => (json as List)
+    fromData: (json) => _toList(json)
         .map((e) => _orderFromJson(e as Map<String, dynamic>))
         .toList(),
   );
@@ -95,7 +95,7 @@ final staffWarrantyListProvider =
   final api = ref.watch(apiServiceProvider);
   final res = await api.get<List<WarrantyRequestResponse>>(
     ApiConstants.staffWarrantyList,
-    fromData: (json) => (json as List)
+    fromData: (json) => _toList(json)
         .map((e) =>
             WarrantyRequestResponse.fromJson(e as Map<String, dynamic>))
         .toList(),
@@ -110,7 +110,7 @@ final dealerListProvider =
   final api = ref.watch(apiServiceProvider);
   final res = await api.get<List<DealerResponse>>(
     ApiConstants.dealerList,
-    fromData: (json) => (json as List)
+    fromData: (json) => _toList(json)
         .map((e) => DealerResponse.fromJson(e as Map<String, dynamic>))
         .toList(),
   );
@@ -207,12 +207,15 @@ Order _orderFromJson(Map<String, dynamic> j) {
   );
 }
 
+/// Extracts a flat list from either a plain JSON array or a Spring Boot
+/// Page wrapper `{"content":[...], "totalElements":...}`.
+List<dynamic> _toList(dynamic json) => json is List
+    ? json
+    : (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
+
 /// Handles both a plain List and a PageResponse map with a 'content' field.
 List<StaffQuotationResponse> _parseQuotationPage(dynamic json) {
-  final List<dynamic> items = json is List
-      ? json
-      : (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
-  return items
+  return _toList(json)
       .map((e) => StaffQuotationResponse.fromJson(e as Map<String, dynamic>))
       .toList();
 }
