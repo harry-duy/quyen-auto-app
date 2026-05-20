@@ -641,7 +641,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
               ),
               isExpanded: true,
               items: products
-                  .map((p) => DropdownMenuItem(
+                  .map((p) => DropdownMenuItem<String>(
                         value: p.id,
                         child: Text(p.name, overflow: TextOverflow.ellipsis),
                       ))
@@ -671,7 +671,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
           ),
           isExpanded: true,
           items: _kVehicleModels
-              .map((m) => DropdownMenuItem(value: m, child: Text(m, overflow: TextOverflow.ellipsis)))
+              .map((m) => DropdownMenuItem<String>(value: m, child: Text(m, overflow: TextOverflow.ellipsis)))
               .toList(),
           onChanged: (v) => setState(() => _vehicleModel = v),
           validator: (v) => v == null ? 'Vui lòng chọn kiểu loại xe' : null,
@@ -746,7 +746,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                     decoration: const InputDecoration(labelText: 'Loại'),
                     isExpanded: true,
                     items: _kBoxTypes
-                        .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                        .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
                         .toList(),
                     onChanged: (v) => setState(() => _boxType = v),
                   ),
@@ -772,7 +772,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                     decoration: const InputDecoration(labelText: 'Loại sàn'),
                     isExpanded: true,
                     items: _kFloorTypes
-                        .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                        .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
                         .toList(),
                     onChanged: (v) => setState(() => _floorType = v),
                   ),
@@ -791,7 +791,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                     decoration: const InputDecoration(labelText: 'Loại trụ'),
                     isExpanded: true,
                     items: _kPillarTypes
-                        .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                        .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
                         .toList(),
                     onChanged: (v) => setState(() => _pillarType = v),
                   ),
@@ -849,7 +849,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                   decoration: const InputDecoration(labelText: 'Loại máy lạnh'),
                   isExpanded: true,
                   items: _kAcTypes
-                      .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                      .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
                       .toList(),
                   onChanged: (v) => setState(() => _acType = v),
                 ),
@@ -892,7 +892,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
           decoration: const InputDecoration(labelText: 'Yêu cầu sàn'),
           isExpanded: true,
           items: _kFloorRequirements
-              .map((r) => DropdownMenuItem(
+              .map((r) => DropdownMenuItem<String>(
                     value: r,
                     child: Text(r, overflow: TextOverflow.ellipsis),
                   ))
@@ -1061,7 +1061,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                       isExpanded: true,
                       items: _kPanelCodes
                           .map((c) =>
-                              DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12))))
+                              DropdownMenuItem<String>(value: c, child: Text(c, style: const TextStyle(fontSize: 12))))
                           .toList(),
                       onChanged: panelSetters[i],
                     ),
@@ -1097,7 +1097,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
           decoration: const InputDecoration(labelText: 'Khung trụ sau'),
           isExpanded: true,
           items: _kRearPillarTypes
-              .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+              .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
               .toList(),
           onChanged: (v) => setState(() => _rearPillarFrame = v),
         ),

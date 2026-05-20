@@ -12,6 +12,7 @@ class WebSocketService {
   final Logger _log = Logger();
   final Map<String, StompUnsubscribe> _subscriptions = {};
   Completer<void>? _connectCompleter;
+  int _errorCount = 0;
 
   bool get isConnected => _client != null && _connectCompleter?.isCompleted == true;
 
@@ -19,23 +20,29 @@ class WebSocketService {
     if (isConnected) return;
 
     _connectCompleter = Completer<void>();
+    _errorCount = 0;
 
     _client = StompClient(
       config: StompConfig(
         url: ApiConstants.wsUrl,
         onConnect: (frame) {
           _log.i('WebSocket connected');
+          _errorCount = 0;
           if (!_connectCompleter!.isCompleted) {
             _connectCompleter!.complete();
           }
         },
         onWebSocketError: (err) {
-          _log.e('WS Error: $err');
+          // Only log the first error to avoid console spam when backend is offline
+          if (_errorCount == 0) {
+            _log.w('WS offline (will retry every 30s): $err');
+          }
+          _errorCount++;
           if (_connectCompleter != null && !_connectCompleter!.isCompleted) {
             _connectCompleter!.completeError(err);
           }
         },
-        onStompError: (frame) => _log.e('STOMP Error: ${frame.body}'),
+        onStompError: (frame) => _log.w('STOMP Error: ${frame.body}'),
         onDisconnect: (_) {
           _log.w('WebSocket disconnected');
           _subscriptions.clear();
