@@ -4,8 +4,10 @@ import com.quyenauto.lead.dto.LeadRequest;
 import com.quyenauto.lead.dto.LeadResponse;
 import com.quyenauto.lead.entity.Lead;
 import com.quyenauto.lead.repository.LeadRepository;
+import com.quyenauto.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -14,7 +16,9 @@ import java.util.List;
 public class LeadService {
 
     private final LeadRepository leadRepository;
+    private final NotificationService notificationService;
 
+    @Transactional
     public void create(LeadRequest req) {
         Lead lead = new Lead();
         lead.setPhone(req.getPhone());
@@ -23,7 +27,19 @@ public class LeadService {
         lead.setProductName(req.getProductName());
         lead.setNote(req.getNote());
         lead.setSpecifications(req.getSpecifications());
-        leadRepository.save(lead);
+        Lead saved = leadRepository.save(lead);
+
+        // Thông báo cho tất cả staff khi có khách chưa đăng nhập yêu cầu báo giá
+        String displayName = (req.getName() != null && !req.getName().isBlank())
+                ? req.getName() : "Khách vãng lai";
+        String productInfo = (req.getProductName() != null && !req.getProductName().isBlank())
+                ? req.getProductName() : "sản phẩm";
+        notificationService.notifyAllStaff(
+                "Lead báo giá mới",
+                displayName + " (" + req.getPhone() + ") cần báo giá: " + productInfo,
+                "LEAD_NEW",
+                saved.getId().toString()
+        );
     }
 
     public List<LeadResponse> listAll() {

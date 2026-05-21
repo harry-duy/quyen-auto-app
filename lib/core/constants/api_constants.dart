@@ -90,8 +90,9 @@ abstract final class ApiConstants {
   static const String staffCustomerToggle  = 'staff/customers/{id}/toggle-active';
 
   // ─── Leads (guest contact requests) ───────────────────────────────────────
-  static const String guestLead  = 'leads';
-  static const String staffLeads = 'leads';
+  static const String guestLead          = 'leads';
+  static const String staffLeads         = 'leads';
+  static const String staffLeadContacted = 'leads/{id}/contacted';
 
   // ─── Reports ───────────────────────────────────────────────────────────────
   static const String reportDashboard = 'reports/dashboard';

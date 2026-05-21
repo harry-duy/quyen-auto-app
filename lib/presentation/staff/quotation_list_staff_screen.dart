@@ -5,9 +5,73 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/di/staff_providers.dart';
 import '../../data/models/response/quotation_response.dart';
+import 'staff_lead_list_screen.dart';
 
 class QuotationListStaffScreen extends ConsumerWidget {
   const QuotationListStaffScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pendingLeadsAsync = ref.watch(staffLeadsProvider);
+    final pendingLeadCount =
+        pendingLeadsAsync.maybeWhen(data: (l) => l.where((e) => !e.contacted).length, orElse: () => 0);
+
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundLight,
+        appBar: AppBar(
+          title: const Text('Quản lý báo giá'),
+          bottom: TabBar(
+            tabs: [
+              const Tab(text: 'Báo giá'),
+              Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('Lead khách'),
+                    if (pendingLeadCount > 0) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.errorRed,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '$pendingLeadCount',
+                          style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+            labelColor: AppColors.primaryOrange,
+            unselectedLabelColor: AppColors.textGray,
+            indicatorColor: AppColors.primaryOrange,
+          ),
+        ),
+        body: const TabBarView(
+          children: [
+            _QuotationListTab(),
+            StaffLeadListScreen(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Quotation List Tab ───────────────────────────────────────────────────────
+
+class _QuotationListTab extends ConsumerWidget {
+  const _QuotationListTab();
 
   static const _filters = <String?>[null, 'PENDING', 'QUOTED', 'ACCEPTED', 'REJECTED'];
   static const _filterLabels = ['Tất cả', 'Chờ xử lý', 'Đã báo giá', 'Đã chốt', 'Từ chối'];
@@ -17,31 +81,18 @@ class QuotationListStaffScreen extends ConsumerWidget {
     final currentFilter = ref.watch(staffQuotationStatusFilter);
     final quotationsAsync = ref.watch(staffQuotationListProvider);
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        title: const Text('Quản lý báo giá'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ref.invalidate(staffQuotationListProvider);
-              ref.invalidate(staffUncontactedCountProvider);
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Status filter chips
-          Container(
-            color: AppColors.surface,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: List.generate(_filters.length, (i) {
+    return Column(
+      children: [
+        // Status filter chips
+        Container(
+          color: AppColors.surface,
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Row(
+              children: [
+                ...List.generate(_filters.length, (i) {
                   final isSelected = currentFilter == _filters[i];
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
@@ -52,81 +103,95 @@ class QuotationListStaffScreen extends ConsumerWidget {
                           .read(staffQuotationStatusFilter.notifier)
                           .state = _filters[i],
                       backgroundColor: AppColors.backgroundLight,
-                      selectedColor: AppColors.primaryOrange.withValues(alpha: 0.15),
+                      selectedColor:
+                          AppColors.primaryOrange.withValues(alpha: 0.15),
                       labelStyle: TextStyle(
                         fontSize: 12,
                         color: isSelected
                             ? AppColors.primaryOrange
                             : AppColors.textGray,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                       side: BorderSide(
-                        color: isSelected ? AppColors.primaryOrange : AppColors.borderLight,
+                        color: isSelected
+                            ? AppColors.primaryOrange
+                            : AppColors.borderLight,
                       ),
                       showCheckmark: false,
                     ),
                   );
                 }),
-              ),
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: quotationsAsync.when(
-              data: (quotations) {
-                if (quotations.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.request_quote_outlined,
-                            size: 56, color: AppColors.textGray),
-                        SizedBox(height: 12),
-                        Text('Chưa có yêu cầu báo giá',
-                            style: TextStyle(color: AppColors.textGray, fontSize: 14)),
-                      ],
-                    ),
-                  );
-                }
-                return RefreshIndicator(
-                  onRefresh: () async {
+                IconButton(
+                  icon: const Icon(Icons.refresh, size: 20),
+                  onPressed: () {
                     ref.invalidate(staffQuotationListProvider);
                     ref.invalidate(staffUncontactedCountProvider);
                   },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: quotations.length,
-                    itemBuilder: (_, i) =>
-                        _QuotationCard(quotation: quotations[i]),
-                  ),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: quotationsAsync.when(
+            data: (quotations) {
+              if (quotations.isEmpty) {
+                return const Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.error_outline,
-                          color: AppColors.errorRed, size: 40),
-                      const SizedBox(height: 8),
-                      Text(e.toString(),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: AppColors.errorRed, fontSize: 13)),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () => ref.invalidate(staffQuotationListProvider),
-                        child: const Text('Thử lại'),
-                      ),
+                      Icon(Icons.request_quote_outlined,
+                          size: 56, color: AppColors.textGray),
+                      SizedBox(height: 12),
+                      Text('Chưa có yêu cầu báo giá',
+                          style:
+                              TextStyle(color: AppColors.textGray, fontSize: 14)),
                     ],
                   ),
+                );
+              }
+              return RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(staffQuotationListProvider);
+                  ref.invalidate(staffUncontactedCountProvider);
+                },
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: quotations.length,
+                  itemBuilder: (_, i) =>
+                      _QuotationCard(quotation: quotations[i]),
+                ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline,
+                        color: AppColors.errorRed, size: 40),
+                    const SizedBox(height: 8),
+                    Text(e.toString(),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                            color: AppColors.errorRed, fontSize: 13)),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () =>
+                          ref.invalidate(staffQuotationListProvider),
+                      child: const Text('Thử lại'),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

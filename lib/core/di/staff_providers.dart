@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/api_constants.dart';
 import '../../data/models/response/dealer_response.dart';
+import '../../data/models/response/lead_response.dart';
 import '../../data/models/response/order_response.dart';
 import '../../data/models/response/quotation_response.dart';
 import '../../data/models/response/warranty_response.dart';
@@ -80,12 +81,26 @@ final staffQuotationListProvider =
 final staffUncontactedCountProvider =
     FutureProvider.autoDispose<int>((ref) async {
   final api = ref.watch(apiServiceProvider);
-  final res = await api.get<List<StaffQuotationResponse>>(
+
+  // Uncontacted quotations (PENDING + not yet contacted)
+  final qRes = await api.get<List<StaffQuotationResponse>>(
     ApiConstants.staffQuotations,
     queryParams: {'page': 0, 'size': 200, 'status': 'PENDING'},
     fromData: (json) => _parseQuotationPage(json),
   );
-  return (res.data ?? []).where((q) => !q.isContacted).length;
+  final quotationCount = (qRes.data ?? []).where((q) => !q.isContacted).length;
+
+  // Uncontacted leads (guests who haven't been called yet)
+  final lRes = await api.get<List<LeadResponse>>(
+    ApiConstants.staffLeads,
+    queryParams: {'pendingOnly': true},
+    fromData: (json) => _toList(json)
+        .map((e) => LeadResponse.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+  final leadCount = (lRes.data ?? []).length;
+
+  return quotationCount + leadCount;
 });
 
 // ─── Warranty Management ─────────────────────────────────────────────────────
@@ -98,6 +113,24 @@ final staffWarrantyListProvider =
     fromData: (json) => _toList(json)
         .map((e) =>
             WarrantyRequestResponse.fromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+  return res.data ?? [];
+});
+
+// ─── Leads (guest contact requests) ─────────────────────────────────────────
+
+final staffLeadPendingOnlyFilter = StateProvider<bool>((ref) => false);
+
+final staffLeadsProvider =
+    FutureProvider.autoDispose<List<LeadResponse>>((ref) async {
+  final api = ref.watch(apiServiceProvider);
+  final pendingOnly = ref.watch(staffLeadPendingOnlyFilter);
+  final res = await api.get<List<LeadResponse>>(
+    ApiConstants.staffLeads,
+    queryParams: {'pendingOnly': pendingOnly},
+    fromData: (json) => _toList(json)
+        .map((e) => LeadResponse.fromJson(e as Map<String, dynamic>))
         .toList(),
   );
   return res.data ?? [];
@@ -157,6 +190,14 @@ class StaffActionsNotifier extends Notifier<void> {
           ApiConstants.staffQuotationContact, {'id': quotationId}),
     );
     ref.invalidate(staffQuotationListProvider);
+    ref.invalidate(staffUncontactedCountProvider);
+  }
+
+  Future<void> markLeadContacted(String leadId) async {
+    await _api.put(
+      ApiConstants.resolve(ApiConstants.staffLeadContacted, {'id': leadId}),
+    );
+    ref.invalidate(staffLeadsProvider);
     ref.invalidate(staffUncontactedCountProvider);
   }
 

@@ -73,11 +73,11 @@ public class QuotationService {
 
         Quotation saved = quotationRepository.save(quotation);
 
-        // Gửi thông báo đến tất cả STAFF và MANAGER
+        // Gửi thông báo đến tất cả STAFF và MANAGER (kèm số điện thoại)
         String vehicleInfo = request.getVehicleModel() != null ? request.getVehicleModel() : product.getName();
         notificationService.notifyAllStaff(
                 "Yêu cầu báo giá mới",
-                "KH " + customer.getFullName() + " yêu cầu báo giá: " + vehicleInfo,
+                customer.getFullName() + " (" + customer.getPhone() + ") yêu cầu báo giá: " + vehicleInfo,
                 "QUOTATION_NEW",
                 saved.getId().toString()
         );
