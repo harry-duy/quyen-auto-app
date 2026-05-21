@@ -334,7 +334,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
     if (!mounted) return;
 
     if (success) {
-      _showSuccessDialog(ref.read(quotationProvider).value!.orderCode);
+      _showSuccessDialog(ref.read(quotationProvider).value?.orderCode ?? '');
     } else {
       final err = ref.read(quotationProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(

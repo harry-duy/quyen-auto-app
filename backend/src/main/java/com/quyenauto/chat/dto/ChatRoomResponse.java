@@ -1,5 +1,6 @@
 package com.quyenauto.chat.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class ChatRoomResponse {
     private String staffAvatar;
     private String orderCode;
     /** true khi chưa có staff tiếp nhận (staffId == null). */
+    @JsonProperty("isWaiting")
     private boolean isWaiting;
     private String lastMessage;
     private LocalDateTime lastMessageAt;

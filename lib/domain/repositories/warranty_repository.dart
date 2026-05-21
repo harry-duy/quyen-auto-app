@@ -7,5 +7,7 @@ abstract class WarrantyRepository {
   Future<WarrantyRequestResponse> createWarrantyRequest({
     required int vehicleId,
     required String issueDescription,
+    String? scheduledDate,
+    List<String>? imageUrls,
   });
 }

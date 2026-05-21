@@ -53,7 +53,7 @@ Map<String, dynamic> _$QuotationResponseToJson(QuotationResponse instance) =>
 OrderResponse _$OrderResponseFromJson(Map<String, dynamic> json) =>
     OrderResponse(
       id: (json['id'] as num).toInt(),
-      quotationId: (json['quotationId'] as num).toInt(),
+      quotationId: (json['quotationId'] as num?)?.toInt(),
       totalAmount: (json['totalAmount'] as num).toDouble(),
       depositAmount: (json['depositAmount'] as num).toDouble(),
       status: json['status'] as String,
@@ -67,12 +67,11 @@ OrderResponse _$OrderResponseFromJson(Map<String, dynamic> json) =>
       estimatedDate: json['estimatedDate'] == null
           ? null
           : DateTime.parse(json['estimatedDate'] as String),
-      statusLogs: (json['statusLogs'] as List<dynamic>?)
-              ?.map((e) => OrderStatusLogResponse.fromJson(
-                    e as Map<String, dynamic>,
-                  ))
-              .toList() ??
-          [],
+      statusLogs: (json['statusLogs'] as List<dynamic>? ?? [])
+          .map(
+            (e) => OrderStatusLogResponse.fromJson(e as Map<String, dynamic>),
+          )
+          .toList(),
     );
 
 Map<String, dynamic> _$OrderResponseToJson(OrderResponse instance) =>

@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 import '../../core/constants/api_constants.dart';
 import '../models/response/chat_response.dart';
 import '../services/api_service.dart';
@@ -36,12 +38,14 @@ class ChatRepositoryImpl {
       fromData: (json) {
         final List<dynamic> list;
         if (json is List) {
+          // direct array response
           list = json;
+        } else if (json is Map<String, dynamic>) {
+          // ApiService already unwraps the top-level 'data' field,
+          // so json is the paginated object: {"content":[...],...}
+          list = json['content'] as List? ?? [];
         } else {
-          final data = (json as Map<String, dynamic>)['data'];
-          list = data is Map
-              ? (data['content'] as List? ?? [])
-              : data as List? ?? [];
+          list = [];
         }
         return list
             .map((e) => MessageResponse.fromJson(e as Map<String, dynamic>))
@@ -86,13 +90,26 @@ class ChatRepositoryImpl {
     );
   }
 
+  void sendImageViaWs(String roomId, String imageUrl) {
+    _ws.send(
+      '/app/chat.send',
+      jsonEncode({'roomId': int.parse(roomId), 'content': imageUrl, 'type': 'IMAGE'}),
+    );
+  }
+
+  void sendTyping(String roomId, bool isTyping) {
+    _ws.sendTyping(roomId, isTyping);
+  }
+
   void subscribeRoom(String roomId, void Function(MessageResponse) onMessage) {
     _ws.subscribeChat(roomId, (body) {
       try {
         final msg =
             MessageResponse.fromJson(jsonDecode(body) as Map<String, dynamic>);
         onMessage(msg);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[ChatRepo] subscribeRoom parse error: $e');
+      }
     });
   }
 
@@ -106,7 +123,9 @@ class ChatRepositoryImpl {
         final room =
             ChatRoomResponse.fromJson(jsonDecode(body) as Map<String, dynamic>);
         onRoom(room);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[ChatRepo] subscribeNewRooms parse error: $e');
+      }
     });
   }
 
@@ -117,7 +136,9 @@ class ChatRepositoryImpl {
         final room =
             ChatRoomResponse.fromJson(jsonDecode(body) as Map<String, dynamic>);
         onClaimed(room);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[ChatRepo] subscribeRoomClaimed parse error: $e');
+      }
     });
   }
 

@@ -20,7 +20,7 @@ abstract final class ApiConstants {
   static const String productDetail = 'products/{id}';
 
   // ─── Orders ────────────────────────────────────────────────────────────────
-  static const String myOrders        = 'orders/my';
+  static const String myOrders        = 'orders';
   static const String orderDetail     = 'orders/{id}';
   static const String createQuotation = 'quotations';
   static const String myQuotations    = 'quotations';
@@ -36,6 +36,9 @@ abstract final class ApiConstants {
   static const String chatStart    = 'chat/rooms/start';
   static const String chatClaim    = 'chat/rooms/{roomId}/claim';
   static const String chatMarkRead = 'chat/rooms/{roomId}/read';
+
+  // ─── Upload ────────────────────────────────────────────────────────────────
+  static const String upload = 'upload';
 
   // ─── Notifications ─────────────────────────────────────────────────────────
   static const String notificationList     = 'notifications';

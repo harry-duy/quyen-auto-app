@@ -1,7 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/response/chat_response.dart';
 import '../../data/repositories/chat_repository_impl.dart';
+import 'auth_providers.dart';
 import 'service_providers.dart';
 
 // ─── Chat Rooms List ─────────────────────────────────────────────────────────
@@ -26,7 +30,13 @@ class ActiveChatNotifier
     extends AutoDisposeFamilyNotifier<List<MessageResponse>, String> {
   @override
   List<MessageResponse> build(String roomId) {
-    ref.onDispose(() => _repo.unsubscribeRoom(roomId));
+    final ws = ref.read(webSocketServiceProvider);
+    void onReconnect() => _load(roomId);
+    ws.addReconnectListener(onReconnect);
+    ref.onDispose(() {
+      _repo.unsubscribeRoom(roomId);
+      ws.removeReconnectListener(onReconnect);
+    });
     _load(roomId);
     return [];
   }
@@ -37,12 +47,18 @@ class ActiveChatNotifier
     final history = await _repo.getChatMessages(roomId);
     state = history.reversed.toList();
     _repo.subscribeRoom(roomId, (msg) {
-      state = [...state, msg];
+      if (!state.any((m) => m.id == msg.id)) {
+        state = [...state, msg];
+      }
     });
   }
 
   void send(String content) {
     _repo.sendMessageViaWs(arg, content);
+  }
+
+  void sendImage(String imageUrl) {
+    _repo.sendImageViaWs(arg, imageUrl);
   }
 }
 
@@ -50,6 +66,41 @@ final activeChatProvider = NotifierProvider.autoDispose
     .family<ActiveChatNotifier, List<MessageResponse>, String>(
   ActiveChatNotifier.new,
 );
+
+// ─── Typing Indicator ─────────────────────────────────────────────────────────
+
+class TypingNotifier
+    extends AutoDisposeFamilyNotifier<bool, String> {
+  Timer? _clearTimer;
+
+  @override
+  bool build(String roomId) {
+    final currentUserId = ref.read(authProvider).valueOrNull?.id;
+    final ws = ref.read(webSocketServiceProvider);
+    ws.subscribeTyping(roomId, (body) {
+      try {
+        final map = jsonDecode(body) as Map<String, dynamic>;
+        if (map['userId']?.toString() == currentUserId) return;
+        final isTyping = map['typing'] == true;
+        state = isTyping;
+        _clearTimer?.cancel();
+        if (isTyping) {
+          _clearTimer = Timer(const Duration(seconds: 3), () {
+            try { state = false; } catch (_) {}
+          });
+        }
+      } catch (_) {}
+    });
+    ref.onDispose(() {
+      _clearTimer?.cancel();
+      ws.unsubscribeTyping(roomId);
+    });
+    return false;
+  }
+}
+
+final typingProvider = NotifierProvider.autoDispose
+    .family<TypingNotifier, bool, String>(TypingNotifier.new);
 
 // ─── Staff Chat Actions ────────────────────────────────────────────────────────
 

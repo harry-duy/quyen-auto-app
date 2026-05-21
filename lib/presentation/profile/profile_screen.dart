@@ -28,7 +28,7 @@ class ProfileScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           _MenuSection(title: 'Tiện ích', items: [
             _MenuItem(icon: Icons.notifications_outlined, label: 'Thông báo',           onTap: () => context.push(AppRoutes.notifications)),
-            _MenuItem(icon: Icons.shield_outlined,        label: 'Bảo hành xe',         onTap: () => context.go(AppRoutes.warranty)),
+            _MenuItem(icon: Icons.shield_outlined,        label: 'Bảo hành xe',         onTap: () { ref.read(homeTabIndexProvider.notifier).state = 3; context.go(AppRoutes.home); }),
             _MenuItem(
               icon: Icons.support_agent_outlined,
               label: 'Hỗ trợ khách hàng',
@@ -37,7 +37,20 @@ class ProfileScreen extends ConsumerWidget {
                 decoration: BoxDecoration(color: AppColors.primaryOrange, borderRadius: BorderRadius.circular(10)),
                 child: const Text('Chat', style: TextStyle(color: AppColors.textWhite, fontSize: 11, fontWeight: FontWeight.w600)),
               ),
-              onTap: () {},
+              onTap: () async {
+                try {
+                  final rooms = await ref.read(chatRepositoryProvider).getChatRooms();
+                  if (!context.mounted) return;
+                  if (rooms.isNotEmpty) {
+                    // Prefer an active room (staff assigned) over a waiting room
+                    final room = rooms.firstWhere((r) => !r.isWaiting, orElse: () => rooms.first);
+                    context.push(AppRoutes.chatOf(room.id.toString()));
+                  } else {
+                    final room = await ref.read(chatActionsProvider.notifier).startChat();
+                    if (context.mounted) context.push(AppRoutes.chatOf(room.id.toString()));
+                  }
+                } catch (_) {}
+              },
             ),
           ]),
           const SizedBox(height: 8),

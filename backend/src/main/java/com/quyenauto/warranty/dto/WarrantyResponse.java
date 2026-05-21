@@ -32,6 +32,7 @@ public class WarrantyResponse {
     private String result;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<String> imageUrls;
     private List<LogItem> logs;
 
     @Data
@@ -73,6 +74,7 @@ public class WarrantyResponse {
                 .technicianName(w.getTechnicianName() != null ? w.getTechnicianName()
                         : (w.getTechnician() != null ? w.getTechnician().getFullName() : null))
                 .result(w.getResult())
+                .imageUrls(w.getImageUrls())
                 .createdAt(w.getCreatedAt())
                 .updatedAt(w.getUpdatedAt())
                 .logs(w.getLogs().stream().map(LogItem::from).toList())

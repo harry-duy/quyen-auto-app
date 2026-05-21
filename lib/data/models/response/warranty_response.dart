@@ -71,6 +71,8 @@ class WarrantyRequestResponse {
   final int? technicianId;
   final String? technicianName;
   final String? result;
+  @JsonKey(defaultValue: [])
+  final List<String> imageUrls;
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<WarrantyLogResponse> logs;
@@ -90,6 +92,7 @@ class WarrantyRequestResponse {
     this.technicianId,
     this.technicianName,
     this.result,
+    this.imageUrls = const [],
     required this.createdAt,
     required this.updatedAt,
     required this.logs,

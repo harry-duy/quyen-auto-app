@@ -72,12 +72,12 @@ WarrantyRequestResponse _$WarrantyRequestResponseFromJson(
   technicianId: (json['technicianId'] as num?)?.toInt(),
   technicianName: json['technicianName'] as String?,
   result: json['result'] as String?,
+  imageUrls: (json['imageUrls'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
-  logs: (json['logs'] as List<dynamic>?)
-          ?.map((e) => WarrantyLogResponse.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      [],
+  logs: (json['logs'] as List<dynamic>? ?? [])
+      .map((e) => WarrantyLogResponse.fromJson(e as Map<String, dynamic>))
+      .toList(),
 );
 
 Map<String, dynamic> _$WarrantyRequestResponseToJson(
@@ -97,6 +97,7 @@ Map<String, dynamic> _$WarrantyRequestResponseToJson(
   'technicianId': instance.technicianId,
   'technicianName': instance.technicianName,
   'result': instance.result,
+  'imageUrls': instance.imageUrls,
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': instance.updatedAt.toIso8601String(),
   'logs': instance.logs,

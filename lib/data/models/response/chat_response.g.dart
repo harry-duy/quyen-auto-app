@@ -40,7 +40,7 @@ ChatRoomResponse _$ChatRoomResponseFromJson(Map<String, dynamic> json) =>
       staffName: json['staffName'] as String?,
       staffAvatar: json['staffAvatar'] as String?,
       orderCode: json['orderCode'] as String?,
-      isWaiting: json['isWaiting'] as bool? ?? true,
+      isWaiting: json['isWaiting'] as bool? ?? false,
       lastMessage: json['lastMessage'] as String?,
       lastMessageAt: json['lastMessageAt'] == null
           ? null

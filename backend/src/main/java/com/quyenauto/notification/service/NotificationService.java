@@ -90,40 +90,42 @@ public class NotificationService {
     @Transactional
     public void notifyAllStaff(String title, String body, String type, String refId) {
         List<UserRole> staffRoles = List.of(UserRole.STAFF, UserRole.MANAGER);
-        List<User> staffUsers = userRepository
-                .findByRoleIn(staffRoles, PageRequest.of(0, 200))
-                .getContent();
-
         List<Long> staffIds = new ArrayList<>();
 
-        for (User staff : staffUsers) {
-            if (!staff.getIsActive()) continue;
+        Pageable pageable = PageRequest.of(0, 200);
+        Page<User> page;
+        do {
+            page = userRepository.findByRoleIn(staffRoles, pageable);
+            for (User staff : page.getContent()) {
+                if (!staff.getIsActive()) continue;
 
-            Notification notification = Notification.builder()
-                    .user(staff)
-                    .title(title)
-                    .body(body)
-                    .type(type)
-                    .refId(refId)
-                    .isRead(false)
-                    .build();
-            Notification saved = notificationRepository.save(notification);
-            staffIds.add(staff.getId());
+                Notification notification = Notification.builder()
+                        .user(staff)
+                        .title(title)
+                        .body(body)
+                        .type(type)
+                        .refId(refId)
+                        .isRead(false)
+                        .build();
+                Notification saved = notificationRepository.save(notification);
+                staffIds.add(staff.getId());
 
-            // WebSocket: push real-time to each staff user's personal queue
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(staff.getId()),
-                    "/queue/notifications",
-                    Map.of(
-                            "id", saved.getId(),
-                            "title", title,
-                            "body", body,
-                            "type", type,
-                            "refId", refId,
-                            "isRead", false
-                    )
-            );
-        }
+                // WebSocket: push real-time to each staff user's personal queue
+                messagingTemplate.convertAndSendToUser(
+                        String.valueOf(staff.getId()),
+                        "/queue/notifications",
+                        Map.of(
+                                "id", saved.getId(),
+                                "title", title,
+                                "body", body,
+                                "type", type,
+                                "refId", refId,
+                                "isRead", false
+                        )
+                );
+            }
+            pageable = pageable.next();
+        } while (page.hasNext());
 
         // FCM: push notification to all staff devices (async, non-blocking)
         if (!staffIds.isEmpty()) {

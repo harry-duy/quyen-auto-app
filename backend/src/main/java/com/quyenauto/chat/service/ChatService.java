@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,8 +34,10 @@ public class ChatService {
     private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    public List<ChatRoomResponse> getRooms(Long userId) {
-        List<ChatRoom> rooms = roomRepository.findByUserId(userId);
+    public List<ChatRoomResponse> getRooms(Long userId, boolean isStaff) {
+        List<ChatRoom> rooms = isStaff
+                ? roomRepository.findByStaffIdOrWaiting(userId)
+                : roomRepository.findByUserId(userId);
         return rooms.stream().map(room -> toChatRoomResponse(room, userId)).toList();
     }
 
@@ -124,6 +127,15 @@ public class ChatService {
 
         User staff = userRepository.findById(staffId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"));
+
+        // If this staff already has a room with the same customer (unique constraint),
+        // discard the waiting room and redirect to the existing one.
+        Optional<ChatRoom> existing = roomRepository
+                .findByCustomerIdAndStaffId(room.getCustomer().getId(), staffId);
+        if (existing.isPresent()) {
+            roomRepository.delete(room);
+            return toChatRoomResponse(existing.get(), staffId);
+        }
 
         room.setStaff(staff);
         roomRepository.save(room);

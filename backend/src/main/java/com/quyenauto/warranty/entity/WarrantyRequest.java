@@ -8,6 +8,7 @@ import lombok.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 @Entity
 @Table(name = "warranty_requests")
@@ -46,6 +47,12 @@ public class WarrantyRequest extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String result;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "warranty_request_image_urls", joinColumns = @JoinColumn(name = "warranty_request_id"))
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    @Builder.Default
+    private List<String> imageUrls = new ArrayList<>();
 
     @OneToMany(mappedBy = "warrantyRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt DESC")

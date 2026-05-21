@@ -5,14 +5,32 @@ import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/di/chat_providers.dart';
+import '../../core/di/service_providers.dart';
 import '../../core/router/staff_router.dart';
 import '../../data/models/response/chat_response.dart';
 
-class StaffChatListScreen extends ConsumerWidget {
+class StaffChatListScreen extends ConsumerStatefulWidget {
   const StaffChatListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StaffChatListScreen> createState() =>
+      _StaffChatListScreenState();
+}
+
+class _StaffChatListScreenState extends ConsumerState<StaffChatListScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Subscribe to new-room WS events so the list refreshes without manual pull
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(chatRepositoryProvider).subscribeNewRooms((_) {
+        if (mounted) ref.invalidate(chatRoomsProvider);
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final roomsAsync = ref.watch(chatRoomsProvider);
 
     return Scaffold(

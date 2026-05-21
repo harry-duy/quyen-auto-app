@@ -38,6 +38,7 @@ class ChatRoomResponse {
   final String? staffName;
   final String? staffAvatar;
   final String? orderCode;
+  @JsonKey(defaultValue: false)
   final bool isWaiting;
   final String? lastMessage;
   final DateTime? lastMessageAt;

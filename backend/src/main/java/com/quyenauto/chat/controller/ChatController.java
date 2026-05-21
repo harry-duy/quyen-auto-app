@@ -30,7 +30,9 @@ public class ChatController {
     @Operation(summary = "Danh sách phòng chat")
     public ResponseEntity<ApiResponse<List<ChatRoomResponse>>> getRooms(Authentication auth) {
         Long userId = Long.parseLong(auth.getName());
-        return ResponseEntity.ok(ApiResponse.ok(chatService.getRooms(userId)));
+        boolean isStaff = auth.getAuthorities().stream()
+                .anyMatch(a -> !a.getAuthority().equals("ROLE_CUSTOMER"));
+        return ResponseEntity.ok(ApiResponse.ok(chatService.getRooms(userId, isStaff)));
     }
 
     @GetMapping("/rooms/{roomId}/messages")

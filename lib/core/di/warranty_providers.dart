@@ -19,11 +19,19 @@ class WarrantyActionsNotifier extends Notifier<void> {
   @override
   void build() {}
 
-  Future<void> createRequest(
-      {required int vehicleId, required String issueDescription}) async {
+  Future<void> createRequest({
+    required int vehicleId,
+    required String issueDescription,
+    String? scheduledDate,
+    List<String>? imageUrls,
+  }) async {
     final repo = ref.read(warrantyRepositoryProvider);
     await repo.createWarrantyRequest(
-        vehicleId: vehicleId, issueDescription: issueDescription);
+      vehicleId: vehicleId,
+      issueDescription: issueDescription,
+      scheduledDate: scheduledDate,
+      imageUrls: imageUrls,
+    );
     ref.invalidate(myWarrantiesProvider);
   }
 }

@@ -221,7 +221,7 @@ class _WarrantyCard extends ConsumerWidget {
               children: [
                 staffAsync.when(
                   data: (staff) => DropdownButtonFormField<User>(
-                    value: selectedTechnician,
+                    initialValue: selectedTechnician,
                     decoration: const InputDecoration(
                       labelText: 'Kỹ thuật viên',
                       border: OutlineInputBorder(),
@@ -236,7 +236,7 @@ class _WarrantyCard extends ConsumerWidget {
                     onChanged: (v) => setState(() => selectedTechnician = v),
                   ),
                   loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => const Text('Không tải được danh sách'),
+                  error: (_, _) => const Text('Không tải được danh sách'),
                 ),
                 const SizedBox(height: 12),
                 // Date picker row
@@ -356,7 +356,7 @@ class _WarrantyCard extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedStatus,
+                initialValue: selectedStatus,
                 decoration: const InputDecoration(
                   labelText: 'Trạng thái',
                   border: OutlineInputBorder(),

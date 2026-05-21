@@ -32,4 +32,14 @@ class ProductResponse {
             [],
         isActive: json['isActive'] as bool? ?? true,
       );
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'categoryName': categoryName,
+        'name': name,
+        'description': description,
+        'basePrice': basePrice,
+        'imageUrls': imageUrls,
+        'isActive': isActive,
+      };
 }

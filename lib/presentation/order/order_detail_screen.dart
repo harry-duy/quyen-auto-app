@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_colors.dart';
-import '../../core/di/chat_providers.dart';
 import '../../core/di/providers.dart';
 import '../../core/router/app_router.dart';
 import '../../domain/entities/order.dart';
@@ -213,9 +212,28 @@ class _OrderDetailView extends ConsumerWidget {
 
   Future<void> _startChat(BuildContext context, WidgetRef ref) async {
     try {
+      final statusLabels = {
+        'pending': 'Chờ xác nhận',
+        'confirmed': 'Đã xác nhận',
+        'inproduction': 'Đang sản xuất',
+        'ready': 'Sẵn sàng giao',
+        'delivering': 'Đang giao hàng',
+        'delivered': 'Đã giao hàng',
+        'cancelled': 'Đã hủy',
+      };
+      final statusLabel =
+          statusLabels[order.status.name] ?? order.status.name;
+      final fmt = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
+      final summary =
+          '📦 Đơn hàng: ${order.orderCode}\n'
+          '🚛 Sản phẩm: ${order.productName}\n'
+          '💰 Tổng tiền: ${order.totalAmount > 0 ? fmt.format(order.totalAmount) : "Chờ báo giá"}\n'
+          '📋 Trạng thái: $statusLabel\n\n'
+          'Tôi cần hỗ trợ về đơn hàng này.';
+
       final room = await ref
           .read(chatActionsProvider.notifier)
-          .startChat(orderCode: order.orderCode);
+          .startChat(orderCode: order.orderCode, firstMessage: summary);
       if (context.mounted) {
         context.push(AppRoutes.chatOf(room.id.toString()));
       }

@@ -4,6 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Data
 public class CreateWarrantyRequest {
 
@@ -12,4 +15,8 @@ public class CreateWarrantyRequest {
 
     @NotBlank(message = "Mô tả sự cố không được để trống")
     private String issueDescription;
+
+    private LocalDate scheduledDate;
+
+    private List<String> imageUrls;
 }

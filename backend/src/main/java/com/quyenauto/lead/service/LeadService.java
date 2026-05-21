@@ -6,6 +6,8 @@ import com.quyenauto.lead.entity.Lead;
 import com.quyenauto.lead.repository.LeadRepository;
 import com.quyenauto.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,12 +45,14 @@ public class LeadService {
     }
 
     public List<LeadResponse> listAll() {
-        return leadRepository.findAllByOrderByCreatedAtDesc()
+        return leadRepository.findAllByOrderByCreatedAtDesc(
+                        PageRequest.of(0, 500, Sort.by(Sort.Direction.DESC, "createdAt")))
                 .stream().map(this::toResponse).toList();
     }
 
     public List<LeadResponse> listPending() {
-        return leadRepository.findByContactedFalseOrderByCreatedAtDesc()
+        return leadRepository.findByContactedFalseOrderByCreatedAtDesc(
+                        PageRequest.of(0, 500, Sort.by(Sort.Direction.DESC, "createdAt")))
                 .stream().map(this::toResponse).toList();
     }
 

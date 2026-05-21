@@ -2,7 +2,9 @@ package com.quyenauto.chat.websocket;
 
 import com.quyenauto.chat.dto.ChatMessageResponse;
 import com.quyenauto.chat.dto.SendMessageRequest;
+import com.quyenauto.chat.dto.TypingMessage;
 import com.quyenauto.chat.service.ChatService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -30,5 +32,14 @@ public class ChatWebSocketController {
     public void markRead(@Payload Long roomId, Principal principal) {
         Long userId = Long.parseLong(principal.getName());
         chatService.markAsRead(roomId, userId);
+        messagingTemplate.convertAndSend("/topic/chat.room." + roomId,
+                Map.of("event", "READ", "userId", userId));
+    }
+
+    @MessageMapping("/chat.typing")
+    public void typing(@Payload TypingMessage msg, Principal principal) {
+        messagingTemplate.convertAndSend(
+                "/topic/chat.typing." + msg.getRoomId(),
+                Map.of("userId", Long.parseLong(principal.getName()), "typing", msg.isTyping()));
     }
 }

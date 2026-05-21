@@ -95,6 +95,8 @@ public class WarrantyService {
                 .vehicle(vehicle)
                 .customer(customer)
                 .issueDescription(request.getIssueDescription())
+                .scheduledDate(request.getScheduledDate())
+                .imageUrls(request.getImageUrls() != null ? new java.util.ArrayList<>(request.getImageUrls()) : new java.util.ArrayList<>())
                 .status(WarrantyRequest.WarrantyStatus.PENDING)
                 .build();
 

@@ -1,5 +1,58 @@
 # Changelog
 
+## [Unreleased] — Sprint 2026-05-21 (Chat Shopee-style + Warranty Honda-style)
+
+### Backend
+
+#### Tính năng mới — Chat Typing & Read Receipt
+- `ChatWebSocketController` — thêm `@MessageMapping("/chat.typing")`: nhận typing event từ client, broadcast `{"userId", "typing"}` đến `/topic/chat.typing.{roomId}`
+- `ChatWebSocketController` — `markRead` giờ broadcast READ event lên `/topic/chat.room.{roomId}` để cập nhật read receipt real-time
+- `TypingMessage.java` — DTO mới: `roomId` + `typing` boolean
+
+#### Tính năng mới — Warranty Image Upload
+- `CreateWarrantyRequest` — thêm `scheduledDate` (LocalDate) và `imageUrls` (List\<String\>)
+- `WarrantyRequest` entity — thêm `imageUrls` dạng `@ElementCollection(fetch = EAGER)` lưu vào bảng `warranty_request_image_urls`
+- `WarrantyResponse.from()` — thêm `imageUrls` vào response
+- `WarrantyService.create()` — map `scheduledDate` và `imageUrls` từ request vào entity
+- **V13 migration** — tạo bảng `warranty_request_image_urls(warranty_request_id, image_url)`
+
+#### Bug Fixes
+- **LazyInitializationException** — `WarrantyRequest.imageUrls` chuyển sang `FetchType.EAGER` — tránh crash khi `WarrantyResponse.from()` truy cập collection ngoài Hibernate session
+
+### Flutter
+
+#### Tính năng mới — Chat kiểu Shopee (rewrite hoàn toàn)
+- **Avatar + initials** trong AppBar lấy từ tên staff/khách hàng
+- **Typing indicator** — `TypingNotifier` subscribe `/topic/chat.typing.{roomId}`, hiển thị subtitle "Đang nhập..." + animated dots bubble `_TypingBubble`; debounce 2s khi gõ, tắt sau 3s nếu không có event mới
+- **Read receipts** — icon ✓ (đã gửi) / ✓✓ xanh (đã đọc) trên mỗi tin nhắn của mình
+- **Gửi ảnh** — `ImagePicker.pickImage` → upload lên `/api/v1/upload?folder=chat` → `sendImageViaWs` với type `IMAGE`; `CachedNetworkImage` hiển thị ảnh trong bubble
+- **Date dividers** — gom nhóm tin nhắn theo ngày (Hôm nay / dd/MM/yyyy)
+- **Input bar** — nút picker ảnh bên trái, field "Nhập tin nhắn...", nút gửi cam bên phải
+- `WebSocketService` — thêm `subscribeTyping`, `unsubscribeTyping`, `sendTyping`
+- `ChatRepositoryImpl` — thêm `sendImageViaWs`, `sendTyping`
+- `ActiveChatNotifier` — thêm `sendImage(imageUrl)`
+
+#### Tính năng mới — Bảo hành kiểu Honda (rewrite hoàn toàn)
+- **Thẻ bảo hành số** — bottom sheet dark navy gradient, QR code (`qr_flutter: ^4.1.0`) mã hóa `vehicleId|plateNumber|VIN|expiryDate`, badge "Còn bảo hành / Hết hạn"
+- **Timeline lịch sử dịch vụ** — mỗi yêu cầu bảo hành có `ExpansionTile`, dòng thời gian dọc với dot màu theo trạng thái và label action
+- **Scroll ảnh bằng chứng** — `horizontal ListView` hiển thị ảnh đính kèm trong mỗi yêu cầu bảo hành
+- **Tạo yêu cầu bảo hành** — bottom sheet với dropdown xe, text field mô tả sự cố, date picker ngày hẹn (tuỳ chọn), upload tối đa 5 ảnh bằng chứng qua `ImagePicker.pickMultiImage`
+- `pubspec.yaml` — thêm dependency `qr_flutter: ^4.1.0`
+
+#### Bug Fixes
+- **GoException `/home/warranty`** — `profile_screen.dart`: "Bảo hành xe" đổi từ `context.go(AppRoutes.warranty)` sang `homeTabIndexProvider.state = 3; context.go(AppRoutes.home)` — tránh crash khi route không tồn tại
+- **Warranty list luôn rỗng** — `warranty_repository_impl.dart`: `fromData` đọc sai key — backend trả `PageResponse {"content": [...]}` trực tiếp trong `data`, nhưng code cố đọc `json['data']` (null) thay vì `json['content']`; sửa bằng `containsKey('content')` check
+- **Typing indicator echo** — `chat_providers.dart`: `TypingNotifier` so sánh `map['userId']` với `currentUserId` từ `authProvider`, bỏ qua event của chính mình — tránh "Đang nhập..." hiện giả khi khách đang gõ
+- **Date picker crash** — `warranty_screen.dart`: xóa `locale: const Locale('vi','VN')` khỏi `showDatePicker` — không có `flutter_localizations` gây `MaterialLocalizations not found`
+
+#### Order Detail
+- **Chat từ đơn hàng** — `order_detail_screen.dart`: nút "Liên hệ" gửi tóm tắt đơn hàng làm tin nhắn đầu tiên (`orderCode`, `productName`, tổng tiền, trạng thái) trước khi mở màn hình chat
+
+### Database
+- **V13 migration**: tạo bảng `warranty_request_image_urls` lưu URL ảnh bằng chứng bảo hành
+
+---
+
 ## [Unreleased] — Sprint 2026-05-21 (Hotfix & UX)
 
 ### Backend

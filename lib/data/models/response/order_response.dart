@@ -51,7 +51,7 @@ class QuotationResponse {
 @JsonSerializable()
 class OrderResponse {
   final int                      id;
-  final int                      quotationId;
+  final int?                     quotationId;
   final double                   totalAmount;
   final double                   depositAmount;
   final String                   status;
@@ -65,7 +65,7 @@ class OrderResponse {
 
   const OrderResponse({
     required this.id,
-    required this.quotationId,
+    this.quotationId,
     required this.totalAmount,
     required this.depositAmount,
     required this.status,
@@ -75,7 +75,7 @@ class OrderResponse {
     this.note,
     this.createdAt,
     this.estimatedDate,
-    required this.statusLogs,
+    this.statusLogs = const [],
   });
 
   factory OrderResponse.fromJson(Map<String, dynamic> json) =>

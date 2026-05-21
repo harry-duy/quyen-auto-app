@@ -44,8 +44,13 @@ class WarrantyRepositoryImpl implements WarrantyRepository {
         if (json is List) {
           list = json;
         } else {
-          final data = (json as Map<String, dynamic>)['data'];
-          list = data is Map ? (data['content'] as List?) ?? [] : data as List? ?? [];
+          final map = json as Map<String, dynamic>;
+          if (map.containsKey('content')) {
+            list = (map['content'] as List?) ?? [];
+          } else {
+            final data = map['data'];
+            list = data is Map ? (data['content'] as List?) ?? [] : data as List? ?? [];
+          }
         }
         return list
             .map((e) => WarrantyRequestResponse.fromJson(e as Map<String, dynamic>))
@@ -59,13 +64,23 @@ class WarrantyRepositoryImpl implements WarrantyRepository {
   Future<WarrantyRequestResponse> createWarrantyRequest({
     required int vehicleId,
     required String issueDescription,
+    String? scheduledDate,
+    List<String>? imageUrls,
   }) async {
     final res = await _api.post<WarrantyRequestResponse>(
       ApiConstants.warrantyRequests,
-      data: {'vehicleId': vehicleId, 'issueDescription': issueDescription},
-      fromData: (json) => WarrantyRequestResponse.fromJson(
-        (json as Map<String, dynamic>)['data'] as Map<String, dynamic>? ?? json as Map<String, dynamic>,
-      ),
+      data: {
+        'vehicleId': vehicleId,
+        'issueDescription': issueDescription,
+        if (scheduledDate != null) 'scheduledDate': scheduledDate,
+        if (imageUrls != null && imageUrls.isNotEmpty) 'imageUrls': imageUrls,
+      },
+      fromData: (json) {
+        final map = json as Map<String, dynamic>;
+        return WarrantyRequestResponse.fromJson(
+          map['data'] as Map<String, dynamic>? ?? map,
+        );
+      },
     );
     return res.data!;
   }
