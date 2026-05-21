@@ -13,7 +13,7 @@ NotificationResponse _$NotificationResponseFromJson(
   title: json['title'] as String,
   body: json['body'] as String,
   type: json['type'] as String,
-  refId: (json['refId'] as num?)?.toInt(),
+  refId: json['refId'] as String?,
   isRead: json['isRead'] as bool,
   createdAt: DateTime.parse(json['createdAt'] as String),
 );

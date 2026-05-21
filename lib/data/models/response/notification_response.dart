@@ -7,7 +7,7 @@ class NotificationResponse {
   final String   title;
   final String   body;
   final String   type;
-  final int?     refId;
+  final String?  refId;
   final bool     isRead;
   final DateTime createdAt;
 
