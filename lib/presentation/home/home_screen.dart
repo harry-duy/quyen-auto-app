@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -743,9 +742,6 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(
-        locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
-
     return GestureDetector(
       onTap: () => context.push(AppRoutes.productOf(product.id)),
       child: Container(
@@ -798,11 +794,9 @@ class _ProductCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 5),
-                  Text(
-                    product.price > 0
-                        ? fmt.format(product.price)
-                        : 'Liên hệ',
-                    style: const TextStyle(
+                  const Text(
+                    'Liên hệ báo giá',
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: AppColors.primaryOrange,

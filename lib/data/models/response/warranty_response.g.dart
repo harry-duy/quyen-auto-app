@@ -74,9 +74,10 @@ WarrantyRequestResponse _$WarrantyRequestResponseFromJson(
   result: json['result'] as String?,
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
-  logs: (json['logs'] as List<dynamic>)
-      .map((e) => WarrantyLogResponse.fromJson(e as Map<String, dynamic>))
-      .toList(),
+  logs: (json['logs'] as List<dynamic>?)
+          ?.map((e) => WarrantyLogResponse.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      [],
 );
 
 Map<String, dynamic> _$WarrantyRequestResponseToJson(

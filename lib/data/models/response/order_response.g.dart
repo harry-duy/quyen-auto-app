@@ -67,11 +67,12 @@ OrderResponse _$OrderResponseFromJson(Map<String, dynamic> json) =>
       estimatedDate: json['estimatedDate'] == null
           ? null
           : DateTime.parse(json['estimatedDate'] as String),
-      statusLogs: (json['statusLogs'] as List<dynamic>)
-          .map(
-            (e) => OrderStatusLogResponse.fromJson(e as Map<String, dynamic>),
-          )
-          .toList(),
+      statusLogs: (json['statusLogs'] as List<dynamic>?)
+              ?.map((e) => OrderStatusLogResponse.fromJson(
+                    e as Map<String, dynamic>,
+                  ))
+              .toList() ??
+          [],
     );
 
 Map<String, dynamic> _$OrderResponseToJson(OrderResponse instance) =>

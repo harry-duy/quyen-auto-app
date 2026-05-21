@@ -207,7 +207,7 @@ class _WarrantyCard extends ConsumerWidget {
 
   void _showAssignDialog(BuildContext context, WidgetRef ref) {
     User? selectedTechnician;
-    final scheduledController = TextEditingController();
+    DateTime? scheduledDate;
 
     showDialog(
       context: context,
@@ -239,11 +239,57 @@ class _WarrantyCard extends ConsumerWidget {
                   error: (_, __) => const Text('Không tải được danh sách'),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: scheduledController,
-                  decoration: const InputDecoration(
-                    labelText: 'Ngày hẹn (yyyy-MM-dd, tuỳ chọn)',
-                    border: OutlineInputBorder(),
+                // Date picker row
+                InkWell(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: ctx,
+                      initialDate: scheduledDate ??
+                          DateTime.now().add(const Duration(days: 1)),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(const Duration(days: 365)),
+                    );
+                    if (picked != null) {
+                      setState(() => scheduledDate = picked);
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 14),
+                    decoration: BoxDecoration(
+                      border:
+                          Border.all(color: AppColors.borderLight),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(children: [
+                      const Icon(Icons.calendar_today_outlined,
+                          size: 18, color: AppColors.primaryNavy),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          scheduledDate == null
+                              ? 'Chọn ngày hẹn (tuỳ chọn)'
+                              : '${scheduledDate!.day.toString().padLeft(2, '0')}/'
+                                  '${scheduledDate!.month.toString().padLeft(2, '0')}/'
+                                  '${scheduledDate!.year}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: scheduledDate == null
+                                ? AppColors.textGray
+                                : AppColors.textDark,
+                          ),
+                        ),
+                      ),
+                      if (scheduledDate != null)
+                        GestureDetector(
+                          onTap: () =>
+                              setState(() => scheduledDate = null),
+                          child: const Icon(Icons.close,
+                              size: 16, color: AppColors.textGray),
+                        ),
+                    ]),
                   ),
                 ),
               ],
@@ -258,14 +304,18 @@ class _WarrantyCard extends ConsumerWidget {
                     ? null
                     : () async {
                         Navigator.pop(ctx);
-                        final scheduled = scheduledController.text.trim();
+                        final dateStr = scheduledDate == null
+                            ? null
+                            : '${scheduledDate!.year}-'
+                                '${scheduledDate!.month.toString().padLeft(2, '0')}-'
+                                '${scheduledDate!.day.toString().padLeft(2, '0')}';
                         try {
                           await ref
                               .read(staffActionsProvider.notifier)
                               .assignWarrantyTechnician(
                                 warranty.id.toString(),
                                 int.parse(selectedTechnician!.id),
-                                scheduled.isNotEmpty ? scheduled : null,
+                                dateStr,
                               );
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(

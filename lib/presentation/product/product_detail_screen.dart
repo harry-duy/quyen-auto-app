@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -67,8 +66,6 @@ class _ProductDetailViewState extends State<_ProductDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    final fmt =
-        NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
     final hasImages = product.imageUrls.isNotEmpty;
 
     return Scaffold(
@@ -154,41 +151,6 @@ class _ProductDetailViewState extends State<_ProductDetailView> {
                         ),
                       ),
                     ),
-                  const SizedBox(height: 16),
-
-                  // Price
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryOrange.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color:
-                              AppColors.primaryOrange.withValues(alpha: 0.2)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Giá tham khảo',
-                          style: TextStyle(
-                              fontSize: 12, color: AppColors.textGray),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          product.price > 0
-                              ? 'Từ ${fmt.format(product.price)}'
-                              : 'Liên hệ để nhận báo giá',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.primaryOrange,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: 20),
 
                   // Specs
@@ -235,29 +197,41 @@ class _ProductDetailViewState extends State<_ProductDetailView> {
               ),
             ],
           ),
-          child: SizedBox(
-            height: 52,
-            child: ElevatedButton.icon(
-              onPressed: () =>
-                  context.push(AppRoutes.quotation, extra: product.id),
-              icon: const Icon(Icons.request_quote_outlined, size: 20),
-              label: const Text(
-                'Yêu cầu báo giá',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 52,
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () =>
+                      context.push(AppRoutes.quotation, extra: product.id),
+                  icon: const Icon(Icons.request_quote_outlined, size: 20),
+                  label: const Text(
+                    'Yêu cầu báo giá',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryOrange,
+                    foregroundColor: AppColors.textWhite,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryOrange,
-                foregroundColor: AppColors.textWhite,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+              const SizedBox(height: 6),
+              const Text(
+                'Không cần đăng nhập — để lại số điện thoại, nhân viên sẽ liên hệ báo giá',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 11, color: AppColors.textGray),
               ),
-            ),
+            ],
           ),
         ),
       ),

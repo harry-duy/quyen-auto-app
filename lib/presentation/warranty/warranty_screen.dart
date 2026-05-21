@@ -6,6 +6,9 @@ import '../../core/di/warranty_providers.dart';
 import '../../data/models/response/warranty_response.dart';
 import '../../domain/entities/warranty.dart';
 
+// kBottomNavigationBarHeight = 56
+const _kNavBarH = kBottomNavigationBarHeight;
+
 class WarrantyScreen extends ConsumerWidget {
   const WarrantyScreen({super.key});
 
@@ -30,12 +33,15 @@ class WarrantyScreen extends ConsumerWidget {
             _WarrantyRequestTab(),
           ],
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _showCreateRequestDialog(context, ref),
-          backgroundColor: AppColors.primaryOrange,
-          foregroundColor: Colors.white,
-          icon: const Icon(Icons.add_circle_outline),
-          label: const Text('Tạo yêu cầu'),
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(bottom: _kNavBarH),
+          child: FloatingActionButton.extended(
+            onPressed: () => _showCreateRequestDialog(context, ref),
+            backgroundColor: AppColors.primaryOrange,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.add_circle_outline),
+            label: const Text('Tạo yêu cầu'),
+          ),
         ),
       ),
     );
@@ -87,80 +93,157 @@ class _VehicleCard extends StatelessWidget {
   final Vehicle vehicle;
   const _VehicleCard({required this.vehicle});
 
+  static ({Color color, String text}) _warrantyStatus(Vehicle v) {
+    if (v.warrantyExpiryDate == null) {
+      return (color: AppColors.textGray, text: 'Không có bảo hành');
+    }
+    if (!v.isWarrantyActive) {
+      return (color: AppColors.errorRed, text: 'Hết hạn bảo hành');
+    }
+    if (v.isWarrantyExpiringSoon) {
+      return (color: AppColors.warningAmber, text: 'Sắp hết hạn');
+    }
+    return (color: AppColors.successGreen, text: 'Còn bảo hành');
+  }
+
   @override
   Widget build(BuildContext context) {
-    final hasExpiry = vehicle.warrantyExpiryDate != null;
-    final expiringSoon = vehicle.isWarrantyExpiringSoon;
-    final active = vehicle.isWarrantyActive;
-
-    Color statusColor = AppColors.textGray;
-    String statusText = 'Không có bảo hành';
-    if (hasExpiry) {
-      if (!active) {
-        statusColor = AppColors.errorRed;
-        statusText = 'Hết hạn bảo hành';
-      } else if (expiringSoon) {
-        statusColor = AppColors.warningAmber;
-        statusText = 'Sắp hết hạn';
-      } else {
-        statusColor = AppColors.successGreen;
-        statusText = 'Còn bảo hành';
-      }
-    }
+    final status = _warrantyStatus(vehicle);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+      clipBehavior: Clip.hardEdge,
+      child: InkWell(
+        onTap: () => _showDetail(context),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.directions_car,
+                      color: AppColors.primaryNavy, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      vehicle.plateNumber,
+                      style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: status.color.withAlpha(25),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(status.text,
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: status.color,
+                            fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (vehicle.productName != null)
+                _InfoRow(label: 'Mẫu xe', value: vehicle.productName!),
+              _InfoRow(label: 'Số khung', value: vehicle.chassisNumber),
+              if (vehicle.contractCode != null)
+                _InfoRow(label: 'Mã hợp đồng', value: vehicle.contractCode!),
+              if (vehicle.warrantyExpiryDate != null)
+                _InfoRow(
+                    label: 'Hết hạn BH',
+                    value: vehicle.warrantyExpiryDate!,
+                    valueColor: status.color),
+              const SizedBox(height: 8),
+              Row(children: [
+                const Spacer(),
+                Text('Xem chi tiết',
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.primaryOrange,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_forward_ios,
+                    size: 11, color: AppColors.primaryOrange),
+              ]),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDetail(BuildContext context) {
+    final status = _warrantyStatus(vehicle);
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.directions_car,
-                    color: AppColors.primaryNavy, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    vehicle.plateNumber,
-                    style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textDark),
-                  ),
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.borderLight,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: statusColor.withAlpha(25),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(statusText,
-                      style: TextStyle(
-                          fontSize: 11,
-                          color: statusColor,
-                          fontWeight: FontWeight.w600)),
-                ),
-              ],
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
+            Row(children: [
+              const Icon(Icons.directions_car,
+                  color: AppColors.primaryNavy, size: 24),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(vehicle.plateNumber,
+                    style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDark)),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: status.color.withAlpha(25),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(status.text,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: status.color,
+                        fontWeight: FontWeight.w600)),
+              ),
+            ]),
+            const SizedBox(height: 16),
+            const Divider(),
+            const SizedBox(height: 12),
             if (vehicle.productName != null)
-              _InfoRow(
-                  label: 'Mẫu xe',
-                  value: vehicle.productName!),
-            _InfoRow(
-                label: 'Số khung', value: vehicle.chassisNumber),
+              _InfoRow(label: 'Mẫu xe / Thùng', value: vehicle.productName!),
+            _InfoRow(label: 'Số khung', value: vehicle.chassisNumber),
             if (vehicle.contractCode != null)
-              _InfoRow(
-                  label: 'Mã hợp đồng', value: vehicle.contractCode!),
+              _InfoRow(label: 'Mã hợp đồng', value: vehicle.contractCode!),
             if (vehicle.warrantyExpiryDate != null)
               _InfoRow(
-                  label: 'Hết hạn BH',
+                  label: 'Ngày hết hạn BH',
                   value: vehicle.warrantyExpiryDate!,
-                  valueColor: statusColor),
+                  valueColor: status.color),
+            const SizedBox(height: 20),
           ],
         ),
       ),
