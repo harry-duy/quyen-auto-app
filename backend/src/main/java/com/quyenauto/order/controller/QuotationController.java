@@ -51,11 +51,11 @@ public class QuotationController {
     @Operation(summary = "Tất cả báo giá (staff)")
     public ResponseEntity<ApiResponse<PageResponse<QuotationResponse>>> allQuotations(
             @RequestParam(required = false) String status,
-            @PageableDefault(size = 20) Pageable pageable) {
-        if (status != null) {
-            return ResponseEntity.ok(ApiResponse.ok(PageResponse.of(quotationService.getByStatus(status, pageable))));
-        }
-        return ResponseEntity.ok(ApiResponse.ok(PageResponse.of(quotationService.getAll(pageable))));
+            @PageableDefault(size = 20) Pageable pageable,
+            Authentication auth) {
+        Long staffId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(
+                PageResponse.of(quotationService.getVisibleForStaff(staffId, status, pageable))));
     }
 
     @PatchMapping("/staff/quotations/{id}/contact")
@@ -75,5 +75,15 @@ public class QuotationController {
             @Valid @RequestBody QuoteApprovalRequest request) {
         Long staffId = Long.parseLong(auth.getName());
         return ResponseEntity.ok(ApiResponse.ok(quotationService.approve(id, staffId, request)));
+    }
+
+    @PatchMapping("/staff/quotations/{id}/confirm-order")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Chot bao gia va tao don hang")
+    public ResponseEntity<ApiResponse<OrderResponse>> confirmOrder(
+            @PathVariable Long id, Authentication auth,
+            @Valid @RequestBody ConfirmQuotationOrderRequest request) {
+        Long staffId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(quotationService.confirmOrder(id, staffId, request)));
     }
 }

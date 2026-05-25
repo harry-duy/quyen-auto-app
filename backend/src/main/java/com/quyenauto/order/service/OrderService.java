@@ -52,7 +52,8 @@ public class OrderService {
     @Transactional
     public OrderResponse updateStatus(Long id, Long staffId, UpdateOrderStatusRequest request) {
         Order order = findById(id);
-        Order.OrderStatus newStatus = Order.OrderStatus.valueOf(request.getStatus().toUpperCase());
+        String newProductionStatus = productionStatusFromRequest(request.getStatus().toUpperCase());
+        Order.OrderStatus newStatus = orderStatusForProductionStatus(newProductionStatus);
 
         User staff = userRepository.findById(staffId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"));
@@ -65,6 +66,7 @@ public class OrderService {
                 .build();
 
         order.setStatus(newStatus);
+        order.setProductionStatus(newProductionStatus);
         order.getStatusLogs().add(log);
 
         return OrderResponse.from(orderRepository.save(order));
@@ -75,9 +77,39 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng"));
     }
 
+    private String productionStatusFromRequest(String status) {
+        return switch (status) {
+            case "PENDING", "RECEIVED" -> "RECEIVED";
+            case "INFO_CONFIRMED" -> "INFO_CONFIRMED";
+            case "QUOTED_DEPOSITED" -> "QUOTED_DEPOSITED";
+            case "CONFIRMED", "ORDER_CONFIRMED", "NOT_STARTED" -> "ORDER_CONFIRMED";
+            case "IN_PRODUCTION", "PRODUCTION_STARTED", "IN_PROGRESS" -> "PRODUCTION_STARTED";
+            case "QUALITY_CHECKING" -> "QUALITY_CHECKING";
+            case "DELIVERING" -> "QUALITY_CHECKING";
+            case "COMPLETED" -> "COMPLETED";
+            case "CANCELLED" -> "CANCELLED";
+            default -> throw new BusinessException(HttpStatus.BAD_REQUEST, "Tráº¡ng thÃ¡i Ä‘Æ¡n hÃ ng khÃ´ng há»£p lá»‡");
+        };
+    }
+
+    private Order.OrderStatus orderStatusForProductionStatus(String productionStatus) {
+        return switch (productionStatus) {
+            case "RECEIVED", "INFO_CONFIRMED" -> Order.OrderStatus.PENDING;
+            case "QUOTED_DEPOSITED", "ORDER_CONFIRMED" -> Order.OrderStatus.CONFIRMED;
+            case "PRODUCTION_STARTED", "QUALITY_CHECKING" -> Order.OrderStatus.IN_PRODUCTION;
+            case "COMPLETED" -> Order.OrderStatus.COMPLETED;
+            case "CANCELLED" -> Order.OrderStatus.CANCELLED;
+            default -> Order.OrderStatus.PENDING;
+        };
+    }
+
     public String generateOrderCode() {
         String prefix = "QA" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMM"));
         long count = orderRepository.count() + 1;
-        return prefix + String.format("%04d", count);
+        String code;
+        do {
+            code = prefix + String.format("%04d", count++);
+        } while (orderRepository.existsByOrderCode(code));
+        return code;
     }
 }

@@ -16,47 +16,45 @@ final staffTabIndexProvider = StateProvider<int>((ref) => 0);
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
-final staffDashboardProvider =
-    FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
-  final api = ref.watch(apiServiceProvider);
-  final res = await api.get<Map<String, dynamic>>(
-    ApiConstants.staffDashboard,
-    fromData: (json) => json as Map<String, dynamic>,
-  );
-  return res.data ?? {};
-});
+final staffDashboardProvider = FutureProvider.autoDispose<Map<String, dynamic>>(
+  (ref) async {
+    final api = ref.watch(apiServiceProvider);
+    final res = await api.get<Map<String, dynamic>>(
+      ApiConstants.staffDashboard,
+      fromData: (json) => json as Map<String, dynamic>,
+    );
+    return res.data ?? {};
+  },
+);
 
 // ─── Staff Order Management ──────────────────────────────────────────────────
 
 final staffOrderStatusFilter = StateProvider<String?>((ref) => null);
 
-final staffOrderListProvider =
-    FutureProvider.autoDispose<List<Order>>((ref) async {
+final staffOrderListProvider = FutureProvider.autoDispose<List<Order>>((
+  ref,
+) async {
   final api = ref.watch(apiServiceProvider);
   final status = ref.watch(staffOrderStatusFilter);
   final res = await api.get<List<Order>>(
     ApiConstants.staffOrders,
-    queryParams: {
-      'page': 0,
-      'size': 50,
-      'status': ?status,
-    },
-    fromData: (json) => _toList(json)
-        .map((e) => _orderFromJson(e as Map<String, dynamic>))
-        .toList(),
+    queryParams: {'page': 0, 'size': 50, 'status': ?status},
+    fromData: (json) => _toList(
+      json,
+    ).map((e) => _orderFromJson(e as Map<String, dynamic>)).toList(),
   );
   return res.data ?? [];
 });
 
-final staffOrderDetailProvider =
-    FutureProvider.autoDispose.family<Order, String>((ref, id) async {
-  final api = ref.watch(apiServiceProvider);
-  final res = await api.get<Order>(
-    ApiConstants.resolve(ApiConstants.staffOrderDetail, {'id': id}),
-    fromData: (json) => _orderFromJson(json as Map<String, dynamic>),
-  );
-  return res.data!;
-});
+final staffOrderDetailProvider = FutureProvider.autoDispose
+    .family<Order, String>((ref, id) async {
+      final api = ref.watch(apiServiceProvider);
+      final res = await api.get<Order>(
+        ApiConstants.resolve(ApiConstants.staffOrderDetail, {'id': id}),
+        fromData: (json) => _orderFromJson(json as Map<String, dynamic>),
+      );
+      return res.data!;
+    });
 
 // ─── Quotation Management ────────────────────────────────────────────────────
 
@@ -64,22 +62,19 @@ final staffQuotationStatusFilter = StateProvider<String?>((ref) => null);
 
 final staffQuotationListProvider =
     FutureProvider.autoDispose<List<StaffQuotationResponse>>((ref) async {
-  final api = ref.watch(apiServiceProvider);
-  final status = ref.watch(staffQuotationStatusFilter);
-  final res = await api.get<List<StaffQuotationResponse>>(
-    ApiConstants.staffQuotations,
-    queryParams: {
-      'page': 0,
-      'size': 100,
-      'status': ?status,
-    },
-    fromData: (json) => _parseQuotationPage(json),
-  );
-  return res.data ?? [];
-});
+      final api = ref.watch(apiServiceProvider);
+      final status = ref.watch(staffQuotationStatusFilter);
+      final res = await api.get<List<StaffQuotationResponse>>(
+        ApiConstants.staffQuotations,
+        queryParams: {'page': 0, 'size': 100, 'status': ?status},
+        fromData: (json) => _parseQuotationPage(json),
+      );
+      return res.data ?? [];
+    });
 
-final staffUncontactedCountProvider =
-    FutureProvider.autoDispose<int>((ref) async {
+final staffUncontactedCountProvider = FutureProvider.autoDispose<int>((
+  ref,
+) async {
   final api = ref.watch(apiServiceProvider);
 
   // Uncontacted quotations (PENDING + not yet contacted)
@@ -94,9 +89,9 @@ final staffUncontactedCountProvider =
   final lRes = await api.get<List<LeadResponse>>(
     ApiConstants.staffLeads,
     queryParams: {'pendingOnly': true},
-    fromData: (json) => _toList(json)
-        .map((e) => LeadResponse.fromJson(e as Map<String, dynamic>))
-        .toList(),
+    fromData: (json) => _toList(
+      json,
+    ).map((e) => LeadResponse.fromJson(e as Map<String, dynamic>)).toList(),
   );
   final leadCount = (lRes.data ?? []).length;
 
@@ -107,45 +102,49 @@ final staffUncontactedCountProvider =
 
 final staffWarrantyListProvider =
     FutureProvider.autoDispose<List<WarrantyRequestResponse>>((ref) async {
-  final api = ref.watch(apiServiceProvider);
-  final res = await api.get<List<WarrantyRequestResponse>>(
-    ApiConstants.staffWarrantyList,
-    fromData: (json) => _toList(json)
-        .map((e) =>
-            WarrantyRequestResponse.fromJson(e as Map<String, dynamic>))
-        .toList(),
-  );
-  return res.data ?? [];
-});
+      final api = ref.watch(apiServiceProvider);
+      final res = await api.get<List<WarrantyRequestResponse>>(
+        ApiConstants.staffWarrantyList,
+        fromData: (json) => _toList(json)
+            .map(
+              (e) =>
+                  WarrantyRequestResponse.fromJson(e as Map<String, dynamic>),
+            )
+            .toList(),
+      );
+      return res.data ?? [];
+    });
 
 // ─── Leads (guest contact requests) ─────────────────────────────────────────
 
 final staffLeadPendingOnlyFilter = StateProvider<bool>((ref) => false);
 
-final staffLeadsProvider =
-    FutureProvider.autoDispose<List<LeadResponse>>((ref) async {
+final staffLeadsProvider = FutureProvider.autoDispose<List<LeadResponse>>((
+  ref,
+) async {
   final api = ref.watch(apiServiceProvider);
   final pendingOnly = ref.watch(staffLeadPendingOnlyFilter);
   final res = await api.get<List<LeadResponse>>(
     ApiConstants.staffLeads,
     queryParams: {'pendingOnly': pendingOnly},
-    fromData: (json) => _toList(json)
-        .map((e) => LeadResponse.fromJson(e as Map<String, dynamic>))
-        .toList(),
+    fromData: (json) => _toList(
+      json,
+    ).map((e) => LeadResponse.fromJson(e as Map<String, dynamic>)).toList(),
   );
   return res.data ?? [];
 });
 
 // ─── Dealer List ─────────────────────────────────────────────────────────────
 
-final dealerListProvider =
-    FutureProvider.autoDispose<List<DealerResponse>>((ref) async {
+final dealerListProvider = FutureProvider.autoDispose<List<DealerResponse>>((
+  ref,
+) async {
   final api = ref.watch(apiServiceProvider);
   final res = await api.get<List<DealerResponse>>(
     ApiConstants.dealerList,
-    fromData: (json) => _toList(json)
-        .map((e) => DealerResponse.fromJson(e as Map<String, dynamic>))
-        .toList(),
+    fromData: (json) => _toList(
+      json,
+    ).map((e) => DealerResponse.fromJson(e as Map<String, dynamic>)).toList(),
   );
   return res.data ?? [];
 });
@@ -159,8 +158,11 @@ class StaffActionsNotifier extends Notifier<void> {
   ApiService get _api => ref.read(apiServiceProvider);
 
   Future<void> updateOrderStatus(
-      String orderId, String newStatus, String? note) async {
-    await _api.put(
+    String orderId,
+    String newStatus,
+    String? note,
+  ) async {
+    await _api.patch(
       ApiConstants.resolve(ApiConstants.staffUpdateStatus, {'id': orderId}),
       data: {'status': newStatus, 'note': ?note},
     );
@@ -170,24 +172,48 @@ class StaffActionsNotifier extends Notifier<void> {
   }
 
   Future<void> approveQuotation(
-      String quotationId, double price, String? note) async {
+    String quotationId,
+    double price,
+    String? note,
+  ) async {
     await _api.patch(
-      ApiConstants.resolve(
-          ApiConstants.staffApproveQuote, {'id': quotationId}),
-      data: {
-        'quotedPrice': price,
-        'staffNote': ?note,
-      },
+      ApiConstants.resolve(ApiConstants.staffApproveQuote, {'id': quotationId}),
+      data: {'quotedPrice': price, 'staffNote': ?note},
     );
     ref.invalidate(staffQuotationListProvider);
     ref.invalidate(staffUncontactedCountProvider);
     ref.invalidate(staffDashboardProvider);
   }
 
+  Future<void> confirmQuotationOrder(
+    String quotationId,
+    double price,
+    double? depositAmount,
+    DateTime? estimatedDate,
+    String? note,
+  ) async {
+    await _api.patch(
+      ApiConstants.resolve(ApiConstants.staffConfirmQuoteOrder, {
+        'id': quotationId,
+      }),
+      data: {
+        'quotedPrice': price,
+        'depositAmount': ?depositAmount,
+        'estimatedDate': ?estimatedDate?.toIso8601String().split('T').first,
+        'staffNote': ?note,
+      },
+    );
+    ref.invalidate(staffQuotationListProvider);
+    ref.invalidate(staffOrderListProvider);
+    ref.invalidate(staffUncontactedCountProvider);
+    ref.invalidate(staffDashboardProvider);
+  }
+
   Future<void> markQuotationContacted(String quotationId) async {
     await _api.patch(
-      ApiConstants.resolve(
-          ApiConstants.staffQuotationContact, {'id': quotationId}),
+      ApiConstants.resolve(ApiConstants.staffQuotationContact, {
+        'id': quotationId,
+      }),
     );
     ref.invalidate(staffQuotationListProvider);
     ref.invalidate(staffUncontactedCountProvider);
@@ -202,23 +228,29 @@ class StaffActionsNotifier extends Notifier<void> {
   }
 
   Future<void> assignWarrantyTechnician(
-      String warrantyId, int technicianId, String? scheduledDate) async {
+    String warrantyId,
+    int technicianId,
+    String? scheduledDate,
+  ) async {
     await _api.patch(
-      ApiConstants.resolve(
-          ApiConstants.staffWarrantyAssign, {'id': warrantyId}),
-      data: {
-        'technicianId': technicianId,
-        'scheduledDate': ?scheduledDate,
-      },
+      ApiConstants.resolve(ApiConstants.staffWarrantyAssign, {
+        'id': warrantyId,
+      }),
+      data: {'technicianId': technicianId, 'scheduledDate': ?scheduledDate},
     );
     ref.invalidate(staffWarrantyListProvider);
   }
 
   Future<void> updateWarrantyResult(
-      String warrantyId, String status, String result, String? note) async {
+    String warrantyId,
+    String status,
+    String result,
+    String? note,
+  ) async {
     await _api.patch(
-      ApiConstants.resolve(
-          ApiConstants.staffWarrantyResult, {'id': warrantyId}),
+      ApiConstants.resolve(ApiConstants.staffWarrantyResult, {
+        'id': warrantyId,
+      }),
       data: {'status': status, 'result': result, 'note': ?note},
     );
     ref.invalidate(staffWarrantyListProvider);
@@ -226,28 +258,35 @@ class StaffActionsNotifier extends Notifier<void> {
   }
 }
 
-final staffActionsProvider =
-    NotifierProvider<StaffActionsNotifier, void>(StaffActionsNotifier.new);
+final staffActionsProvider = NotifierProvider<StaffActionsNotifier, void>(
+  StaffActionsNotifier.new,
+);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 OrderStatus _parseStatus(String s) => OrderStatus.values.firstWhere(
-      (e) => e.name.toLowerCase() == s.replaceAll('_', '').toLowerCase(),
-      orElse: () => OrderStatus.pending,
-    );
+  (e) => e.name.toLowerCase() == s.replaceAll('_', '').toLowerCase(),
+  orElse: () => OrderStatus.pending,
+);
 
 Order _orderFromJson(Map<String, dynamic> j) {
   final r = OrderResponse.fromJson(j);
   return Order(
     id: r.id.toString(),
     orderCode: r.orderCode ?? '#ORD-${r.id}',
-    productId: r.quotationId?.toString() ?? '',
+    productId: (r.productId ?? r.quotationId ?? '').toString(),
     productName: r.productName ?? 'Đơn hàng #${r.id}',
+    customerName: r.customerName,
+    customerPhone: r.customerPhone,
     status: _parseStatus(r.status),
+    productionStatus: r.productionStatus,
     totalAmount: r.totalAmount,
+    depositAmount: r.depositAmount,
     note: r.note,
     createdAt: r.createdAt ?? DateTime.now(),
-    updatedAt: r.estimatedDate,
+    updatedAt: r.updatedAt,
+    estimatedDate: r.estimatedDate,
+    assignedStaffName: r.assignedStaffName,
   );
 }
 

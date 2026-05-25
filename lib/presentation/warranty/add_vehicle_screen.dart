@@ -18,15 +18,19 @@ class AddVehicleScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.info_outline,
-                  color: AppColors.primaryNavy, size: 56),
+              const Icon(
+                Icons.info_outline,
+                color: AppColors.primaryNavy,
+                size: 56,
+              ),
               const SizedBox(height: 16),
               const Text(
                 'Xe của bạn sẽ được đăng ký bảo hành tự động',
                 style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -35,7 +39,10 @@ class AddVehicleScreen extends ConsumerWidget {
                 'thông tin xe và kích hoạt bảo hành cho bạn. '
                 'Xe sẽ xuất hiện trong tab "Xe của tôi" khi đã được đăng ký.',
                 style: TextStyle(
-                    fontSize: 14, color: AppColors.textGray, height: 1.5),
+                  fontSize: 14,
+                  color: AppColors.textGray,
+                  height: 1.5,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),

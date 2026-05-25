@@ -11,39 +11,47 @@ class OrderRepositoryImpl implements OrderRepository {
   OrderRepositoryImpl(this._api);
 
   OrderStatus _parseStatus(String s) => OrderStatus.values.firstWhere(
-        (e) => e.name.toLowerCase() == s.replaceAll('_', '').toLowerCase(),
-        orElse: () => OrderStatus.pending,
-      );
+    (e) => e.name.toLowerCase() == s.replaceAll('_', '').toLowerCase(),
+    orElse: () => OrderStatus.pending,
+  );
 
   Order _fromResponse(OrderResponse r) => Order(
-        id: r.id.toString(),
-        orderCode: r.orderCode ?? '#ORD-${r.id}',
-        productId: r.quotationId.toString(),
-        productName: r.productName ?? 'Đơn hàng #${r.id}',
-        status: _parseStatus(r.status),
-        totalAmount: r.totalAmount,
-        note: r.note,
-        createdAt: r.createdAt ?? DateTime.now(),
-        updatedAt: r.estimatedDate,
-      );
+    id: r.id.toString(),
+    orderCode: r.orderCode ?? '#ORD-${r.id}',
+    productId: (r.productId ?? r.quotationId ?? '').toString(),
+    productName: r.productName ?? 'Đơn hàng #${r.id}',
+    customerName: r.customerName,
+    customerPhone: r.customerPhone,
+    status: _parseStatus(r.status),
+    productionStatus: r.productionStatus,
+    totalAmount: r.totalAmount,
+    depositAmount: r.depositAmount,
+    note: r.note,
+    createdAt: r.createdAt ?? DateTime.now(),
+    updatedAt: r.updatedAt,
+    estimatedDate: r.estimatedDate,
+    assignedStaffName: r.assignedStaffName,
+  );
 
   @override
-  Future<List<Order>> getOrders(
-      {int page = 0, int size = 10, String? status}) async {
+  Future<List<Order>> getOrders({
+    int page = 0,
+    int size = 10,
+    String? status,
+  }) async {
     final res = await _api.get<List<Order>>(
       ApiConstants.myOrders,
-      queryParams: {
-        'page': page,
-        'size': size,
-        'status': ?status,
-      },
+      queryParams: {'page': page, 'size': size, 'status': ?status},
       fromData: (json) {
         final list = json is List
             ? json
             : (json as Map<String, dynamic>)['content'] as List<dynamic>? ?? [];
         return list
-            .map((e) => _fromResponse(
-                OrderResponse.fromJson(e as Map<String, dynamic>)))
+            .map(
+              (e) => _fromResponse(
+                OrderResponse.fromJson(e as Map<String, dynamic>),
+              ),
+            )
             .toList();
       },
     );
@@ -54,9 +62,8 @@ class OrderRepositoryImpl implements OrderRepository {
   Future<Order> getOrderById(String id) async {
     final res = await _api.get<Order>(
       ApiConstants.resolve(ApiConstants.orderDetail, {'id': id}),
-      fromData: (json) => _fromResponse(
-        OrderResponse.fromJson(json as Map<String, dynamic>),
-      ),
+      fromData: (json) =>
+          _fromResponse(OrderResponse.fromJson(json as Map<String, dynamic>)),
     );
     return res.data!;
   }

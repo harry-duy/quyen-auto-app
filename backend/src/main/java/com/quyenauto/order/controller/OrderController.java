@@ -55,7 +55,14 @@ public class OrderController {
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.of(orderService.getAll(pageable))));
     }
 
-    @PatchMapping("/staff/orders/{id}/status")
+    @GetMapping("/staff/orders/{id}")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Chi tiet don hang (staff)")
+    public ResponseEntity<ApiResponse<OrderResponse>> staffGetById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(orderService.getById(id)));
+    }
+
+    @RequestMapping(value = "/staff/orders/{id}/status", method = {RequestMethod.PATCH, RequestMethod.PUT})
     @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
     @Operation(summary = "Cập nhật trạng thái đơn hàng")
     public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(

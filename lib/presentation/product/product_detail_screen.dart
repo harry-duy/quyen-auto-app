@@ -25,18 +25,24 @@ class ProductDetailScreen extends ConsumerWidget {
       error: (e, _) => Scaffold(
         appBar: AppBar(title: const Text('Chi tiết sản phẩm')),
         body: Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.error_outline,
-                color: AppColors.errorRed, size: 48),
-            const SizedBox(height: 12),
-            const Text('Không thể tải sản phẩm'),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => ref.invalidate(productDetailProvider(id)),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Thử lại'),
-            ),
-          ]),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: AppColors.errorRed,
+                size: 48,
+              ),
+              const SizedBox(height: 12),
+              const Text('Không thể tải sản phẩm'),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => ref.invalidate(productDetailProvider(id)),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Thử lại'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -137,7 +143,9 @@ class _ProductDetailViewState extends State<_ProductDetailView> {
                   if (product.category.isNotEmpty)
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primaryNavy.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(6),
@@ -242,8 +250,11 @@ class _ProductDetailViewState extends State<_ProductDetailView> {
     return Container(
       color: AppColors.primaryNavy.withValues(alpha: 0.08),
       child: const Center(
-        child: Icon(Icons.local_shipping_outlined,
-            size: 72, color: AppColors.primaryNavy),
+        child: Icon(
+          Icons.local_shipping_outlined,
+          size: 72,
+          color: AppColors.primaryNavy,
+        ),
       ),
     );
   }
@@ -281,27 +292,41 @@ class _SpecsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Thông số kỹ thuật',
-              style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                  color: AppColors.textDark)),
+          const Text(
+            'Thông số kỹ thuật',
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              color: AppColors.textDark,
+            ),
+          ),
           const SizedBox(height: 12),
-          ...specs.map((s) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(children: [
+          ...specs.map(
+            (s) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
                   Expanded(
-                    child: Text(s.label,
-                        style: const TextStyle(
-                            fontSize: 13, color: AppColors.textGray)),
-                  ),
-                  Text(s.value,
+                    child: Text(
+                      s.label,
                       style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textDark)),
-                ]),
-              )),
+                        fontSize: 13,
+                        color: AppColors.textGray,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    s.value,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

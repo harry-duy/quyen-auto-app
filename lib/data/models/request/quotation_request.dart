@@ -1,4 +1,6 @@
 /// Yêu cầu tạo báo giá thùng xe — gửi lên server
+import 'dart:convert';
+
 class QuotationRequest {
   final int productId;
   final String vehicleModel;
@@ -35,18 +37,18 @@ class QuotationRequest {
   });
 
   Map<String, dynamic> toJson() => {
-        'productId': productId,
-        'vehicleModel': vehicleModel,
-        'quantity': quantity,
-        if (chassisWidth != null) 'chassisWidth': chassisWidth,
-        if (boxCode != null) 'boxCode': boxCode,
-        if (boxType != null) 'boxType': boxType,
-        if (acType != null) 'acType': acType,
-        if (acModel != null) 'acModel': acModel,
-        'innerWallInsulated': innerWallInsulated,
-        if (specifications.isNotEmpty) 'specifications': specifications,
-        if (weightRange != null) 'weightRange': weightRange,
-        if (cargoType != null) 'cargoType': cargoType,
-        if (note != null) 'note': note,
-      };
+    'productId': productId,
+    'vehicleModel': vehicleModel,
+    'quantity': quantity,
+    if (chassisWidth != null) 'chassisWidth': chassisWidth,
+    if (boxCode != null) 'boxCode': boxCode,
+    if (boxType != null) 'boxType': boxType,
+    if (acType != null) 'acType': acType,
+    if (acModel != null) 'acModel': acModel,
+    'innerWallInsulated': innerWallInsulated,
+    if (specifications.isNotEmpty) 'specifications': jsonEncode(specifications),
+    if (weightRange != null) 'weightRange': weightRange,
+    if (cargoType != null) 'cargoType': cargoType,
+    if (note != null) 'note': note,
+  };
 }

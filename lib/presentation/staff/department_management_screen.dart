@@ -14,7 +14,7 @@ class DepartmentManagementScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('Phòng ban')),
+      appBar: AppBar(title: const Text('Ph�ng ban')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showDepartmentForm(context, ref),
         child: const Icon(Icons.add),
@@ -29,7 +29,7 @@ class DepartmentManagementScreen extends ConsumerWidget {
                   Icon(Icons.business_outlined,
                       color: AppColors.textGray, size: 48),
                   SizedBox(height: 8),
-                  Text('Chưa có phòng ban nào',
+                  Text('Chua c� ph�ng ban n�o',
                       style: TextStyle(color: AppColors.textGray, fontSize: 14)),
                 ],
               ),
@@ -123,7 +123,7 @@ class _DepartmentCard extends ConsumerWidget {
           Row(children: [
             _InfoChip(
               icon: Icons.people_outline,
-              label: '${department.staffCount} nhân viên',
+              label: '${department.staffCount} nh�n vi�n',
             ),
             const SizedBox(width: 12),
             if (department.managerName != null)
@@ -141,7 +141,7 @@ class _DepartmentCard extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
-                department.isActive ? 'Hoạt động' : 'Ngưng',
+                department.isActive ? 'Ho?t d?ng' : 'Ngung',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -210,7 +210,7 @@ void _showDepartmentForm(BuildContext context, WidgetRef ref,
             ),
             const SizedBox(height: 16),
             Text(
-              isEditing ? 'Sửa phòng ban' : 'Thêm phòng ban',
+              isEditing ? 'S?a ph�ng ban' : 'Th�m ph�ng ban',
               style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -220,18 +220,18 @@ void _showDepartmentForm(BuildContext context, WidgetRef ref,
             TextFormField(
               controller: nameCtrl,
               decoration: const InputDecoration(
-                labelText: 'Tên phòng ban *',
+                labelText: 'T�n ph�ng ban *',
                 border: OutlineInputBorder(),
               ),
               validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Vui lòng nhập tên' : null,
+                  (v == null || v.trim().isEmpty) ? 'Vui l�ng nh?p t�n' : null,
             ),
             const SizedBox(height: 12),
             TextField(
               controller: descCtrl,
               maxLines: 2,
               decoration: const InputDecoration(
-                labelText: 'Mô tả',
+                labelText: 'M� t?',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -266,20 +266,20 @@ void _showDepartmentForm(BuildContext context, WidgetRef ref,
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text(isEditing
-                            ? 'Đã cập nhật phòng ban'
-                            : 'Đã tạo phòng ban'),
+                            ? '�� c?p nh?t ph�ng ban'
+                            : '�� t?o ph�ng ban'),
                       ));
                     }
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text('Lỗi: $e'),
+                        content: Text('L?i: $e'),
                         backgroundColor: AppColors.errorRed,
                       ));
                     }
                   }
                 },
-                child: Text(isEditing ? 'Cập nhật' : 'Tạo mới'),
+                child: Text(isEditing ? 'C?p nh?t' : 'T?o m?i'),
               ),
             ),
           ],

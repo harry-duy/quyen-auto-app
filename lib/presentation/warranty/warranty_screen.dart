@@ -36,10 +36,7 @@ class WarrantyScreen extends ConsumerWidget {
           ),
         ),
         body: const TabBarView(
-          children: [
-            _VehicleListTab(),
-            _WarrantyRequestTab(),
-          ],
+          children: [_VehicleListTab(), _WarrantyRequestTab()],
         ),
         floatingActionButton: Padding(
           padding: const EdgeInsets.only(bottom: _kNavBarH),
@@ -60,7 +57,8 @@ class WarrantyScreen extends ConsumerWidget {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (_) => _CreateWarrantySheet(parentRef: ref),
     );
   }
@@ -132,30 +130,39 @@ class _VehicleCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.directions_car,
-                      color: AppColors.primaryNavy, size: 20),
+                  const Icon(
+                    Icons.directions_car,
+                    color: AppColors.primaryNavy,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       vehicle.plateNumber,
                       style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textDark),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textDark,
+                      ),
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: status.color.withAlpha(25),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(status.text,
-                        style: TextStyle(
-                            fontSize: 11,
-                            color: status.color,
-                            fontWeight: FontWeight.w600)),
+                    child: Text(
+                      status.text,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: status.color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -167,21 +174,30 @@ class _VehicleCard extends StatelessWidget {
                 _InfoRow(label: 'Mã hợp đồng', value: vehicle.contractCode!),
               if (vehicle.warrantyExpiryDate != null)
                 _InfoRow(
-                    label: 'Hết hạn BH',
-                    value: vehicle.warrantyExpiryDate!,
-                    valueColor: status.color),
+                  label: 'Hết hạn BH',
+                  value: vehicle.warrantyExpiryDate!,
+                  valueColor: status.color,
+                ),
               const SizedBox(height: 8),
-              Row(children: [
-                const Spacer(),
-                Text('Xem thẻ bảo hành',
+              Row(
+                children: [
+                  const Spacer(),
+                  Text(
+                    'Xem thẻ bảo hành',
                     style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.primaryOrange,
-                        fontWeight: FontWeight.w600)),
-                const SizedBox(width: 4),
-                const Icon(Icons.arrow_forward_ios,
-                    size: 11, color: AppColors.primaryOrange),
-              ]),
+                      fontSize: 12,
+                      color: AppColors.primaryOrange,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 11,
+                    color: AppColors.primaryOrange,
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -199,7 +215,8 @@ class _VehicleCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (_) => SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
@@ -208,11 +225,13 @@ class _VehicleCard extends StatelessWidget {
             children: [
               // drag handle
               Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                    color: AppColors.borderLight,
-                    borderRadius: BorderRadius.circular(2)),
+                  color: AppColors.borderLight,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
               // card header
               Container(
@@ -231,27 +250,38 @@ class _VehicleCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.verified_user,
-                            color: Colors.white, size: 20),
+                        const Icon(
+                          Icons.verified_user,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
-                        const Text('THẺ BẢO HÀNH SỐ',
-                            style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 11,
-                                letterSpacing: 1.5)),
+                        const Text(
+                          'THẺ BẢO HÀNH SỐ',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
                         const Spacer(),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: status.color.withAlpha(200),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Text(status.text,
-                              style: const TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600)),
+                          child: Text(
+                            status.text,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -259,17 +289,22 @@ class _VehicleCard extends StatelessWidget {
                     Text(
                       vehicle.plateNumber,
                       style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 2),
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 2,
+                      ),
                     ),
                     if (vehicle.productName != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
-                        child: Text(vehicle.productName!,
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 13)),
+                        child: Text(
+                          vehicle.productName!,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
                   ],
                 ),
@@ -284,25 +319,29 @@ class _VehicleCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _DetailRow(
-                            icon: Icons.confirmation_number,
-                            label: 'Số khung',
-                            value: vehicle.chassisNumber),
+                          icon: Icons.confirmation_number,
+                          label: 'Số khung',
+                          value: vehicle.chassisNumber,
+                        ),
                         if (vehicle.contractCode != null)
                           _DetailRow(
-                              icon: Icons.article_outlined,
-                              label: 'Hợp đồng',
-                              value: vehicle.contractCode!),
+                            icon: Icons.article_outlined,
+                            label: 'Hợp đồng',
+                            value: vehicle.contractCode!,
+                          ),
                         if (vehicle.warrantyExpiryDate != null)
                           _DetailRow(
-                              icon: Icons.calendar_today,
-                              label: 'Hết hạn BH',
-                              value: vehicle.warrantyExpiryDate!,
-                              valueColor: status.color),
+                            icon: Icons.calendar_today,
+                            label: 'Hết hạn BH',
+                            value: vehicle.warrantyExpiryDate!,
+                            valueColor: status.color,
+                          ),
                         if (vehicle.purchaseDate != null)
                           _DetailRow(
-                              icon: Icons.shopping_bag_outlined,
-                              label: 'Ngày mua',
-                              value: vehicle.purchaseDate!),
+                            icon: Icons.shopping_bag_outlined,
+                            label: 'Ngày mua',
+                            value: vehicle.purchaseDate!,
+                          ),
                       ],
                     ),
                   ),
@@ -312,26 +351,35 @@ class _VehicleCard extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                                color: AppColors.borderLight, width: 1)),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.borderLight,
+                            width: 1,
+                          ),
+                        ),
                         child: QrImageView(
                           data: qrData,
                           version: QrVersions.auto,
                           size: 110,
                           eyeStyle: const QrEyeStyle(
-                              eyeShape: QrEyeShape.square,
-                              color: AppColors.primaryNavy),
+                            eyeShape: QrEyeShape.square,
+                            color: AppColors.primaryNavy,
+                          ),
                           dataModuleStyle: const QrDataModuleStyle(
-                              dataModuleShape: QrDataModuleShape.square,
-                              color: AppColors.primaryNavy),
+                            dataModuleShape: QrDataModuleShape.square,
+                            color: AppColors.primaryNavy,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const Text('Quét để xác minh',
-                          style: TextStyle(
-                              fontSize: 10, color: AppColors.textGray)),
+                      const Text(
+                        'Quét để xác minh',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textGray,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -413,9 +461,10 @@ class _WarrantyCard extends StatelessWidget {
           title: Text(
             'BH #${request.id} — ${request.plateNumber}',
             style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+            ),
           ),
           subtitle: Padding(
             padding: const EdgeInsets.only(top: 2),
@@ -432,11 +481,14 @@ class _WarrantyCard extends StatelessWidget {
               color: statusColor.withAlpha(25),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(statusLabel,
-                style: TextStyle(
-                    fontSize: 11,
-                    color: statusColor,
-                    fontWeight: FontWeight.w600)),
+            child: Text(
+              statusLabel,
+              style: TextStyle(
+                fontSize: 11,
+                color: statusColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           children: [
             Container(
@@ -447,27 +499,33 @@ class _WarrantyCard extends StatelessWidget {
                 children: [
                   if (request.scheduledDate != null)
                     _DetailRow(
-                        icon: Icons.event,
-                        label: 'Ngày hẹn',
-                        value: request.scheduledDate!),
+                      icon: Icons.event,
+                      label: 'Ngày hẹn',
+                      value: request.scheduledDate!,
+                    ),
                   if (request.technicianName != null)
                     _DetailRow(
-                        icon: Icons.engineering,
-                        label: 'Kỹ thuật viên',
-                        value: request.technicianName!),
+                      icon: Icons.engineering,
+                      label: 'Kỹ thuật viên',
+                      value: request.technicianName!,
+                    ),
                   if (request.result != null && request.result!.isNotEmpty)
                     _DetailRow(
-                        icon: Icons.check_circle_outline,
-                        label: 'Kết quả',
-                        value: request.result!),
+                      icon: Icons.check_circle_outline,
+                      label: 'Kết quả',
+                      value: request.result!,
+                    ),
                   // Photo evidence
                   if (request.imageUrls.isNotEmpty) ...[
                     const SizedBox(height: 10),
-                    const Text('Ảnh bằng chứng',
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textGray)),
+                    const Text(
+                      'Ảnh bằng chứng',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textGray,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     SizedBox(
                       height: 80,
@@ -485,13 +543,19 @@ class _WarrantyCard extends StatelessWidget {
                               height: 80,
                               fit: BoxFit.cover,
                               placeholder: (_, __) => Container(
-                                  color: AppColors.borderLight,
-                                  child: const Icon(Icons.image,
-                                      color: AppColors.textGray)),
+                                color: AppColors.borderLight,
+                                child: const Icon(
+                                  Icons.image,
+                                  color: AppColors.textGray,
+                                ),
+                              ),
                               errorWidget: (_, __, ___) => Container(
-                                  color: AppColors.borderLight,
-                                  child: const Icon(Icons.broken_image,
-                                      color: AppColors.textGray)),
+                                color: AppColors.borderLight,
+                                child: const Icon(
+                                  Icons.broken_image,
+                                  color: AppColors.textGray,
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -501,11 +565,14 @@ class _WarrantyCard extends StatelessWidget {
                   // Service history timeline
                   if (request.logs.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    const Text('Lịch sử bảo dưỡng',
-                        style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textDark)),
+                    const Text(
+                      'Lịch sử bảo dưỡng',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textDark,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     ...request.logs.asMap().entries.map((entry) {
                       final i = entry.key;
@@ -526,12 +593,16 @@ class _WarrantyCard extends StatelessWidget {
                                     color: _logColor(log.action),
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                        color: Colors.white, width: 2),
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
                                     boxShadow: [
                                       BoxShadow(
-                                          color: _logColor(log.action)
-                                              .withAlpha(80),
-                                          blurRadius: 4)
+                                        color: _logColor(
+                                          log.action,
+                                        ).withAlpha(80),
+                                        blurRadius: 4,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -541,7 +612,8 @@ class _WarrantyCard extends StatelessWidget {
                                       width: 2,
                                       color: AppColors.borderLight,
                                       margin: const EdgeInsets.symmetric(
-                                          vertical: 2),
+                                        vertical: 2,
+                                      ),
                                     ),
                                   ),
                               ],
@@ -549,35 +621,41 @@ class _WarrantyCard extends StatelessWidget {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Padding(
-                                padding:
-                                    EdgeInsets.only(bottom: isLast ? 0 : 12),
+                                padding: EdgeInsets.only(
+                                  bottom: isLast ? 0 : 12,
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       _logLabel(log.action),
                                       style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: _logColor(log.action)),
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: _logColor(log.action),
+                                      ),
                                     ),
                                     if (log.note != null &&
                                         log.note!.isNotEmpty)
                                       Padding(
-                                        padding:
-                                            const EdgeInsets.only(top: 2),
-                                        child: Text(log.note!,
-                                            style: const TextStyle(
-                                                fontSize: 11,
-                                                color: AppColors.textGray)),
+                                        padding: const EdgeInsets.only(top: 2),
+                                        child: Text(
+                                          log.note!,
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            color: AppColors.textGray,
+                                          ),
+                                        ),
                                       ),
                                     Padding(
                                       padding: const EdgeInsets.only(top: 2),
                                       child: Text(
-                                          fmt.format(log.createdAt),
-                                          style: const TextStyle(
-                                              fontSize: 10,
-                                              color: AppColors.textGray)),
+                                        fmt.format(log.createdAt),
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: AppColors.textGray,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -724,7 +802,9 @@ class _CreateWarrantySheetState extends ConsumerState<_CreateWarrantySheet> {
       final scheduledDateStr = _scheduledDate != null
           ? DateFormat('yyyy-MM-dd').format(_scheduledDate!)
           : null;
-      await ref.read(warrantyActionsProvider.notifier).createRequest(
+      await ref
+          .read(warrantyActionsProvider.notifier)
+          .createRequest(
             vehicleId: _selectedVehicle!.id,
             issueDescription: _issueController.text.trim(),
             scheduledDate: scheduledDateStr,
@@ -740,8 +820,9 @@ class _CreateWarrantySheetState extends ConsumerState<_CreateWarrantySheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Lỗi: $e'),
-              backgroundColor: AppColors.errorRed),
+            content: Text('Lỗi: $e'),
+            backgroundColor: AppColors.errorRed,
+          ),
         );
       }
     } finally {
@@ -756,7 +837,11 @@ class _CreateWarrantySheetState extends ConsumerState<_CreateWarrantySheet> {
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-          20, 20, 20, MediaQuery.of(context).viewInsets.bottom + 20),
+        20,
+        20,
+        20,
+        MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -768,15 +853,19 @@ class _CreateWarrantySheetState extends ConsumerState<_CreateWarrantySheet> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                    color: AppColors.borderLight,
-                    borderRadius: BorderRadius.circular(2)),
+                  color: AppColors.borderLight,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-            const Text('Tạo yêu cầu bảo hành',
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textDark)),
+            const Text(
+              'Tạo yêu cầu bảo hành',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
+            ),
             const SizedBox(height: 16),
             vehiclesAsync.when(
               data: (vehicles) => DropdownButtonFormField<Vehicle>(
@@ -786,17 +875,17 @@ class _CreateWarrantySheetState extends ConsumerState<_CreateWarrantySheet> {
                   border: OutlineInputBorder(),
                 ),
                 items: vehicles
-                    .map((v) => DropdownMenuItem(
-                          value: v,
-                          child:
-                              Text('${v.plateNumber} — ${v.chassisNumber}'),
-                        ))
+                    .map(
+                      (v) => DropdownMenuItem(
+                        value: v,
+                        child: Text('${v.plateNumber} — ${v.chassisNumber}'),
+                      ),
+                    )
                     .toList(),
                 onChanged: (v) => setState(() => _selectedVehicle = v),
               ),
               loading: () => const CircularProgressIndicator(),
-              error: (_, __) =>
-                  const Text('Không tải được danh sách xe'),
+              error: (_, __) => const Text('Không tải được danh sách xe'),
             ),
             const SizedBox(height: 12),
             TextField(
@@ -814,15 +903,20 @@ class _CreateWarrantySheetState extends ConsumerState<_CreateWarrantySheet> {
               onTap: _pickDate,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 14),
+                  horizontal: 14,
+                  vertical: 14,
+                ),
                 decoration: BoxDecoration(
                   border: Border.all(color: const Color(0xFFBDBDBD)),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today,
-                        size: 18, color: AppColors.textGray),
+                    const Icon(
+                      Icons.calendar_today,
+                      size: 18,
+                      color: AppColors.textGray,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -830,18 +924,21 @@ class _CreateWarrantySheetState extends ConsumerState<_CreateWarrantySheet> {
                             ? 'Ngày hẹn: ${dateFmt.format(_scheduledDate!)}'
                             : 'Chọn ngày hẹn bảo hành (tuỳ chọn)',
                         style: TextStyle(
-                            fontSize: 14,
-                            color: _scheduledDate != null
-                                ? AppColors.textDark
-                                : AppColors.textGray),
+                          fontSize: 14,
+                          color: _scheduledDate != null
+                              ? AppColors.textDark
+                              : AppColors.textGray,
+                        ),
                       ),
                     ),
                     if (_scheduledDate != null)
                       GestureDetector(
-                        onTap: () =>
-                            setState(() => _scheduledDate = null),
-                        child: const Icon(Icons.close,
-                            size: 18, color: AppColors.textGray),
+                        onTap: () => setState(() => _scheduledDate = null),
+                        child: const Icon(
+                          Icons.close,
+                          size: 18,
+                          color: AppColors.textGray,
+                        ),
                       ),
                   ],
                 ),
@@ -864,24 +961,29 @@ class _CreateWarrantySheetState extends ConsumerState<_CreateWarrantySheet> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.file(_images[i],
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover),
+                          child: Image.file(
+                            _images[i],
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                         Positioned(
                           top: 2,
                           right: 2,
                           child: GestureDetector(
-                            onTap: () =>
-                                setState(() => _images.removeAt(i)),
+                            onTap: () => setState(() => _images.removeAt(i)),
                             child: Container(
                               padding: const EdgeInsets.all(2),
                               decoration: const BoxDecoration(
-                                  color: Colors.black54,
-                                  shape: BoxShape.circle),
-                              child: const Icon(Icons.close,
-                                  size: 12, color: Colors.white),
+                                color: Colors.black54,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                size: 12,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
@@ -902,17 +1004,25 @@ class _CreateWarrantySheetState extends ConsumerState<_CreateWarrantySheet> {
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 child: _submitting
                     ? const SizedBox(
                         height: 20,
                         width: 20,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Colors.white))
-                    : const Text('Gửi yêu cầu',
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'Gửi yêu cầu',
                         style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w600)),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -936,21 +1046,26 @@ class _AddImageButton extends StatelessWidget {
         height: 80,
         decoration: BoxDecoration(
           border: Border.all(
-              color: AppColors.primaryOrange, style: BorderStyle.solid),
+            color: AppColors.primaryOrange,
+            style: BorderStyle.solid,
+          ),
           borderRadius: BorderRadius.circular(8),
           color: AppColors.primaryOrange.withAlpha(10),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_photo_alternate_outlined,
-                color: AppColors.primaryOrange,
-                size: fullWidth ? 28 : 22),
+            Icon(
+              Icons.add_photo_alternate_outlined,
+              color: AppColors.primaryOrange,
+              size: fullWidth ? 28 : 22,
+            ),
             if (fullWidth) ...[
               const SizedBox(height: 4),
-              const Text('Thêm ảnh bằng chứng',
-                  style: TextStyle(
-                      fontSize: 12, color: AppColors.primaryOrange)),
+              const Text(
+                'Thêm ảnh bằng chứng',
+                style: TextStyle(fontSize: 12, color: AppColors.primaryOrange),
+              ),
             ],
           ],
         ),
@@ -985,16 +1100,20 @@ class _DetailRow extends StatelessWidget {
           const SizedBox(width: 6),
           SizedBox(
             width: 90,
-            child: Text(label,
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textGray)),
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: AppColors.textGray),
+            ),
           ),
           Expanded(
-            child: Text(value,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: valueColor ?? AppColors.textDark,
-                    fontWeight: FontWeight.w500)),
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 12,
+                color: valueColor ?? AppColors.textDark,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),
@@ -1017,16 +1136,20 @@ class _InfoRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 100,
-            child: Text(label,
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textGray)),
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: AppColors.textGray),
+            ),
           ),
           Expanded(
-            child: Text(value,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: valueColor ?? AppColors.textDark,
-                    fontWeight: FontWeight.w500)),
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 12,
+                color: valueColor ?? AppColors.textDark,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),
@@ -1048,8 +1171,10 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(icon, color: AppColors.textGray, size: 48),
           const SizedBox(height: 8),
-          Text(message,
-              style: const TextStyle(color: AppColors.textGray, fontSize: 14)),
+          Text(
+            message,
+            style: const TextStyle(color: AppColors.textGray, fontSize: 14),
+          ),
         ],
       ),
     );
@@ -1066,12 +1191,13 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline,
-              color: AppColors.errorRed, size: 40),
+          const Icon(Icons.error_outline, color: AppColors.errorRed, size: 40),
           const SizedBox(height: 8),
-          Text(message,
-              style: const TextStyle(color: AppColors.errorRed),
-              textAlign: TextAlign.center),
+          Text(
+            message,
+            style: const TextStyle(color: AppColors.errorRed),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );

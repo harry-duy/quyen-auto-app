@@ -67,7 +67,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Future<void> _sendImage() async {
     final picker = ImagePicker();
     final picked = await picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 80);
+      source: ImageSource.gallery,
+      imageQuality: 80,
+    );
     if (picked == null) return;
     setState(() => _uploading = true);
     try {
@@ -89,9 +91,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không upload được ảnh: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Không upload được ảnh: $e')));
       }
     } finally {
       if (mounted) setState(() => _uploading = false);
@@ -130,7 +132,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (_scrollController.hasClients) {
             _scrollController.jumpTo(
-                _scrollController.position.maxScrollExtent);
+              _scrollController.position.maxScrollExtent,
+            );
           }
         });
       }
@@ -158,18 +161,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(chatTitle,
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
+                Text(
+                  chatTitle,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 if (isTyping)
-                  const Text('Đang nhập...',
-                      style: TextStyle(
-                          fontSize: 11, color: Colors.white70,
-                          fontStyle: FontStyle.italic))
+                  const Text(
+                    'Đang nhập...',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white70,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  )
                 else if (room?.orderCode != null)
-                  Text('Đơn: ${room!.orderCode}',
-                      style: const TextStyle(
-                          fontSize: 11, color: Colors.white70)),
+                  Text(
+                    'Đơn: ${room!.orderCode}',
+                    style: const TextStyle(fontSize: 11, color: Colors.white70),
+                  ),
               ],
             ),
           ],
@@ -189,19 +201,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Expanded(
             child: messages.isEmpty
                 ? const Center(
-                    child: Text('Chưa có tin nhắn',
-                        style: TextStyle(color: AppColors.textGray)))
+                    child: Text(
+                      'Chưa có tin nhắn',
+                      style: TextStyle(color: AppColors.textGray),
+                    ),
+                  )
                 : ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
                     itemCount: messages.length,
                     itemBuilder: (_, i) {
                       final msg = messages[i];
-                      final isMine =
-                          msg.senderId.toString() == currentUser?.id;
-                      final showDate = i == 0 ||
-                          !_sameDay(
-                              messages[i - 1].createdAt, msg.createdAt);
+                      final isMine = msg.senderId.toString() == currentUser?.id;
+                      final showDate =
+                          i == 0 ||
+                          !_sameDay(messages[i - 1].createdAt, msg.createdAt);
                       return Column(
                         children: [
                           if (showDate) _DateDivider(date: msg.createdAt),
@@ -251,8 +265,9 @@ class _MessageBubble extends StatelessWidget {
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 3),
-        constraints:
-            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.72,
+        ),
         decoration: isImage
             ? null
             : BoxDecoration(
@@ -265,17 +280,19 @@ class _MessageBubble extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                      color: Colors.black.withAlpha(18),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2)),
+                    color: Colors.black.withAlpha(18),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
                 ],
               ),
         padding: isImage
             ? EdgeInsets.zero
             : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
-          crossAxisAlignment:
-              isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMine
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             if (!isMine && !isImage)
               Padding(
@@ -283,9 +300,10 @@ class _MessageBubble extends StatelessWidget {
                 child: Text(
                   message.senderName,
                   style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryNavy),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryNavy,
+                  ),
                 ),
               ),
             if (isImage)
@@ -305,8 +323,10 @@ class _MessageBubble extends StatelessWidget {
                     width: 200,
                     height: 150,
                     color: AppColors.borderLight,
-                    child: const Icon(Icons.broken_image,
-                        color: AppColors.textGray),
+                    child: const Icon(
+                      Icons.broken_image,
+                      color: AppColors.textGray,
+                    ),
                   ),
                 ),
               )
@@ -314,8 +334,9 @@ class _MessageBubble extends StatelessWidget {
               Text(
                 message.content,
                 style: TextStyle(
-                    fontSize: 14,
-                    color: isMine ? Colors.white : AppColors.textDark),
+                  fontSize: 14,
+                  color: isMine ? Colors.white : AppColors.textDark,
+                ),
               ),
             const SizedBox(height: 4),
             Row(
@@ -324,10 +345,11 @@ class _MessageBubble extends StatelessWidget {
                 Text(
                   timeFmt.format(message.createdAt),
                   style: TextStyle(
-                      fontSize: 10,
-                      color: isMine
-                          ? Colors.white.withAlpha(180)
-                          : AppColors.textGray),
+                    fontSize: 10,
+                    color: isMine
+                        ? Colors.white.withAlpha(180)
+                        : AppColors.textGray,
+                  ),
                 ),
                 if (isMine) ...[
                   const SizedBox(width: 4),
@@ -371,16 +393,19 @@ class _DateDivider extends StatelessWidget {
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(children: [
-        const Expanded(child: Divider()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Text(label,
-              style: const TextStyle(
-                  fontSize: 11, color: AppColors.textGray)),
-        ),
-        const Expanded(child: Divider()),
-      ]),
+      child: Row(
+        children: [
+          const Expanded(child: Divider()),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: AppColors.textGray),
+            ),
+          ),
+          const Expanded(child: Divider()),
+        ],
+      ),
     );
   }
 }
@@ -402,8 +427,9 @@ class _TypingBubbleState extends State<_TypingBubble>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 800))
-      ..repeat();
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    )..repeat();
   }
 
   @override
@@ -426,9 +452,10 @@ class _TypingBubbleState extends State<_TypingBubble>
         ),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withAlpha(15),
-              blurRadius: 4,
-              offset: const Offset(0, 2))
+            color: Colors.black.withAlpha(15),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: AnimatedBuilder(
@@ -444,9 +471,11 @@ class _TypingBubbleState extends State<_TypingBubble>
               width: 7,
               height: 7,
               decoration: BoxDecoration(
-                  color: AppColors.textGray.withAlpha(
-                      (180 + 75 * scale).round().clamp(0, 255)),
-                  shape: BoxShape.circle),
+                color: AppColors.textGray.withAlpha(
+                  (180 + 75 * scale).round().clamp(0, 255),
+                ),
+                shape: BoxShape.circle,
+              ),
             );
           }),
         ),
@@ -471,13 +500,18 @@ class _Avatar extends StatelessWidget {
       width: size,
       height: size,
       decoration: const BoxDecoration(
-          color: Colors.white24, shape: BoxShape.circle),
+        color: Colors.white24,
+        shape: BoxShape.circle,
+      ),
       child: Center(
-        child: Text(initials,
-            style: TextStyle(
-                fontSize: size * 0.36,
-                color: Colors.white,
-                fontWeight: FontWeight.w700)),
+        child: Text(
+          initials,
+          style: TextStyle(
+            fontSize: size * 0.36,
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }
@@ -506,9 +540,10 @@ class _InputBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withAlpha(15),
-              blurRadius: 8,
-              offset: const Offset(0, -2)),
+            color: Colors.black.withAlpha(15),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
         ],
       ),
       child: SafeArea(
@@ -520,15 +555,19 @@ class _InputBar extends StatelessWidget {
                 ? const Padding(
                     padding: EdgeInsets.all(8),
                     child: SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.primaryOrange)),
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primaryOrange,
+                      ),
+                    ),
                   )
                 : IconButton(
-                    icon: const Icon(Icons.image_outlined,
-                        color: AppColors.textGray),
+                    icon: const Icon(
+                      Icons.image_outlined,
+                      color: AppColors.textGray,
+                    ),
                     onPressed: onPickImage,
                     tooltip: 'Gửi ảnh',
                   ),
@@ -540,12 +579,16 @@ class _InputBar extends StatelessWidget {
                 onSubmitted: (_) => onSend(),
                 decoration: InputDecoration(
                   hintText: 'Nhập tin nhắn...',
-                  hintStyle:
-                      const TextStyle(color: AppColors.textGray, fontSize: 14),
+                  hintStyle: const TextStyle(
+                    color: AppColors.textGray,
+                    fontSize: 14,
+                  ),
                   filled: true,
                   fillColor: const Color(0xFFF5F5F5),
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 10),
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
@@ -562,8 +605,11 @@ class _InputBar extends StatelessWidget {
                 onTap: onSend,
                 child: const Padding(
                   padding: EdgeInsets.all(10),
-                  child: Icon(Icons.send_rounded,
-                      color: Colors.white, size: 22),
+                  child: Icon(
+                    Icons.send_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
               ),
             ),

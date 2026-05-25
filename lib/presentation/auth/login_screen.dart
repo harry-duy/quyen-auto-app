@@ -19,10 +19,10 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _formKey      = GlobalKey<FormState>();
-  final _phoneCtrl    = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _phoneCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-  bool  _obscurePass  = true;
+  bool _obscurePass = true;
 
   @override
   void dispose() {
@@ -40,59 +40,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
 
-    await ref.read(authProvider.notifier).login(
-      phone:    _phoneCtrl.text.trim(),
-      password: _passwordCtrl.text,
-    );
+    await ref
+        .read(authProvider.notifier)
+        .login(phone: _phoneCtrl.text.trim(), password: _passwordCtrl.text);
 
     if (!mounted) return;
 
-    ref.read(authProvider).when(
-      data: (user) {
-        if (user == null) return;
+    ref
+        .read(authProvider)
+        .when(
+          data: (user) {
+            if (user == null) return;
 
-        if (!_isRoleAllowed(user.role)) {
-          ref.read(authProvider.notifier).logout();
-          final appName = AppFlavor.isCustomer ? 'khách hàng' : 'nhân viên';
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Tài khoản không có quyền truy cập ứng dụng $appName. '
-                'Vui lòng sử dụng đúng ứng dụng.',
+            if (!_isRoleAllowed(user.role)) {
+              ref.read(authProvider.notifier).logout();
+              final appName = AppFlavor.isCustomer ? 'khách hàng' : 'nhân viên';
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Tài khoản không có quyền truy cập ứng dụng $appName. '
+                    'Vui lòng sử dụng đúng ứng dụng.',
+                  ),
+                  backgroundColor: AppColors.errorRed,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 4),
+                ),
+              );
+              return;
+            }
+
+            if (!user.isActive) {
+              ref.read(authProvider.notifier).logout();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Tài khoản đã bị vô hiệu hóa. Liên hệ quản trị viên.',
+                  ),
+                  backgroundColor: AppColors.errorRed,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              return;
+            }
+
+            context.go('/home');
+          },
+          error: (e, _) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.toString().replaceAll('Exception:', '').trim()),
+                backgroundColor: AppColors.errorRed,
+                behavior: SnackBarBehavior.floating,
               ),
-              backgroundColor: AppColors.errorRed,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-          return;
-        }
-
-        if (!user.isActive) {
-          ref.read(authProvider.notifier).logout();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tài khoản đã bị vô hiệu hóa. Liên hệ quản trị viên.'),
-              backgroundColor: AppColors.errorRed,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          return;
-        }
-
-        context.go('/home');
-      },
-      error: (e, _) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception:', '').trim()),
-            backgroundColor: AppColors.errorRed,
-            behavior: SnackBarBehavior.floating,
-          ),
+            );
+          },
+          loading: () {},
         );
-      },
-      loading: () {},
-    );
   }
 
   void _showForgotPasswordDialog() {
@@ -153,7 +156,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.primaryNavy,
                             borderRadius: BorderRadius.circular(20),
@@ -179,7 +184,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ? 'Đăng nhập tài khoản nhân viên'
                       : 'Chào mừng trở lại',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 15, color: AppColors.textGray),
+                  style: const TextStyle(
+                    fontSize: 15,
+                    color: AppColors.textGray,
+                  ),
                 ),
                 const SizedBox(height: 32),
 
@@ -257,26 +265,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       color: AppColors.infoBlue.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Row(children: [
-                      Icon(Icons.info_outline,
-                          color: AppColors.infoBlue, size: 18),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Tài khoản sẽ được tạo bởi nhân viên Quyen Auto '
-                          'sau khi xác nhận hợp đồng. Bạn có thể xem catalogue '
-                          'và yêu cầu báo giá mà không cần đăng nhập.',
-                          style: TextStyle(
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: AppColors.infoBlue,
+                          size: 18,
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Tài khoản sẽ được tạo bởi nhân viên Quyen Auto '
+                            'sau khi xác nhận hợp đồng. Bạn có thể xem catalogue '
+                            'và yêu cầu báo giá mà không cần đăng nhập.',
+                            style: TextStyle(
                               fontSize: 12,
                               color: AppColors.infoBlue,
-                              height: 1.4),
+                              height: 1.4,
+                            ),
+                          ),
                         ),
-                      ),
-                    ]),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
                   OutlinedButton.icon(
-                    onPressed: isLoading ? null : () => context.go(AppRoutes.home),
+                    onPressed: isLoading
+                        ? null
+                        : () => context.go(AppRoutes.home),
                     icon: const Icon(Icons.storefront_outlined, size: 20),
                     label: const Text('Xem catalogue & báo giá'),
                     style: OutlinedButton.styleFrom(
@@ -294,19 +310,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       color: AppColors.infoBlue.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Row(children: [
-                      Icon(Icons.info_outline,
-                          color: AppColors.infoBlue, size: 18),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Tài khoản nhân viên do quản trị viên tạo. '
-                          'Liên hệ quản lý nếu chưa có tài khoản.',
-                          style: TextStyle(
-                              fontSize: 12, color: AppColors.infoBlue),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          color: AppColors.infoBlue,
+                          size: 18,
                         ),
-                      ),
-                    ]),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Tài khoản nhân viên do quản trị viên tạo. '
+                            'Liên hệ quản lý nếu chưa có tài khoản.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.infoBlue,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ],

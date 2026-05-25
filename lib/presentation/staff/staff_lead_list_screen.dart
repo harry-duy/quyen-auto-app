@@ -26,7 +26,7 @@ class StaffLeadListScreen extends ConsumerWidget {
             child: Row(
               children: [
                 FilterChip(
-                  label: const Text('Tất cả'),
+                  label: const Text('T?t c?'),
                   selected: !pendingOnly,
                   onSelected: (_) => ref
                       .read(staffLeadPendingOnlyFilter.notifier)
@@ -45,7 +45,7 @@ class StaffLeadListScreen extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 FilterChip(
-                  label: const Text('Chưa liên hệ'),
+                  label: const Text('Chua li�n h?'),
                   selected: pendingOnly,
                   onSelected: (_) => ref
                       .read(staffLeadPendingOnlyFilter.notifier)
@@ -88,8 +88,8 @@ class StaffLeadListScreen extends ConsumerWidget {
                         const SizedBox(height: 12),
                         Text(
                           pendingOnly
-                              ? 'Không có khách nào chưa được liên hệ'
-                              : 'Chưa có lead nào',
+                              ? 'Kh�ng c� kh�ch n�o chua du?c li�n h?'
+                              : 'Chua c� lead n�o',
                           style: const TextStyle(
                               color: AppColors.textGray, fontSize: 14),
                         ),
@@ -126,7 +126,7 @@ class StaffLeadListScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () => ref.invalidate(staffLeadsProvider),
-                        child: const Text('Thử lại'),
+                        child: const Text('Th? l?i'),
                       ),
                     ],
                   ),
@@ -140,7 +140,7 @@ class StaffLeadListScreen extends ConsumerWidget {
   }
 }
 
-// ─── Lead Card ───────────────────────────────────────────────────────────────
+// --- Lead Card ---------------------------------------------------------------
 
 class _LeadCard extends ConsumerStatefulWidget {
   final LeadResponse lead;
@@ -230,7 +230,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    needsAttention ? 'Chưa liên hệ' : 'Đã liên hệ',
+                    needsAttention ? 'Chua li�n h?' : '�� li�n h?',
                     style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -254,15 +254,15 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
                 if (l.name != null && l.name!.isNotEmpty)
                   _InfoRow(
                     icon: Icons.person_outline,
-                    label: 'Tên',
+                    label: 'T�n',
                     value: l.name!,
                   ),
-                // Phone — tappable to dial
+                // Phone � tappable to dial
                 GestureDetector(
                   onTap: () => _callPhone(l.phone),
                   child: _InfoRow(
                     icon: Icons.phone_outlined,
-                    label: 'Điện thoại',
+                    label: '�i?n tho?i',
                     value: l.phone,
                     valueColor: AppColors.infoBlue,
                     underline: true,
@@ -271,19 +271,19 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
                 if (l.productName != null && l.productName!.isNotEmpty)
                   _InfoRow(
                     icon: Icons.inventory_2_outlined,
-                    label: 'Sản phẩm',
+                    label: 'S?n ph?m',
                     value: l.productName!,
                   ),
                 if (l.specifications != null && l.specifications!.isNotEmpty)
                   _InfoRow(
                     icon: Icons.tune_outlined,
-                    label: 'Thông số',
+                    label: 'Th�ng s?',
                     value: l.specifications!,
                   ),
                 if (l.note != null && l.note!.isNotEmpty)
                   _InfoRow(
                     icon: Icons.notes_outlined,
-                    label: 'Ghi chú',
+                    label: 'Ghi ch�',
                     value: l.note!,
                   ),
               ],
@@ -301,7 +301,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
                     child: OutlinedButton.icon(
                       onPressed: () => _callPhone(l.phone),
                       icon: const Icon(Icons.call, size: 16),
-                      label: const Text('Gọi ngay', style: TextStyle(fontSize: 13)),
+                      label: const Text('G?i ngay', style: TextStyle(fontSize: 13)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.infoBlue,
                         side: const BorderSide(color: AppColors.infoBlue),
@@ -321,7 +321,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
                         : ElevatedButton.icon(
                             onPressed: () => _markContacted(context, ref),
                             icon: const Icon(Icons.phone_callback, size: 16),
-                            label: const Text('Đã liên hệ',
+                            label: const Text('�� li�n h?',
                                 style: TextStyle(fontSize: 13)),
                           ),
                   ),
@@ -350,7 +350,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Đã đánh dấu đã liên hệ'),
+            content: Text('�� d�nh d?u d� li�n h?'),
             backgroundColor: AppColors.successGreen,
           ),
         );
@@ -359,7 +359,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Lỗi: $e'),
+            content: Text('L?i: $e'),
             backgroundColor: AppColors.errorRed,
           ),
         );
@@ -370,7 +370,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
   }
 }
 
-// ─── Info Row ────────────────────────────────────────────────────────────────
+// --- Info Row ----------------------------------------------------------------
 
 class _InfoRow extends StatelessWidget {
   final IconData icon;

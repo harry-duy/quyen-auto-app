@@ -13,28 +13,32 @@ class QuotationListStaffScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pendingLeadsAsync = ref.watch(staffLeadsProvider);
-    final pendingLeadCount =
-        pendingLeadsAsync.maybeWhen(data: (l) => l.where((e) => !e.contacted).length, orElse: () => 0);
+    final pendingLeadCount = pendingLeadsAsync.maybeWhen(
+      data: (l) => l.where((e) => !e.contacted).length,
+      orElse: () => 0,
+    );
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
         backgroundColor: AppColors.backgroundLight,
         appBar: AppBar(
-          title: const Text('Quản lý báo giá'),
+          title: const Text('Qu?n l� b�o gi�'),
           bottom: TabBar(
             tabs: [
-              const Tab(text: 'Báo giá'),
+              const Tab(text: 'B�o gi�'),
               Tab(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('Lead khách'),
+                    const Text('Lead kh�ch'),
                     if (pendingLeadCount > 0) ...[
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 1),
+                          horizontal: 6,
+                          vertical: 1,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.errorRed,
                           borderRadius: BorderRadius.circular(10),
@@ -42,9 +46,10 @@ class QuotationListStaffScreen extends ConsumerWidget {
                         child: Text(
                           '$pendingLeadCount',
                           style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
+                            fontSize: 11,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ],
@@ -58,23 +63,32 @@ class QuotationListStaffScreen extends ConsumerWidget {
           ),
         ),
         body: const TabBarView(
-          children: [
-            _QuotationListTab(),
-            StaffLeadListScreen(),
-          ],
+          children: [_QuotationListTab(), StaffLeadListScreen()],
         ),
       ),
     );
   }
 }
 
-// ─── Quotation List Tab ───────────────────────────────────────────────────────
+// --- Quotation List Tab -------------------------------------------------------
 
 class _QuotationListTab extends ConsumerWidget {
   const _QuotationListTab();
 
-  static const _filters = <String?>[null, 'PENDING', 'QUOTED', 'ACCEPTED', 'REJECTED'];
-  static const _filterLabels = ['Tất cả', 'Chờ xử lý', 'Đã báo giá', 'Đã chốt', 'Từ chối'];
+  static const _filters = <String?>[
+    null,
+    'PENDING',
+    'QUOTED',
+    'ACCEPTED',
+    'REJECTED',
+  ];
+  static const _filterLabels = [
+    'T?t c?',
+    'Ch? x? l�',
+    '�� b�o gi�',
+    '�� ch?t',
+    'T? ch?i',
+  ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -99,19 +113,21 @@ class _QuotationListTab extends ConsumerWidget {
                     child: FilterChip(
                       label: Text(_filterLabels[i]),
                       selected: isSelected,
-                      onSelected: (_) => ref
-                          .read(staffQuotationStatusFilter.notifier)
-                          .state = _filters[i],
+                      onSelected: (_) =>
+                          ref.read(staffQuotationStatusFilter.notifier).state =
+                              _filters[i],
                       backgroundColor: AppColors.backgroundLight,
-                      selectedColor:
-                          AppColors.primaryOrange.withValues(alpha: 0.15),
+                      selectedColor: AppColors.primaryOrange.withValues(
+                        alpha: 0.15,
+                      ),
                       labelStyle: TextStyle(
                         fontSize: 12,
                         color: isSelected
                             ? AppColors.primaryOrange
                             : AppColors.textGray,
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                       ),
                       side: BorderSide(
                         color: isSelected
@@ -142,12 +158,19 @@ class _QuotationListTab extends ConsumerWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.request_quote_outlined,
-                          size: 56, color: AppColors.textGray),
+                      Icon(
+                        Icons.request_quote_outlined,
+                        size: 56,
+                        color: AppColors.textGray,
+                      ),
                       SizedBox(height: 12),
-                      Text('Chưa có yêu cầu báo giá',
-                          style:
-                              TextStyle(color: AppColors.textGray, fontSize: 14)),
+                      Text(
+                        'Chua c� y�u c?u b�o gi�',
+                        style: TextStyle(
+                          color: AppColors.textGray,
+                          fontSize: 14,
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -172,18 +195,25 @@ class _QuotationListTab extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.error_outline,
-                        color: AppColors.errorRed, size: 40),
+                    const Icon(
+                      Icons.error_outline,
+                      color: AppColors.errorRed,
+                      size: 40,
+                    ),
                     const SizedBox(height: 8),
-                    Text(e.toString(),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            color: AppColors.errorRed, fontSize: 13)),
+                    Text(
+                      e.toString(),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.errorRed,
+                        fontSize: 13,
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () =>
                           ref.invalidate(staffQuotationListProvider),
-                      child: const Text('Thử lại'),
+                      child: const Text('Th? l?i'),
                     ),
                   ],
                 ),
@@ -196,7 +226,7 @@ class _QuotationListTab extends ConsumerWidget {
   }
 }
 
-// ─── Quotation Card ──────────────────────────────────────────────────────────
+// --- Quotation Card ----------------------------------------------------------
 
 class _QuotationCard extends ConsumerStatefulWidget {
   final StaffQuotationResponse quotation;
@@ -210,28 +240,28 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
   bool _loading = false;
 
   Color get _statusColor => switch (widget.quotation.status) {
-        'PENDING' => AppColors.warningAmber,
-        'QUOTED' => AppColors.statusQuoted,
-        'ACCEPTED' => AppColors.successGreen,
-        'REJECTED' => AppColors.errorRed,
-        _ => AppColors.textGray,
-      };
+    'PENDING' => AppColors.warningAmber,
+    'QUOTED' => AppColors.statusQuoted,
+    'ACCEPTED' => AppColors.successGreen,
+    'REJECTED' => AppColors.errorRed,
+    _ => AppColors.textGray,
+  };
 
   Color get _statusBg => switch (widget.quotation.status) {
-        'PENDING' => AppColors.warningAmber.withValues(alpha: 0.12),
-        'QUOTED' => AppColors.statusQuotedBg,
-        'ACCEPTED' => AppColors.successGreen.withValues(alpha: 0.1),
-        'REJECTED' => AppColors.errorRed.withValues(alpha: 0.1),
-        _ => AppColors.statusPendingBg,
-      };
+    'PENDING' => AppColors.warningAmber.withValues(alpha: 0.12),
+    'QUOTED' => AppColors.statusQuotedBg,
+    'ACCEPTED' => AppColors.successGreen.withValues(alpha: 0.1),
+    'REJECTED' => AppColors.errorRed.withValues(alpha: 0.1),
+    _ => AppColors.statusPendingBg,
+  };
 
   String get _statusLabel => switch (widget.quotation.status) {
-        'PENDING' => 'Chờ xử lý',
-        'QUOTED' => 'Đã báo giá',
-        'ACCEPTED' => 'Đã chốt',
-        'REJECTED' => 'Từ chối',
-        _ => widget.quotation.status,
-      };
+    'PENDING' => 'Ch? x? l�',
+    'QUOTED' => '�� b�o gi�',
+    'ACCEPTED' => '�� ch?t',
+    'REJECTED' => 'T? ch?i',
+    _ => widget.quotation.status,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -248,7 +278,9 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: needsAttention ? AppColors.warningAmber : AppColors.borderLight,
+          color: needsAttention
+              ? AppColors.warningAmber
+              : AppColors.borderLight,
           width: needsAttention ? 1.5 : 1,
         ),
         boxShadow: [
@@ -273,35 +305,52 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                     color: _statusBg,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.request_quote, color: _statusColor, size: 20),
+                  child: Icon(
+                    Icons.request_quote,
+                    color: _statusColor,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Báo giá #${q.id}',
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textDark)),
-                      Text(dateFmt.format(q.createdAt),
-                          style: const TextStyle(
-                              fontSize: 11, color: AppColors.textGray)),
+                      Text(
+                        'B�o gi� #${q.id}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      Text(
+                        dateFmt.format(q.createdAt),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textGray,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: _statusBg,
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(_statusLabel,
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: _statusColor)),
+                  child: Text(
+                    _statusLabel,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: _statusColor,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -318,63 +367,64 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 // Customer info
                 _InfoRow(
                   icon: Icons.person_outline,
-                  label: 'Khách hàng',
+                  label: 'Kh�ch h�ng',
                   value: q.customerName ?? 'KH #${q.customerId}',
                 ),
                 if (q.customerPhone != null)
                   _InfoRow(
                     icon: Icons.phone_outlined,
-                    label: 'Điện thoại',
+                    label: '�i?n tho?i',
                     value: q.customerPhone!,
                     valueColor: AppColors.infoBlue,
                   ),
                 if (q.vehicleModel != null)
                   _InfoRow(
                     icon: Icons.local_shipping_outlined,
-                    label: 'Loại xe',
+                    label: 'Lo?i xe',
                     value: q.vehicleModel!,
                   ),
                 if (q.productName != null)
                   _InfoRow(
                     icon: Icons.inventory_2_outlined,
-                    label: 'Sản phẩm',
+                    label: 'S?n ph?m',
                     value: q.productName!,
                   ),
                 if (q.boxType != null)
                   _InfoRow(
                     icon: Icons.category_outlined,
-                    label: 'Loại thùng',
-                    value: '${q.boxType}${q.boxCode != null ? ' (${q.boxCode})' : ''}',
+                    label: 'Lo?i th�ng',
+                    value:
+                        '${q.boxType}${q.boxCode != null ? ' (${q.boxCode})' : ''}',
                   ),
                 if (q.chassisWidth != null)
                   _InfoRow(
                     icon: Icons.straighten_outlined,
-                    label: 'Chiều rộng',
+                    label: 'Chi?u r?ng',
                     value: '${q.chassisWidth} mm',
                   ),
                 if (q.weightRange != null)
                   _InfoRow(
                     icon: Icons.scale_outlined,
-                    label: 'Tải trọng',
+                    label: 'T?i tr?ng',
                     value: q.weightRange!,
                   ),
                 if (q.quantity != null && q.quantity! > 1)
                   _InfoRow(
                     icon: Icons.format_list_numbered,
-                    label: 'Số lượng',
+                    label: 'S? lu?ng',
                     value: '${q.quantity} xe',
                   ),
                 if (q.note != null && q.note!.isNotEmpty)
                   _InfoRow(
                     icon: Icons.notes_outlined,
-                    label: 'Ghi chú',
+                    label: 'Ghi ch�',
                     value: q.note!,
                   ),
                 if (q.quotedPrice != null)
                   _InfoRow(
                     icon: Icons.price_check,
-                    label: 'Báo giá',
-                    value: '${currFmt.format(q.quotedPrice!)} ₫',
+                    label: 'B�o gi�',
+                    value: '${currFmt.format(q.quotedPrice!)} ?',
                     valueColor: AppColors.successGreen,
                     bold: true,
                   ),
@@ -397,27 +447,37 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                       child: _loading
                           ? const Center(
                               child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2)))
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            )
                           : OutlinedButton.icon(
                               onPressed: () => _markContacted(context, ref),
                               icon: const Icon(Icons.phone_callback, size: 16),
-                              label: const Text('Đã liên hệ KH',
-                                  style: TextStyle(fontSize: 13)),
+                              label: const Text(
+                                'Nh?n & li�n h?',
+                                style: TextStyle(fontSize: 13),
+                              ),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppColors.successGreen,
-                                side: const BorderSide(color: AppColors.successGreen),
+                                side: const BorderSide(
+                                  color: AppColors.successGreen,
+                                ),
                               ),
                             ),
                     ),
                   if (!q.isContacted) const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () => _showQuoteDialog(context, ref),
-                      icon: const Icon(Icons.send, size: 16),
-                      label: const Text('Gửi báo giá',
-                          style: TextStyle(fontSize: 13)),
+                      onPressed: () => _showConfirmOrderDialog(context, ref),
+                      icon: const Icon(Icons.fact_check, size: 16),
+                      label: const Text(
+                        'Ch?t & t?o don',
+                        style: TextStyle(fontSize: 13),
+                      ),
                     ),
                   ),
                 ],
@@ -438,7 +498,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Đã đánh dấu liên hệ khách hàng'),
+            content: Text('�� nh?n x? l� b�o gi�'),
             backgroundColor: AppColors.successGreen,
           ),
         );
@@ -447,7 +507,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Lỗi: $e'),
+            content: Text('L?i: $e'),
             backgroundColor: AppColors.errorRed,
           ),
         );
@@ -457,8 +517,10 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
     }
   }
 
-  void _showQuoteDialog(BuildContext context, WidgetRef ref) {
+  void _showConfirmOrderDialog(BuildContext context, WidgetRef ref) {
     final priceCtrl = TextEditingController();
+    final depositCtrl = TextEditingController();
+    final estimatedDateCtrl = TextEditingController();
     final noteCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
     final currFmt = NumberFormat('#,###', 'vi_VN');
@@ -466,7 +528,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Báo giá #${widget.quotation.id}'),
+        title: Text('Ch?t don #${widget.quotation.id}'),
         content: Form(
           key: formKey,
           child: Column(
@@ -476,14 +538,49 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 controller: priceCtrl,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Giá báo (VNĐ) *',
-                  prefixText: '₫ ',
+                  labelText: 'Gi� ch?t (VN�) *',
+                  prefixText: '? ',
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Vui lòng nhập giá';
+                  if (v == null || v.isEmpty) return 'Vui l�ng nh?p gi�';
                   final cleaned = v.replaceAll(',', '').replaceAll('.', '');
-                  if (double.tryParse(cleaned) == null) return 'Giá không hợp lệ';
+                  if (double.tryParse(cleaned) == null)
+                    return 'Gi� kh�ng h?p l?';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: depositCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Ti?n c?c (VN�)',
+                  prefixText: '? ',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return null;
+                  final cleaned = v.replaceAll(',', '').replaceAll('.', '');
+                  if (double.tryParse(cleaned) == null)
+                    return 'Ti?n c?c kh�ng h?p l?';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: estimatedDateCtrl,
+                keyboardType: TextInputType.datetime,
+                decoration: const InputDecoration(
+                  labelText: 'Ng�y d? ki?n ho�n th�nh',
+                  hintText: 'yyyy-mm-dd',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return null;
+                  if (DateTime.tryParse(v.trim()) == null) {
+                    return 'Ng�y kh�ng h?p l?';
+                  }
                   return null;
                 },
               ),
@@ -492,7 +589,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 controller: noteCtrl,
                 maxLines: 3,
                 decoration: const InputDecoration(
-                  hintText: 'Ghi chú báo giá (tùy chọn)',
+                  hintText: 'Ghi ch� th?a thu?n (t�y ch?n)',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -502,27 +599,40 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Hủy'),
+            child: const Text('H?y'),
           ),
           ElevatedButton(
             onPressed: () async {
               if (!formKey.currentState!.validate()) return;
-              final cleaned = priceCtrl.text.replaceAll(',', '').replaceAll('.', '');
+              final cleaned = priceCtrl.text
+                  .replaceAll(',', '')
+                  .replaceAll('.', '');
               final price = double.parse(cleaned);
+              final depositText = depositCtrl.text
+                  .replaceAll(',', '')
+                  .replaceAll('.', '')
+                  .trim();
+              final deposit = depositText.isEmpty
+                  ? null
+                  : double.parse(depositText);
+              final estimatedDate = estimatedDateCtrl.text.trim().isEmpty
+                  ? null
+                  : DateTime.parse(estimatedDateCtrl.text.trim());
               Navigator.pop(ctx);
               try {
                 await ref
                     .read(staffActionsProvider.notifier)
-                    .approveQuotation(
-                  widget.quotation.id.toString(),
-                  price,
-                  noteCtrl.text.isEmpty ? null : noteCtrl.text,
-                );
+                    .confirmQuotationOrder(
+                      widget.quotation.id.toString(),
+                      price,
+                      deposit,
+                      estimatedDate,
+                      noteCtrl.text.isEmpty ? null : noteCtrl.text,
+                    );
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                          'Đã gửi báo giá ${currFmt.format(price)} ₫ cho KH'),
+                      content: Text('�� ch?t don ${currFmt.format(price)} ?'),
                       backgroundColor: AppColors.successGreen,
                     ),
                   );
@@ -531,13 +641,14 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text('Lỗi: $e'),
-                        backgroundColor: AppColors.errorRed),
+                      content: Text('L?i: $e'),
+                      backgroundColor: AppColors.errorRed,
+                    ),
                   );
                 }
               }
             },
-            child: const Text('Gửi báo giá'),
+            child: const Text('Ch?t don'),
           ),
         ],
       ),
@@ -545,7 +656,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
   }
 }
 
-// ─── Contact Section ─────────────────────────────────────────────────────────
+// --- Contact Section ---------------------------------------------------------
 
 class _ContactSection extends StatelessWidget {
   final StaffQuotationResponse quotation;
@@ -562,19 +673,26 @@ class _ContactSection extends StatelessWidget {
           color: AppColors.warningAmber.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-              color: AppColors.warningAmber.withValues(alpha: 0.3)),
+            color: AppColors.warningAmber.withValues(alpha: 0.3),
+          ),
         ),
         child: Row(
           children: const [
-            Icon(Icons.warning_amber_rounded,
-                size: 16, color: AppColors.warningAmber),
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 16,
+              color: AppColors.warningAmber,
+            ),
             SizedBox(width: 6),
             Expanded(
-              child: Text('Chưa có nhân viên liên hệ khách hàng',
-                  style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.warningAmber,
-                      fontWeight: FontWeight.w500)),
+              child: Text(
+                'Chua c� nh�n vi�n nh?n x? l�',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.warningAmber,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),
@@ -589,21 +707,26 @@ class _ContactSection extends StatelessWidget {
         color: AppColors.successGreen.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-            color: AppColors.successGreen.withValues(alpha: 0.3)),
+          color: AppColors.successGreen.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
-          const Icon(Icons.check_circle_outline,
-              size: 16, color: AppColors.successGreen),
+          const Icon(
+            Icons.check_circle_outline,
+            size: 16,
+            color: AppColors.successGreen,
+          ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              '${quotation.contactedByName ?? 'Nhân viên'} đã liên hệ'
-              '${quotation.contactedAt != null ? ' • ${dateFmt.format(quotation.contactedAt!)}' : ''}',
+              '${quotation.contactedByName ?? 'Nh�n vi�n'} d� li�n h?'
+              '${quotation.contactedAt != null ? ' � ${dateFmt.format(quotation.contactedAt!)}' : ''}',
               style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.successGreen,
-                  fontWeight: FontWeight.w500),
+                fontSize: 12,
+                color: AppColors.successGreen,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -612,7 +735,7 @@ class _ContactSection extends StatelessWidget {
   }
 }
 
-// ─── Info Row ────────────────────────────────────────────────────────────────
+// --- Info Row ----------------------------------------------------------------
 
 class _InfoRow extends StatelessWidget {
   final IconData icon;
@@ -640,17 +763,20 @@ class _InfoRow extends StatelessWidget {
           const SizedBox(width: 6),
           SizedBox(
             width: 80,
-            child: Text(label,
-                style: const TextStyle(
-                    fontSize: 12, color: AppColors.textGray)),
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: AppColors.textGray),
+            ),
           ),
           Expanded(
-            child: Text(value,
-                style: TextStyle(
-                    fontSize: 12,
-                    color: valueColor ?? AppColors.textDark,
-                    fontWeight:
-                        bold ? FontWeight.w700 : FontWeight.w500)),
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 12,
+                color: valueColor ?? AppColors.textDark,
+                fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),

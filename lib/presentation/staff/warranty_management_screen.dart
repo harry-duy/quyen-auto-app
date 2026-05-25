@@ -17,7 +17,7 @@ class WarrantyManagementScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('Quản lý bảo hành')),
+      appBar: AppBar(title: const Text('Qu?n l� b?o h�nh')),
       body: warrantyAsync.when(
         data: (requests) {
           if (requests.isEmpty) {
@@ -28,7 +28,7 @@ class WarrantyManagementScreen extends ConsumerWidget {
                   Icon(Icons.verified_user_outlined,
                       color: AppColors.successGreen, size: 48),
                   SizedBox(height: 8),
-                  Text('Không có yêu cầu bảo hành',
+                  Text('Kh�ng c� y�u c?u b?o h�nh',
                       style:
                           TextStyle(color: AppColors.textGray, fontSize: 14)),
                 ],
@@ -73,11 +73,11 @@ class _WarrantyCard extends ConsumerWidget {
     final dateFmt = DateFormat('dd/MM/yyyy');
 
     final (statusLabel, statusColor) = switch (warranty.status.toUpperCase()) {
-      'PENDING' => ('Chờ xử lý', AppColors.warningAmber),
-      'IN_PROGRESS' => ('Đang xử lý', AppColors.infoBlue),
-      'RESOLVED' => ('Đã xử lý', AppColors.successGreen),
-      'REJECTED' => ('Từ chối', AppColors.errorRed),
-      _ => ('Không rõ', AppColors.textGray),
+      'PENDING' => ('Ch? x? l�', AppColors.warningAmber),
+      'IN_PROGRESS' => ('�ang x? l�', AppColors.infoBlue),
+      'RESOLVED' => ('�� x? l�', AppColors.successGreen),
+      'REJECTED' => ('T? ch?i', AppColors.errorRed),
+      _ => ('Kh�ng r�', AppColors.textGray),
     };
 
     return Container(
@@ -136,11 +136,11 @@ class _WarrantyCard extends ConsumerWidget {
           const SizedBox(height: 12),
 
           // Details
-          _DetailRow(label: 'Biển số', value: warranty.plateNumber),
-          _DetailRow(label: 'Số khung', value: warranty.chassisNumber),
-          _DetailRow(label: 'Mô tả', value: warranty.issueDescription),
+          _DetailRow(label: 'Bi?n s?', value: warranty.plateNumber),
+          _DetailRow(label: 'S? khung', value: warranty.chassisNumber),
+          _DetailRow(label: 'M� t?', value: warranty.issueDescription),
           if (warranty.scheduledDate != null)
-            _DetailRow(label: 'Lịch hẹn', value: warranty.scheduledDate!),
+            _DetailRow(label: 'L?ch h?n', value: warranty.scheduledDate!),
           const SizedBox(height: 12),
 
           // Actions
@@ -150,7 +150,7 @@ class _WarrantyCard extends ConsumerWidget {
                 onPressed: () =>
                     _showAssignDialog(context, ref),
                 icon: const Icon(Icons.person_add, size: 16),
-                label: const Text('Phân công'),
+                label: const Text('Ph�n c�ng'),
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(0, 40),
                 ),
@@ -162,7 +162,7 @@ class _WarrantyCard extends ConsumerWidget {
                 onPressed: () =>
                     _showResultDialog(context, ref),
                 icon: const Icon(Icons.check, size: 16),
-                label: const Text('Kết quả'),
+                label: const Text('K?t qu?'),
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(0, 40),
                 ),
@@ -175,7 +175,7 @@ class _WarrantyCard extends ConsumerWidget {
             const SizedBox(height: 12),
             const Divider(),
             const SizedBox(height: 8),
-            const Text('Lịch sử xử lý',
+            const Text('L?ch s? x? l�',
                 style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -189,7 +189,7 @@ class _WarrantyCard extends ConsumerWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${log.action}${log.note != null ? " — ${log.note}" : ""}',
+                        '${log.action}${log.note != null ? " � ${log.note}" : ""}',
                         style: const TextStyle(
                             fontSize: 11, color: AppColors.textGray),
                       ),
@@ -215,7 +215,7 @@ class _WarrantyCard extends ConsumerWidget {
         builder: (ctx, setState) {
           final staffAsync = ref.watch(staffMemberListProvider);
           return AlertDialog(
-            title: Text('Phân công — BH #${warranty.id}'),
+            title: Text('Ph�n c�ng � BH #${warranty.id}'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -223,7 +223,7 @@ class _WarrantyCard extends ConsumerWidget {
                   data: (staff) => DropdownButtonFormField<User>(
                     initialValue: selectedTechnician,
                     decoration: const InputDecoration(
-                      labelText: 'Kỹ thuật viên',
+                      labelText: 'K? thu?t vi�n',
                       border: OutlineInputBorder(),
                     ),
                     items: staff
@@ -236,7 +236,7 @@ class _WarrantyCard extends ConsumerWidget {
                     onChanged: (v) => setState(() => selectedTechnician = v),
                   ),
                   loading: () => const CircularProgressIndicator(),
-                  error: (_, _) => const Text('Không tải được danh sách'),
+                  error: (_, _) => const Text('Kh�ng t?i du?c danh s�ch'),
                 ),
                 const SizedBox(height: 12),
                 // Date picker row
@@ -270,7 +270,7 @@ class _WarrantyCard extends ConsumerWidget {
                       Expanded(
                         child: Text(
                           scheduledDate == null
-                              ? 'Chọn ngày hẹn (tuỳ chọn)'
+                              ? 'Ch?n ng�y h?n (tu? ch?n)'
                               : '${scheduledDate!.day.toString().padLeft(2, '0')}/'
                                   '${scheduledDate!.month.toString().padLeft(2, '0')}/'
                                   '${scheduledDate!.year}',
@@ -297,7 +297,7 @@ class _WarrantyCard extends ConsumerWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Hủy'),
+                child: const Text('H?y'),
               ),
               ElevatedButton(
                 onPressed: selectedTechnician == null
@@ -320,20 +320,20 @@ class _WarrantyCard extends ConsumerWidget {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                  content: Text('Đã phân công kỹ thuật viên')),
+                                  content: Text('�� ph�n c�ng k? thu?t vi�n')),
                             );
                           }
                         } catch (e) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                  content: Text('Lỗi: $e'),
+                                  content: Text('L?i: $e'),
                                   backgroundColor: AppColors.errorRed),
                             );
                           }
                         }
                       },
-                child: const Text('Xác nhận'),
+                child: const Text('X�c nh?n'),
               ),
             ],
           );
@@ -351,24 +351,24 @@ class _WarrantyCard extends ConsumerWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          title: Text('Kết quả — BH #${warranty.id}'),
+          title: Text('K?t qu? � BH #${warranty.id}'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
                 initialValue: selectedStatus,
                 decoration: const InputDecoration(
-                  labelText: 'Trạng thái',
+                  labelText: 'Tr?ng th�i',
                   border: OutlineInputBorder(),
                 ),
                 items: const [
                   DropdownMenuItem<String>(
-                      value: 'RESOLVED', child: Text('Đã xử lý xong')),
+                      value: 'RESOLVED', child: Text('�� x? l� xong')),
                   DropdownMenuItem<String>(
-                      value: 'REJECTED', child: Text('Từ chối bảo hành')),
+                      value: 'REJECTED', child: Text('T? ch?i b?o h�nh')),
                   DropdownMenuItem<String>(
                       value: 'IN_PROGRESS',
-                      child: Text('Đang tiếp tục xử lý')),
+                      child: Text('�ang ti?p t?c x? l�')),
                 ],
                 onChanged: (v) => setState(() => selectedStatus = v),
               ),
@@ -376,7 +376,7 @@ class _WarrantyCard extends ConsumerWidget {
               TextField(
                 controller: resultController,
                 decoration: const InputDecoration(
-                  labelText: 'Kết quả xử lý',
+                  labelText: 'K?t qu? x? l�',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -385,7 +385,7 @@ class _WarrantyCard extends ConsumerWidget {
                 controller: noteController,
                 maxLines: 2,
                 decoration: const InputDecoration(
-                  hintText: 'Ghi chú thêm (tuỳ chọn)',
+                  hintText: 'Ghi ch� th�m (tu? ch?n)',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -394,7 +394,7 @@ class _WarrantyCard extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Hủy'),
+              child: const Text('H?y'),
             ),
             ElevatedButton(
               onPressed: selectedStatus == null
@@ -416,20 +416,20 @@ class _WarrantyCard extends ConsumerWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                                 content:
-                                    Text('Đã cập nhật kết quả bảo hành')),
+                                    Text('�� c?p nh?t k?t qu? b?o h�nh')),
                           );
                         }
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                                content: Text('Lỗi: $e'),
+                                content: Text('L?i: $e'),
                                 backgroundColor: AppColors.errorRed),
                           );
                         }
                       }
                     },
-              child: const Text('Cập nhật'),
+              child: const Text('C?p nh?t'),
             ),
           ],
         ),
