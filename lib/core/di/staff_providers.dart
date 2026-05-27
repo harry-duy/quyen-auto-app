@@ -134,6 +134,19 @@ final staffLeadsProvider = FutureProvider.autoDispose<List<LeadResponse>>((
   return res.data ?? [];
 });
 
+// ─── Manager: BG chờ duyệt ───────────────────────────────────────────────────
+
+final managerPendingApprovalProvider =
+    FutureProvider.autoDispose<List<StaffQuotationResponse>>((ref) async {
+      final api = ref.watch(apiServiceProvider);
+      final res = await api.get<List<StaffQuotationResponse>>(
+        ApiConstants.managerPendingApproval,
+        queryParams: {'page': 0, 'size': 100},
+        fromData: (json) => _parseQuotationPage(json),
+      );
+      return res.data ?? [];
+    });
+
 // ─── Dealer List ─────────────────────────────────────────────────────────────
 
 final dealerListProvider = FutureProvider.autoDispose<List<DealerResponse>>((
@@ -218,6 +231,60 @@ class StaffActionsNotifier extends Notifier<void> {
     ref.invalidate(staffQuotationListProvider);
     ref.invalidate(staffUncontactedCountProvider);
   }
+
+  // ── Flow mới: NV tạo BG → Manager duyệt → NV gửi KH ─────────────────────
+
+  Future<StaffQuotationResponse> staffCreateQuotation(
+      Map<String, dynamic> data) async {
+    final res = await _api.post(
+      ApiConstants.staffCreateQuotation,
+      data: data,
+      fromData: (json) =>
+          StaffQuotationResponse.fromJson(json as Map<String, dynamic>),
+    );
+    ref.invalidate(staffQuotationListProvider);
+    return res.data!;
+  }
+
+  Future<void> submitForApproval(String quotationId) async {
+    await _api.patch(
+      ApiConstants.resolve(
+          ApiConstants.staffSubmitApproval, {'id': quotationId}),
+    );
+    ref.invalidate(staffQuotationListProvider);
+    ref.invalidate(staffUncontactedCountProvider);
+  }
+
+  Future<void> sendQuotationToCustomer(String quotationId) async {
+    await _api.patch(
+      ApiConstants.resolve(
+          ApiConstants.staffSendQuotation, {'id': quotationId}),
+    );
+    ref.invalidate(staffQuotationListProvider);
+  }
+
+  Future<void> managerApproveQuotation(
+      String quotationId, String? note) async {
+    await _api.patch(
+      ApiConstants.resolve(
+          ApiConstants.managerApproveQuotation, {'id': quotationId}),
+      data: {'managerNote': note},
+    );
+    ref.invalidate(managerPendingApprovalProvider);
+    ref.invalidate(staffQuotationListProvider);
+  }
+
+  Future<void> managerRejectQuotation(String quotationId, String? note) async {
+    await _api.patch(
+      ApiConstants.resolve(
+          ApiConstants.managerRejectQuotation, {'id': quotationId}),
+      data: {'managerNote': note},
+    );
+    ref.invalidate(managerPendingApprovalProvider);
+    ref.invalidate(staffQuotationListProvider);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
 
   Future<void> markLeadContacted(String leadId) async {
     await _api.put(

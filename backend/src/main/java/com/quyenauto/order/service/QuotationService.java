@@ -206,6 +206,211 @@ public class QuotationService {
         return OrderResponse.from(saved);
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Flow mới: NV tạo BG → Manager duyệt → NV gửi KH
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * NV tạo báo giá cho khách hàng (flow mới).
+     * BG tạo ra ở trạng thái DRAFT.
+     */
+    @Transactional
+    public QuotationResponse staffCreateQuotation(Long staffId, StaffCreateQuotationRequest request) {
+        User staff = userRepository.findById(staffId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"));
+
+        User customer = userRepository.findById(request.getCustomerId())
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy khách hàng"));
+
+        Product product = null;
+        Boolean isNewProduct = Boolean.TRUE.equals(request.getIsNewProductRequest());
+
+        if (!isNewProduct) {
+            if (request.getProductId() == null) {
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "Vui lòng chọn sản phẩm hoặc chọn 'Sản phẩm mới'");
+            }
+            product = productRepository.findById(request.getProductId())
+                    .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
+        } else if (request.getNewProductDescription() == null || request.getNewProductDescription().isBlank()) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Vui lòng mô tả yêu cầu sản phẩm mới");
+        }
+
+        Quotation quotation = Quotation.builder()
+                .customer(customer)
+                .product(product)
+                .staff(staff)
+                .vehicleModel(request.getVehicleModel())
+                .quantity(request.getQuantity() != null ? request.getQuantity() : 1)
+                .chassisWidth(request.getChassisWidth())
+                .boxCode(request.getBoxCode())
+                .boxType(request.getBoxType())
+                .acType(request.getAcType())
+                .acModel(request.getAcModel())
+                .innerWallInsulated(request.getInnerWallInsulated())
+                .specifications(request.getSpecifications())
+                .weightRange(request.getWeightRange())
+                .cargoType(request.getCargoType())
+                .note(request.getNote())
+                .isStaffCreated(true)
+                .isNewProductRequest(isNewProduct)
+                .newProductDescription(request.getNewProductDescription())
+                .status(Quotation.QuotationStatus.DRAFT)
+                .build();
+
+        return QuotationResponse.from(quotationRepository.save(quotation));
+    }
+
+    /**
+     * NV gửi BG chờ Manager duyệt.
+     * DRAFT → PENDING_APPROVAL
+     */
+    @Transactional
+    public QuotationResponse submitForApproval(Long id, Long staffId) {
+        Quotation quotation = findById(id);
+
+        if (!Boolean.TRUE.equals(quotation.getIsStaffCreated())) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ áp dụng cho báo giá do NV tạo");
+        }
+        if (quotation.getStaff() == null || !quotation.getStaff().getId().equals(staffId)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thao tác báo giá này");
+        }
+        if (quotation.getStatus() != Quotation.QuotationStatus.DRAFT) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể gửi duyệt báo giá đang ở trạng thái DRAFT");
+        }
+
+        quotation.setStatus(Quotation.QuotationStatus.PENDING_APPROVAL);
+        Quotation saved = quotationRepository.save(quotation);
+
+        // Thông báo đến Manager
+        notificationService.notifyAllManagers(
+                "Báo giá chờ duyệt",
+                (quotation.getStaff().getFullName()) + " đã gửi báo giá #" + id + " cho KH " + quotation.getCustomer().getFullName(),
+                "QUOTATION_APPROVAL_REQUEST",
+                id.toString()
+        );
+
+        return QuotationResponse.from(saved);
+    }
+
+    /**
+     * Manager duyệt báo giá.
+     * PENDING_APPROVAL → APPROVED
+     */
+    @Transactional
+    public QuotationResponse managerApproveQuotation(Long id, Long managerId, ManagerApprovalRequest request) {
+        Quotation quotation = findById(id);
+
+        if (quotation.getStatus() != Quotation.QuotationStatus.PENDING_APPROVAL) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể duyệt báo giá đang chờ xác nhận");
+        }
+
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy manager"));
+
+        quotation.setApprovedBy(manager);
+        quotation.setApprovedAt(LocalDateTime.now());
+        quotation.setStaffNote(request.getManagerNote());
+        quotation.setStatus(Quotation.QuotationStatus.APPROVED);
+        Quotation saved = quotationRepository.save(quotation);
+
+        // Thông báo NV
+        if (quotation.getStaff() != null) {
+            notificationService.createNotification(
+                    quotation.getStaff().getId(),
+                    "Báo giá đã được duyệt",
+                    "Manager đã duyệt báo giá #" + id + " cho KH " + quotation.getCustomer().getFullName(),
+                    "QUOTATION_APPROVED",
+                    id.toString()
+            );
+        }
+
+        return QuotationResponse.from(saved);
+    }
+
+    /**
+     * Manager từ chối báo giá.
+     * PENDING_APPROVAL → REJECTED
+     */
+    @Transactional
+    public QuotationResponse managerRejectQuotation(Long id, Long managerId, ManagerApprovalRequest request) {
+        Quotation quotation = findById(id);
+
+        if (quotation.getStatus() != Quotation.QuotationStatus.PENDING_APPROVAL) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể từ chối báo giá đang chờ xác nhận");
+        }
+
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy manager"));
+
+        quotation.setApprovedBy(manager);
+        quotation.setApprovedAt(LocalDateTime.now());
+        quotation.setStaffNote(request.getManagerNote());
+        quotation.setStatus(Quotation.QuotationStatus.REJECTED);
+        Quotation saved = quotationRepository.save(quotation);
+
+        // Thông báo NV
+        if (quotation.getStaff() != null) {
+            notificationService.createNotification(
+                    quotation.getStaff().getId(),
+                    "Báo giá bị từ chối",
+                    "Manager từ chối báo giá #" + id
+                            + (request.getManagerNote() != null ? ": " + request.getManagerNote() : ""),
+                    "QUOTATION_REJECTED",
+                    id.toString()
+            );
+        }
+
+        return QuotationResponse.from(saved);
+    }
+
+    /**
+     * NV đánh dấu đã gửi BG cho KH.
+     * APPROVED → SENT
+     */
+    @Transactional
+    public QuotationResponse staffSendToCustomer(Long id, Long staffId) {
+        Quotation quotation = findById(id);
+
+        if (quotation.getStatus() != Quotation.QuotationStatus.APPROVED) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể gửi báo giá đã được Manager duyệt");
+        }
+        if (quotation.getStaff() == null || !quotation.getStaff().getId().equals(staffId)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thao tác báo giá này");
+        }
+
+        quotation.setSentAt(LocalDateTime.now());
+        quotation.setStatus(Quotation.QuotationStatus.SENT);
+
+        // Thông báo KH
+        notificationService.createNotification(
+                quotation.getCustomer().getId(),
+                "Báo giá đã được gửi",
+                "Nhân viên Quyen Auto đã gửi báo giá cho bạn. Vui lòng kiểm tra.",
+                "QUOTATION_SENT",
+                id.toString()
+        );
+
+        return QuotationResponse.from(quotationRepository.save(quotation));
+    }
+
+    /** DS BG chờ Manager duyệt */
+    public Page<QuotationResponse> getPendingApproval(Pageable pageable) {
+        return quotationRepository.findByStatusOrderByCreatedAtDesc(
+                Quotation.QuotationStatus.PENDING_APPROVAL, pageable
+        ).map(QuotationResponse::from);
+    }
+
+    /** DS BG do NV tạo — có filter status */
+    public Page<QuotationResponse> getStaffCreatedQuotations(String status, Pageable pageable) {
+        if (status != null) {
+            Quotation.QuotationStatus qs = Quotation.QuotationStatus.valueOf(status.toUpperCase());
+            return quotationRepository.findStaffCreatedByStatus(qs, pageable).map(QuotationResponse::from);
+        }
+        return quotationRepository.findStaffCreatedByStatus(null, pageable).map(QuotationResponse::from);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     private Quotation findById(Long id) {
         return quotationRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy yêu cầu báo giá"));

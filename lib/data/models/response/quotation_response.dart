@@ -28,9 +28,26 @@ class StaffQuotationResponse {
   final DateTime createdAt;
   final DateTime? updatedAt;
 
+  // ── Staff-created flow ─────────────────────────────────────────────────
+  final bool? isStaffCreated;
+  final bool? isNewProductRequest;
+  final String? newProductDescription;
+  final int? approvedById;
+  final String? approvedByName;
+  final DateTime? approvedAt;
+  final DateTime? sentAt;
+
   bool get isContacted => contactedAt != null;
   bool get isPending => status == 'PENDING';
   bool get isQuoted => status == 'QUOTED';
+
+  // ── Flow mới ───────────────────────────────────────────────────────────
+  bool get isDraft => status == 'DRAFT';
+  bool get isPendingApproval => status == 'PENDING_APPROVAL';
+  bool get isApproved => status == 'APPROVED';
+  bool get isSent => status == 'SENT';
+  bool get isAccepted => status == 'ACCEPTED';
+  bool get isRejected => status == 'REJECTED';
 
   const StaffQuotationResponse({
     required this.id,
@@ -59,6 +76,13 @@ class StaffQuotationResponse {
     this.contactedById,
     this.contactedByName,
     this.contactedAt,
+    this.isStaffCreated,
+    this.isNewProductRequest,
+    this.newProductDescription,
+    this.approvedById,
+    this.approvedByName,
+    this.approvedAt,
+    this.sentAt,
     required this.createdAt,
     this.updatedAt,
   });
@@ -93,6 +117,17 @@ class StaffQuotationResponse {
       contactedAt: json['contactedAt'] == null
           ? null
           : DateTime.parse(json['contactedAt'] as String),
+      isStaffCreated: json['isStaffCreated'] as bool?,
+      isNewProductRequest: json['isNewProductRequest'] as bool?,
+      newProductDescription: json['newProductDescription'] as String?,
+      approvedById: json['approvedById'] as int?,
+      approvedByName: json['approvedByName'] as String?,
+      approvedAt: json['approvedAt'] == null
+          ? null
+          : DateTime.parse(json['approvedAt'] as String),
+      sentAt: json['sentAt'] == null
+          ? null
+          : DateTime.parse(json['sentAt'] as String),
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: json['updatedAt'] == null
           ? null

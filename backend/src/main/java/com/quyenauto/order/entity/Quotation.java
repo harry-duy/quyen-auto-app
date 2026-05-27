@@ -84,7 +84,38 @@ public class Quotation extends BaseEntity {
     @Column(name = "contacted_at")
     private LocalDateTime contactedAt;
 
+    // ── Staff-created quotation flow ──────────────────────────────────────────
+
+    /** true = NV tạo BG (flow mới); false = KH tự gửi yêu cầu (flow cũ) */
+    @Builder.Default
+    @Column(name = "is_staff_created")
+    private Boolean isStaffCreated = false;
+
+    /** Khi NV chọn "Sản phẩm mới" thay vì chọn SP có sẵn */
+    @Builder.Default
+    @Column(name = "is_new_product_request")
+    private Boolean isNewProductRequest = false;
+
+    /** Mô tả dự án khi is_new_product_request = true */
+    @Column(name = "new_product_description", columnDefinition = "TEXT")
+    private String newProductDescription;
+
+    /** Manager đã duyệt BG */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
+
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
+    /** Thời điểm NV gửi BG cho KH */
+    @Column(name = "sent_at")
+    private LocalDateTime sentAt;
+
     public enum QuotationStatus {
-        PENDING, QUOTED, ACCEPTED, REJECTED, EXPIRED
+        // ── Flow cũ (KH tự gửi) ──
+        PENDING, QUOTED, ACCEPTED, REJECTED, EXPIRED,
+        // ── Flow mới (NV tạo) ────
+        DRAFT, PENDING_APPROVAL, APPROVED, SENT
     }
 }
