@@ -39,6 +39,10 @@ public class OrderService {
         return orderRepository.findAll(pageable).map(OrderResponse::from);
     }
 
+    public Page<OrderResponse> getByCustomerPhone(String phone, Pageable pageable) {
+        return orderRepository.findByCustomerPhoneContaining(phone.trim(), pageable).map(OrderResponse::from);
+    }
+
     public OrderResponse getById(Long id) {
         return OrderResponse.from(findById(id));
     }

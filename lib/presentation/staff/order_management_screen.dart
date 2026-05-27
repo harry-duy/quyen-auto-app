@@ -8,102 +8,174 @@ import '../../core/di/staff_providers.dart';
 import '../../core/router/staff_router.dart';
 import '../../domain/entities/order.dart';
 
-class OrderManagementScreen extends ConsumerWidget {
+class OrderManagementScreen extends ConsumerStatefulWidget {
   const OrderManagementScreen({super.key});
 
-  static const _statusFilters = <String?>[
-    null,
-    'PENDING',
-    'CONFIRMED',
-    'IN_PRODUCTION',
-    'COMPLETED',
-    'CANCELLED',
-  ];
+  @override
+  ConsumerState<OrderManagementScreen> createState() =>
+      _OrderManagementScreenState();
+}
 
+class _OrderManagementScreenState
+    extends ConsumerState<OrderManagementScreen> {
+  final _phoneCtrl = TextEditingController();
+
+  static const _statusFilters = <String?>[
+    null, 'PENDING', 'CONFIRMED', 'IN_PRODUCTION', 'COMPLETED', 'CANCELLED',
+  ];
   static const _statusLabels = <String>[
-    'T?t c?',
-    'Ch? x�c nh?n',
-    '�� x�c nh?n',
-    '�ang s?n xu?t',
-    'Ho�n th�nh',
-    '�� h?y',
+    'Tất cả',
+    'Chờ xác nhận',
+    'Đã xác nhận',
+    'Đang sản xuất',
+    'Hoàn thành',
+    'Đã hủy',
   ];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  void dispose() {
+    _phoneCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final currentFilter = ref.watch(staffOrderStatusFilter);
-    final ordersAsync = ref.watch(staffOrderListProvider);
+    final phoneFilter   = ref.watch(staffOrderPhoneFilter);
+    final ordersAsync   = ref.watch(staffOrderListProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('Qu?n l� don h�ng')),
+      appBar: AppBar(title: const Text('Quản lý đơn hàng')),
       body: Column(
         children: [
-          // Filter chips
+          // ── Phone search ────────────────────────────────────────────────
           Container(
             color: AppColors.surface,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                children: List.generate(_statusFilters.length, (i) {
-                  final isSelected = currentFilter == _statusFilters[i];
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: FilterChip(
-                      selected: isSelected,
-                      label: Text(_statusLabels[i]),
-                      selectedColor: AppColors.primaryOrange.withValues(
-                        alpha: 0.15,
-                      ),
-                      checkmarkColor: AppColors.primaryOrange,
-                      labelStyle: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: isSelected
-                            ? AppColors.primaryOrange
-                            : AppColors.textGray,
-                      ),
-                      onSelected: (_) =>
-                          ref.read(staffOrderStatusFilter.notifier).state =
-                              _statusFilters[i],
-                    ),
-                  );
-                }),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+            child: TextField(
+              controller: _phoneCtrl,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                hintText: 'Tra cứu đơn theo SĐT khách hàng...',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                suffixIcon: phoneFilter.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18),
+                        onPressed: () {
+                          _phoneCtrl.clear();
+                          ref.read(staffOrderPhoneFilter.notifier).state = '';
+                        },
+                      )
+                    : null,
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 10),
+                filled: true,
+                fillColor: AppColors.backgroundLight,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.borderLight),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.borderLight),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(
+                      color: AppColors.primaryOrange, width: 1.5),
+                ),
               ),
+              onChanged: (v) =>
+                  ref.read(staffOrderPhoneFilter.notifier).state = v.trim(),
             ),
           ),
+
+          // ── Status chips (hidden when phone search active) ──────────────
+          if (phoneFilter.isEmpty)
+            Container(
+              color: AppColors.surface,
+              padding: const EdgeInsets.only(bottom: 8),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: List.generate(_statusFilters.length, (i) {
+                    final isSelected = currentFilter == _statusFilters[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        selected: isSelected,
+                        label: Text(_statusLabels[i]),
+                        selectedColor: AppColors.primaryOrange
+                            .withValues(alpha: 0.15),
+                        checkmarkColor: AppColors.primaryOrange,
+                        labelStyle: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: isSelected
+                              ? AppColors.primaryOrange
+                              : AppColors.textGray,
+                        ),
+                        onSelected: (_) => ref
+                            .read(staffOrderStatusFilter.notifier)
+                            .state = _statusFilters[i],
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            )
+          else
+            // Phone filter active banner
+            Container(
+              color: AppColors.primaryOrange.withValues(alpha: 0.08),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.phone_in_talk_outlined,
+                      size: 16, color: AppColors.primaryOrange),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Hiển thị đơn của SĐT: $phoneFilter',
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.primaryOrange),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           const Divider(height: 1),
 
-          // Order list
+          // ── Order list ──────────────────────────────────────────────────
           Expanded(
             child: ordersAsync.when(
               data: (orders) {
                 if (orders.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.inbox_outlined,
-                          color: AppColors.textGray,
-                          size: 48,
-                        ),
-                        SizedBox(height: 8),
+                        const Icon(Icons.inbox_outlined,
+                            color: AppColors.textGray, size: 48),
+                        const SizedBox(height: 8),
                         Text(
-                          'Kh�ng c� don h�ng',
-                          style: TextStyle(
-                            color: AppColors.textGray,
-                            fontSize: 14,
-                          ),
+                          phoneFilter.isNotEmpty
+                              ? 'Không tìm thấy đơn hàng cho SĐT "$phoneFilter"'
+                              : 'Không có đơn hàng',
+                          style: const TextStyle(
+                              color: AppColors.textGray, fontSize: 14),
+                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
                   );
                 }
                 return RefreshIndicator(
-                  onRefresh: () async => ref.invalidate(staffOrderListProvider),
+                  onRefresh: () async =>
+                      ref.invalidate(staffOrderListProvider),
                   child: ListView.builder(
                     padding: const EdgeInsets.all(12),
                     itemCount: orders.length,
@@ -111,25 +183,22 @@ class OrderManagementScreen extends ConsumerWidget {
                   ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () =>
+                  const Center(child: CircularProgressIndicator()),
               error: (e, _) => Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: AppColors.errorRed,
-                      size: 40,
-                    ),
+                    const Icon(Icons.error_outline,
+                        color: AppColors.errorRed, size: 40),
                     const SizedBox(height: 8),
-                    Text(
-                      e.toString(),
-                      style: const TextStyle(color: AppColors.errorRed),
-                    ),
+                    Text(e.toString(),
+                        style: const TextStyle(color: AppColors.errorRed)),
                     const SizedBox(height: 12),
                     ElevatedButton(
-                      onPressed: () => ref.invalidate(staffOrderListProvider),
-                      child: const Text('Th? l?i'),
+                      onPressed: () =>
+                          ref.invalidate(staffOrderListProvider),
+                      child: const Text('Thử lại'),
                     ),
                   ],
                 ),
@@ -150,7 +219,7 @@ class _OrderCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final fmt = NumberFormat.currency(
       locale: 'vi_VN',
-      symbol: '?',
+      symbol: '₫',
       decimalDigits: 0,
     );
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
@@ -178,13 +247,9 @@ class _OrderCard extends ConsumerWidget {
           children: [
             Icon(Icons.visibility, color: Colors.white),
             SizedBox(width: 8),
-            Text(
-              'Chi ti?t',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            Text('Chi tiết',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -199,13 +264,9 @@ class _OrderCard extends ConsumerWidget {
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text(
-              'C?p nh?t',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            Text('Cập nhật',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w600)),
             SizedBox(width: 8),
             Icon(Icons.edit, color: Colors.white),
           ],
@@ -230,10 +291,9 @@ class _OrderCard extends ConsumerWidget {
                     child: Text(
                       order.orderCode,
                       style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textDark,
-                      ),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark),
                     ),
                   ),
                   _StatusChip(status: order.status),
@@ -242,10 +302,35 @@ class _OrderCard extends ConsumerWidget {
               const SizedBox(height: 8),
               Text(
                 order.productName,
-                style: const TextStyle(fontSize: 13, color: AppColors.textDark),
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textDark),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
+              if (order.customerName != null ||
+                  order.customerPhone != null) ...[
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.person_outline,
+                        size: 13, color: AppColors.textGray),
+                    const SizedBox(width: 4),
+                    if (order.customerName != null)
+                      Text(order.customerName!,
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textGray)),
+                    if (order.customerPhone != null) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.phone_outlined,
+                          size: 13, color: AppColors.textGray),
+                      const SizedBox(width: 4),
+                      Text(order.customerPhone!,
+                          style: const TextStyle(
+                              fontSize: 12, color: AppColors.textGray)),
+                    ],
+                  ],
+                ),
+              ],
               const SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -253,29 +338,25 @@ class _OrderCard extends ConsumerWidget {
                   Text(
                     fmt.format(order.totalAmount),
                     style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primaryOrange,
-                    ),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryOrange),
                   ),
                   Text(
                     dateFmt.format(order.createdAt),
                     style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textGray,
-                    ),
+                        fontSize: 11, color: AppColors.textGray),
                   ),
                 ],
               ),
               if (order.note != null) ...[
                 const SizedBox(height: 6),
                 Text(
-                  'Ghi ch�: ${order.note}',
+                  'Ghi chú: ${order.note}',
                   style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textGray,
-                    fontStyle: FontStyle.italic,
-                  ),
+                      fontSize: 12,
+                      color: AppColors.textGray,
+                      fontStyle: FontStyle.italic),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -296,27 +377,27 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, fg, bg) = switch (status) {
       OrderStatus.pending => (
-        'Ch? x�c nh?n',
+        'Chờ xác nhận',
         AppColors.statusPending,
         AppColors.statusPendingBg,
       ),
       OrderStatus.confirmed => (
-        '�� x�c nh?n',
+        'Đã xác nhận',
         AppColors.statusQuoted,
         AppColors.statusQuotedBg,
       ),
       OrderStatus.inProduction => (
-        '�ang SX',
+        'Đang SX',
         AppColors.statusInProduction,
         AppColors.statusInProductionBg,
       ),
       OrderStatus.completed => (
-        'Ho�n th�nh',
+        'Hoàn thành',
         AppColors.statusCompleted,
         AppColors.statusCompletedBg,
       ),
       OrderStatus.cancelled => (
-        '�� h?y',
+        'Đã hủy',
         AppColors.errorRed,
         AppColors.errorRed.withValues(alpha: 0.1),
       ),
@@ -330,15 +411,17 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: fg),
+        style: TextStyle(
+            fontSize: 11, fontWeight: FontWeight.w600, color: fg),
       ),
     );
   }
 }
 
-// --- Status Update BottomSheet -----------------------------------------------
+// ─── Status Update BottomSheet ────────────────────────────────────────────────
 
-void _showStatusUpdateSheet(BuildContext context, WidgetRef ref, Order order) {
+void _showStatusUpdateSheet(
+    BuildContext context, WidgetRef ref, Order order) {
   final noteController = TextEditingController();
   String? selectedStatus;
 
@@ -353,14 +436,14 @@ void _showStatusUpdateSheet(BuildContext context, WidgetRef ref, Order order) {
     'CANCELLED',
   ];
   final statusLabels = {
-    'RECEIVED': 'Ti?p nh?n y�u c?u',
-    'INFO_CONFIRMED': 'X�c nh?n th�ng tin',
-    'QUOTED_DEPOSITED': 'B�o gi� & d?t c?c',
-    'ORDER_CONFIRMED': 'X�c nh?n don h�ng',
-    'PRODUCTION_STARTED': 'B?t d?u s?n xu?t',
-    'QUALITY_CHECKING': 'Ki?m tra ch?t lu?ng',
-    'COMPLETED': 'Ho�n th�nh',
-    'CANCELLED': '�� h?y',
+    'RECEIVED': 'Tiếp nhận yêu cầu',
+    'INFO_CONFIRMED': 'Xác nhận thông tin',
+    'QUOTED_DEPOSITED': 'Báo giá & đặt cọc',
+    'ORDER_CONFIRMED': 'Xác nhận đơn hàng',
+    'PRODUCTION_STARTED': 'Bắt đầu sản xuất',
+    'QUALITY_CHECKING': 'Kiểm tra chất lượng',
+    'COMPLETED': 'Hoàn thành',
+    'CANCELLED': 'Đã hủy',
   };
 
   showModalBottomSheet(
@@ -372,10 +455,7 @@ void _showStatusUpdateSheet(BuildContext context, WidgetRef ref, Order order) {
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setState) => Padding(
         padding: EdgeInsets.fromLTRB(
-          16,
-          16,
-          16,
-          MediaQuery.of(ctx).viewInsets.bottom + 16,
+          16, 16, 16, MediaQuery.of(ctx).viewInsets.bottom + 16,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -393,12 +473,11 @@ void _showStatusUpdateSheet(BuildContext context, WidgetRef ref, Order order) {
             ),
             const SizedBox(height: 16),
             Text(
-              'C?p nh?t tr?ng th�i � ${order.orderCode}',
+              'Cập nhật trạng thái — ${order.orderCode}',
               style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textDark,
-              ),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textDark),
             ),
             const SizedBox(height: 16),
             Wrap(
@@ -409,16 +488,16 @@ void _showStatusUpdateSheet(BuildContext context, WidgetRef ref, Order order) {
                 return ChoiceChip(
                   label: Text(statusLabels[s]!),
                   selected: isSelected,
-                  selectedColor: AppColors.primaryOrange.withValues(
-                    alpha: 0.15,
-                  ),
+                  selectedColor: AppColors.primaryOrange
+                      .withValues(alpha: 0.15),
                   labelStyle: TextStyle(
                     color: isSelected
                         ? AppColors.primaryOrange
                         : AppColors.textDark,
                     fontWeight: FontWeight.w500,
                   ),
-                  onSelected: (_) => setState(() => selectedStatus = s),
+                  onSelected: (_) =>
+                      setState(() => selectedStatus = s),
                 );
               }).toList(),
             ),
@@ -427,7 +506,7 @@ void _showStatusUpdateSheet(BuildContext context, WidgetRef ref, Order order) {
               controller: noteController,
               maxLines: 3,
               decoration: const InputDecoration(
-                hintText: 'Ghi ch� (t�y ch?n)',
+                hintText: 'Ghi chú (tùy chọn)',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -452,20 +531,22 @@ void _showStatusUpdateSheet(BuildContext context, WidgetRef ref, Order order) {
                           Navigator.pop(ctx);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('�� c?p nh?t tr?ng th�i don h�ng'),
+                              content: Text(
+                                  'Đã cập nhật trạng thái đơn hàng'),
                             ),
                           );
                         } catch (e) {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('L?i c?p nh?t tr?ng th�i: $e'),
+                              content: Text(
+                                  'Lỗi cập nhật trạng thái: $e'),
                               backgroundColor: AppColors.errorRed,
                             ),
                           );
                         }
                       },
-                child: const Text('X�c nh?n'),
+                child: const Text('Xác nhận'),
               ),
             ),
           ],

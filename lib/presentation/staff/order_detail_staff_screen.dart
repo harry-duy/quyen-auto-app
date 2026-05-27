@@ -18,30 +18,26 @@ class OrderDetailStaffScreen extends ConsumerWidget {
     return orderAsync.when(
       data: (order) => _OrderDetailBody(order: order),
       loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Chi ti?t don h�ng')),
+        appBar: AppBar(title: const Text('Chi tiết đơn hàng')),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: const Text('Chi ti?t don h�ng')),
+        appBar: AppBar(title: const Text('Chi tiết đơn hàng')),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.error_outline,
-                color: AppColors.errorRed,
-                size: 48,
-              ),
+              const Icon(Icons.error_outline,
+                  color: AppColors.errorRed, size: 48),
               const SizedBox(height: 8),
-              Text(
-                e.toString(),
-                style: const TextStyle(color: AppColors.errorRed),
-              ),
+              Text(e.toString(),
+                  style: const TextStyle(color: AppColors.errorRed)),
               const SizedBox(height: 16),
               ElevatedButton.icon(
-                onPressed: () => ref.invalidate(staffOrderDetailProvider(id)),
+                onPressed: () =>
+                    ref.invalidate(staffOrderDetailProvider(id)),
                 icon: const Icon(Icons.refresh),
-                label: const Text('Th? l?i'),
+                label: const Text('Thử lại'),
               ),
             ],
           ),
@@ -75,17 +71,15 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
     final order = widget.order;
     final fmt = NumberFormat.currency(
       locale: 'vi_VN',
-      symbol: '?',
+      symbol: '₫',
       decimalDigits: 0,
     );
     final dateFmt = DateFormat('HH:mm - dd/MM/yyyy');
     final dayFmt = DateFormat('dd/MM/yyyy');
     final statusColor = _statusColor(order.status);
     final statusBg = _statusBg(order.status);
-    final remaining = (order.totalAmount - order.depositAmount).clamp(
-      0,
-      double.infinity,
-    );
+    final remaining =
+        (order.totalAmount - order.depositAmount).clamp(0, double.infinity);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -94,11 +88,12 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
         actions: [
           IconButton(
             icon: const Icon(Icons.copy_outlined),
-            tooltip: 'Sao ch�p m� don',
+            tooltip: 'Sao chép mã đơn',
             onPressed: () {
               Clipboard.setData(ClipboardData(text: order.orderCode));
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('�� sao ch�p m� don h�ng')),
+                const SnackBar(
+                    content: Text('Đã sao chép mã đơn hàng')),
               );
             },
           ),
@@ -119,27 +114,26 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
           ),
           const SizedBox(height: 16),
           _InfoCard(
-            title: 'Th�ng tin don h�ng',
+            title: 'Thông tin đơn hàng',
             rows: [
-              ('M� don', order.orderCode),
-              ('S?n ph?m', order.productName),
+              ('Mã đơn', order.orderCode),
+              ('Sản phẩm', order.productName),
               if (order.customerName?.isNotEmpty == true)
-                ('Kh�ch h�ng', order.customerName!),
+                ('Khách hàng', order.customerName!),
               if (order.customerPhone?.isNotEmpty == true)
-                ('S? di?n tho?i', order.customerPhone!),
-              ('Ng�y t?o', dateFmt.format(order.createdAt)),
+                ('Số điện thoại', order.customerPhone!),
+              ('Ngày tạo', dateFmt.format(order.createdAt)),
               if (order.updatedAt != null)
-                ('C?p nh?t', dateFmt.format(order.updatedAt!)),
+                ('Cập nhật', dateFmt.format(order.updatedAt!)),
               if (order.estimatedDate != null)
-                ('D? ki?n giao', dayFmt.format(order.estimatedDate!)),
+                ('Dự kiến giao', dayFmt.format(order.estimatedDate!)),
               if (order.assignedStaffName?.isNotEmpty == true)
-                ('Nh�n vi�n ph? tr�ch', order.assignedStaffName!),
+                ('Nhân viên phụ trách', order.assignedStaffName!),
               if (order.productionStatus.isNotEmpty)
-                (
-                  'Tr?ng th�i s?n xu?t',
-                  _productionLabel(order.productionStatus),
-                ),
-              if (order.note?.isNotEmpty == true) ('Ghi ch�', order.note!),
+                ('Trạng thái sản xuất',
+                    _productionLabel(order.productionStatus)),
+              if (order.note?.isNotEmpty == true)
+                ('Ghi chú', order.note!),
             ],
           ),
           const SizedBox(height: 12),
@@ -168,17 +162,14 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
   Future<void> _update() async {
     setState(() => _isUpdating = true);
     try {
-      await ref
-          .read(staffActionsProvider.notifier)
-          .updateOrderStatus(
+      await ref.read(staffActionsProvider.notifier).updateOrderStatus(
             widget.order.id,
             _selectedStatus!,
             _noteController.text.isEmpty ? null : _noteController.text,
           );
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('�� c?p nh?t tr?ng th�i')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã cập nhật trạng thái')));
       _noteController.clear();
       setState(() {
         _selectedStatus = null;
@@ -187,9 +178,10 @@ class _OrderDetailBodyState extends ConsumerState<_OrderDetailBody> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isUpdating = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('L?i: $e'), backgroundColor: AppColors.errorRed),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Lỗi: $e'),
+        backgroundColor: AppColors.errorRed,
+      ));
     }
   }
 }
@@ -223,19 +215,16 @@ class _StatusBanner extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tr?ng th�i don h�ng',
+                'Trạng thái đơn hàng',
                 style: TextStyle(
-                  fontSize: 12,
-                  color: color.withValues(alpha: 0.7),
-                ),
+                    fontSize: 12, color: color.withValues(alpha: 0.7)),
               ),
               Text(
                 _statusLabel(status),
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: color),
               ),
             ],
           ),
@@ -265,10 +254,9 @@ class _InfoCard extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark),
           ),
           const Divider(height: 20),
           ...rows.map(
@@ -279,23 +267,16 @@ class _InfoCard extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: 120,
-                    child: Text(
-                      r.$1,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textGray,
-                      ),
-                    ),
+                    child: Text(r.$1,
+                        style: const TextStyle(
+                            fontSize: 13, color: AppColors.textGray)),
                   ),
                   Expanded(
-                    child: Text(
-                      r.$2,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textDark,
-                      ),
-                    ),
+                    child: Text(r.$2,
+                        style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textDark)),
                   ),
                 ],
               ),
@@ -333,19 +314,18 @@ class _AmountCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Thanh to�n',
+            'Thanh toán',
             style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark),
           ),
           const Divider(height: 20),
-          _MoneyRow(label: 'T?ng gi� tr?', value: formatter.format(total)),
+          _MoneyRow(label: 'Tổng giá trị', value: formatter.format(total)),
           if (deposit > 0)
-            _MoneyRow(label: '�� c?c', value: formatter.format(deposit)),
+            _MoneyRow(label: 'Đã cọc', value: formatter.format(deposit)),
           if (deposit > 0)
-            _MoneyRow(label: 'C�n l?i', value: formatter.format(remaining)),
+            _MoneyRow(label: 'Còn lại', value: formatter.format(remaining)),
         ],
       ),
     );
@@ -364,14 +344,14 @@ class _MoneyRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textGray)),
+          Text(label,
+              style: const TextStyle(color: AppColors.textGray)),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: AppColors.primaryOrange,
-            ),
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.primaryOrange),
           ),
         ],
       ),
@@ -407,53 +387,42 @@ class _StatusUpdateCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'C?p nh?t tr?ng th�i',
+            'Cập nhật trạng thái',
             style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
-            ),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
             initialValue: selectedStatus,
             decoration: const InputDecoration(
-              labelText: 'Tr?ng th�i m?i',
+              labelText: 'Trạng thái mới',
               border: OutlineInputBorder(),
             ),
             items: const [
               DropdownMenuItem<String>(
-                value: 'RECEIVED',
-                child: Text('Ti?p nh?n y�u c?u'),
-              ),
+                  value: 'RECEIVED',
+                  child: Text('Tiếp nhận yêu cầu')),
               DropdownMenuItem<String>(
-                value: 'INFO_CONFIRMED',
-                child: Text('X�c nh?n th�ng tin'),
-              ),
+                  value: 'INFO_CONFIRMED',
+                  child: Text('Xác nhận thông tin')),
               DropdownMenuItem<String>(
-                value: 'QUOTED_DEPOSITED',
-                child: Text('B�o gi� & d?t c?c'),
-              ),
+                  value: 'QUOTED_DEPOSITED',
+                  child: Text('Báo giá & đặt cọc')),
               DropdownMenuItem<String>(
-                value: 'ORDER_CONFIRMED',
-                child: Text('X�c nh?n don h�ng'),
-              ),
+                  value: 'ORDER_CONFIRMED',
+                  child: Text('Xác nhận đơn hàng')),
               DropdownMenuItem<String>(
-                value: 'PRODUCTION_STARTED',
-                child: Text('B?t d?u s?n xu?t'),
-              ),
+                  value: 'PRODUCTION_STARTED',
+                  child: Text('Bắt đầu sản xuất')),
               DropdownMenuItem<String>(
-                value: 'QUALITY_CHECKING',
-                child: Text('Ki?m tra ch?t lu?ng'),
-              ),
+                  value: 'QUALITY_CHECKING',
+                  child: Text('Kiểm tra chất lượng')),
               DropdownMenuItem<String>(
-                value: 'COMPLETED',
-                child: Text('Ho�n th�nh'),
-              ),
+                  value: 'COMPLETED', child: Text('Hoàn thành')),
               DropdownMenuItem<String>(
-                value: 'CANCELLED',
-                child: Text('�� h?y'),
-              ),
+                  value: 'CANCELLED', child: Text('Đã hủy')),
             ],
             onChanged: onStatusChanged,
           ),
@@ -462,7 +431,7 @@ class _StatusUpdateCard extends StatelessWidget {
             controller: noteController,
             maxLines: 3,
             decoration: const InputDecoration(
-              hintText: 'Ghi ch� k? thu?t (t�y ch?n)',
+              hintText: 'Ghi chú kỹ thuật (tùy chọn)',
               border: OutlineInputBorder(),
             ),
           ),
@@ -470,18 +439,17 @@ class _StatusUpdateCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: selectedStatus == null || isUpdating ? null : onUpdate,
+              onPressed:
+                  selectedStatus == null || isUpdating ? null : onUpdate,
               icon: isUpdating
                   ? const SizedBox(
                       width: 18,
                       height: 18,
                       child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
+                          strokeWidth: 2, color: Colors.white),
                     )
                   : const Icon(Icons.save),
-              label: const Text('C?p nh?t'),
+              label: const Text('Cập nhật'),
             ),
           ),
         ],
@@ -499,38 +467,48 @@ class _StatusTimeline extends StatelessWidget {
   });
 
   static const _steps = [
-    (code: 'RECEIVED', label: 'Ti?p nh?n y�u c?u', icon: Icons.inbox_outlined),
+    (
+      code: 'RECEIVED',
+      label: 'Tiếp nhận yêu cầu',
+      icon: Icons.inbox_outlined
+    ),
     (
       code: 'INFO_CONFIRMED',
-      label: 'X�c nh?n th�ng tin',
-      icon: Icons.fact_check_outlined,
+      label: 'Xác nhận thông tin',
+      icon: Icons.fact_check_outlined
     ),
     (
       code: 'QUOTED_DEPOSITED',
-      label: 'B�o gi� & d?t c?c',
-      icon: Icons.request_quote_outlined,
+      label: 'Báo giá & đặt cọc',
+      icon: Icons.request_quote_outlined
     ),
     (
       code: 'ORDER_CONFIRMED',
-      label: 'X�c nh?n don h�ng',
-      icon: Icons.thumb_up_outlined,
+      label: 'Xác nhận đơn hàng',
+      icon: Icons.thumb_up_outlined
     ),
     (
       code: 'PRODUCTION_STARTED',
-      label: 'B?t d?u s?n xu?t',
-      icon: Icons.precision_manufacturing_outlined,
+      label: 'Bắt đầu sản xuất',
+      icon: Icons.precision_manufacturing_outlined
     ),
     (
       code: 'QUALITY_CHECKING',
-      label: 'Ki?m tra ch?t lu?ng',
-      icon: Icons.verified_outlined,
+      label: 'Kiểm tra chất lượng',
+      icon: Icons.verified_outlined
     ),
-    (code: 'COMPLETED', label: 'Ho�n th�nh', icon: Icons.check_circle_outline),
+    (
+      code: 'COMPLETED',
+      label: 'Hoàn thành',
+      icon: Icons.check_circle_outline
+    ),
   ];
 
   int get _currentStepIndex {
-    final normalized = _normalizeProductionStatus(productionStatus, current);
-    final index = _steps.indexWhere((step) => step.code == normalized);
+    final normalized =
+        _normalizeProductionStatus(productionStatus, current);
+    final index =
+        _steps.indexWhere((step) => step.code == normalized);
     return index < 0 ? 0 : index;
   }
 
@@ -542,13 +520,14 @@ class _StatusTimeline extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.errorRed.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.errorRed.withValues(alpha: 0.2)),
+          border:
+              Border.all(color: AppColors.errorRed.withValues(alpha: 0.2)),
         ),
         child: const Row(
           children: [
             Icon(Icons.cancel_outlined, color: AppColors.errorRed),
             SizedBox(width: 10),
-            Expanded(child: Text('�on h�ng d� b? h?y')),
+            Expanded(child: Text('Đơn hàng đã bị hủy')),
           ],
         ),
       );
@@ -566,7 +545,8 @@ class _StatusTimeline extends StatelessWidget {
           final step = _steps[index];
           final done = index <= _currentStepIndex;
           final isLast = index == _steps.length - 1;
-          final color = done ? AppColors.primaryOrange : AppColors.textGray;
+          final color =
+              done ? AppColors.primaryOrange : AppColors.textGray;
 
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -579,7 +559,8 @@ class _StatusTimeline extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: done
-                          ? AppColors.primaryOrange.withValues(alpha: 0.12)
+                          ? AppColors.primaryOrange
+                              .withValues(alpha: 0.12)
                           : AppColors.statusPendingBg,
                     ),
                     child: Icon(step.icon, size: 16, color: color),
@@ -601,8 +582,11 @@ class _StatusTimeline extends StatelessWidget {
                   child: Text(
                     step.label,
                     style: TextStyle(
-                      color: done ? AppColors.textDark : AppColors.textGray,
-                      fontWeight: done ? FontWeight.w600 : FontWeight.w400,
+                      color:
+                          done ? AppColors.textDark : AppColors.textGray,
+                      fontWeight: done
+                          ? FontWeight.w600
+                          : FontWeight.w400,
                     ),
                   ),
                 ),
@@ -615,7 +599,8 @@ class _StatusTimeline extends StatelessWidget {
   }
 }
 
-String _normalizeProductionStatus(String status, OrderStatus orderStatus) {
+String _normalizeProductionStatus(
+    String status, OrderStatus orderStatus) {
   final normalized = status.toUpperCase();
   return switch (normalized) {
     'RECEIVED' => 'RECEIVED',
@@ -638,45 +623,47 @@ String _normalizeProductionStatus(String status, OrderStatus orderStatus) {
 }
 
 IconData _statusIcon(OrderStatus s) => switch (s) {
-  OrderStatus.pending => Icons.schedule,
-  OrderStatus.confirmed => Icons.thumb_up_outlined,
-  OrderStatus.inProduction => Icons.precision_manufacturing_outlined,
-  OrderStatus.completed => Icons.check_circle_outline,
-  OrderStatus.cancelled => Icons.cancel_outlined,
-};
+      OrderStatus.pending => Icons.schedule,
+      OrderStatus.confirmed => Icons.thumb_up_outlined,
+      OrderStatus.inProduction =>
+        Icons.precision_manufacturing_outlined,
+      OrderStatus.completed => Icons.check_circle_outline,
+      OrderStatus.cancelled => Icons.cancel_outlined,
+    };
 
 String _statusLabel(OrderStatus s) => switch (s) {
-  OrderStatus.pending => 'Ch? x�c nh?n',
-  OrderStatus.confirmed => '�� x�c nh?n',
-  OrderStatus.inProduction => '�ang s?n xu?t',
-  OrderStatus.completed => 'Ho�n th�nh',
-  OrderStatus.cancelled => '�� h?y',
-};
+      OrderStatus.pending => 'Chờ xác nhận',
+      OrderStatus.confirmed => 'Đã xác nhận',
+      OrderStatus.inProduction => 'Đang sản xuất',
+      OrderStatus.completed => 'Hoàn thành',
+      OrderStatus.cancelled => 'Đã hủy',
+    };
 
 Color _statusColor(OrderStatus s) => switch (s) {
-  OrderStatus.pending => AppColors.statusPending,
-  OrderStatus.confirmed => AppColors.statusQuoted,
-  OrderStatus.inProduction => AppColors.statusInProduction,
-  OrderStatus.completed => AppColors.statusCompleted,
-  OrderStatus.cancelled => AppColors.errorRed,
-};
+      OrderStatus.pending => AppColors.statusPending,
+      OrderStatus.confirmed => AppColors.statusQuoted,
+      OrderStatus.inProduction => AppColors.statusInProduction,
+      OrderStatus.completed => AppColors.statusCompleted,
+      OrderStatus.cancelled => AppColors.errorRed,
+    };
 
 Color _statusBg(OrderStatus s) => switch (s) {
-  OrderStatus.pending => AppColors.statusPendingBg,
-  OrderStatus.confirmed => AppColors.statusQuotedBg,
-  OrderStatus.inProduction => AppColors.statusInProductionBg,
-  OrderStatus.completed => AppColors.statusCompletedBg,
-  OrderStatus.cancelled => AppColors.errorRed.withValues(alpha: 0.08),
-};
+      OrderStatus.pending => AppColors.statusPendingBg,
+      OrderStatus.confirmed => AppColors.statusQuotedBg,
+      OrderStatus.inProduction => AppColors.statusInProductionBg,
+      OrderStatus.completed => AppColors.statusCompletedBg,
+      OrderStatus.cancelled =>
+        AppColors.errorRed.withValues(alpha: 0.08),
+    };
 
 String _productionLabel(String status) => switch (status.toUpperCase()) {
-  'RECEIVED' => 'Ti?p nh?n y�u c?u',
-  'INFO_CONFIRMED' => 'X�c nh?n th�ng tin',
-  'QUOTED_DEPOSITED' => 'B�o gi� & d?t c?c',
-  'ORDER_CONFIRMED' || 'NOT_STARTED' => 'X�c nh?n don h�ng',
-  'PRODUCTION_STARTED' || 'IN_PROGRESS' => 'B?t d?u s?n xu?t',
-  'QUALITY_CHECKING' => 'Ki?m tra ch?t lu?ng',
-  'COMPLETED' => '�� ho�n th�nh',
-  'CANCELLED' => '�� h?y',
-  _ => status,
-};
+      'RECEIVED' => 'Tiếp nhận yêu cầu',
+      'INFO_CONFIRMED' => 'Xác nhận thông tin',
+      'QUOTED_DEPOSITED' => 'Báo giá & đặt cọc',
+      'ORDER_CONFIRMED' || 'NOT_STARTED' => 'Xác nhận đơn hàng',
+      'PRODUCTION_STARTED' || 'IN_PROGRESS' => 'Bắt đầu sản xuất',
+      'QUALITY_CHECKING' => 'Kiểm tra chất lượng',
+      'COMPLETED' => 'Đã hoàn thành',
+      'CANCELLED' => 'Đã hủy',
+      _ => status,
+    };

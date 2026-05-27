@@ -26,7 +26,7 @@ class StaffLeadListScreen extends ConsumerWidget {
             child: Row(
               children: [
                 FilterChip(
-                  label: const Text('T?t c?'),
+                  label: const Text('Tất cả'),
                   selected: !pendingOnly,
                   onSelected: (_) => ref
                       .read(staffLeadPendingOnlyFilter.notifier)
@@ -45,7 +45,7 @@ class StaffLeadListScreen extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 FilterChip(
-                  label: const Text('Chua li�n h?'),
+                  label: const Text('Chưa liên hệ'),
                   selected: pendingOnly,
                   onSelected: (_) => ref
                       .read(staffLeadPendingOnlyFilter.notifier)
@@ -88,8 +88,8 @@ class StaffLeadListScreen extends ConsumerWidget {
                         const SizedBox(height: 12),
                         Text(
                           pendingOnly
-                              ? 'Kh�ng c� kh�ch n�o chua du?c li�n h?'
-                              : 'Chua c� lead n�o',
+                              ? 'Không có khách nào chưa được liên hệ'
+                              : 'Chưa có lead nào',
                           style: const TextStyle(
                               color: AppColors.textGray, fontSize: 14),
                         ),
@@ -126,7 +126,7 @@ class StaffLeadListScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () => ref.invalidate(staffLeadsProvider),
-                        child: const Text('Th? l?i'),
+                        child: const Text('Thử lại'),
                       ),
                     ],
                   ),
@@ -230,7 +230,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    needsAttention ? 'Chua li�n h?' : '�� li�n h?',
+                    needsAttention ? 'Chưa liên hệ' : 'Đã liên hệ',
                     style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -254,15 +254,15 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
                 if (l.name != null && l.name!.isNotEmpty)
                   _InfoRow(
                     icon: Icons.person_outline,
-                    label: 'T�n',
+                    label: 'Tên',
                     value: l.name!,
                   ),
-                // Phone � tappable to dial
+                // Phone – tappable to dial
                 GestureDetector(
                   onTap: () => _callPhone(l.phone),
                   child: _InfoRow(
                     icon: Icons.phone_outlined,
-                    label: '�i?n tho?i',
+                    label: 'Điện thoại',
                     value: l.phone,
                     valueColor: AppColors.infoBlue,
                     underline: true,
@@ -271,19 +271,19 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
                 if (l.productName != null && l.productName!.isNotEmpty)
                   _InfoRow(
                     icon: Icons.inventory_2_outlined,
-                    label: 'S?n ph?m',
+                    label: 'Sản phẩm',
                     value: l.productName!,
                   ),
                 if (l.specifications != null && l.specifications!.isNotEmpty)
                   _InfoRow(
                     icon: Icons.tune_outlined,
-                    label: 'Th�ng s?',
+                    label: 'Thông số',
                     value: l.specifications!,
                   ),
                 if (l.note != null && l.note!.isNotEmpty)
                   _InfoRow(
                     icon: Icons.notes_outlined,
-                    label: 'Ghi ch�',
+                    label: 'Ghi chú',
                     value: l.note!,
                   ),
               ],
@@ -301,7 +301,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
                     child: OutlinedButton.icon(
                       onPressed: () => _callPhone(l.phone),
                       icon: const Icon(Icons.call, size: 16),
-                      label: const Text('G?i ngay', style: TextStyle(fontSize: 13)),
+                      label: const Text('Gọi ngay', style: TextStyle(fontSize: 13)),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.infoBlue,
                         side: const BorderSide(color: AppColors.infoBlue),
@@ -321,7 +321,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
                         : ElevatedButton.icon(
                             onPressed: () => _markContacted(context, ref),
                             icon: const Icon(Icons.phone_callback, size: 16),
-                            label: const Text('�� li�n h?',
+                            label: const Text('Đã liên hệ',
                                 style: TextStyle(fontSize: 13)),
                           ),
                   ),
@@ -350,7 +350,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('�� d�nh d?u d� li�n h?'),
+            content: Text('Đã đánh dấu đã liên hệ'),
             backgroundColor: AppColors.successGreen,
           ),
         );
@@ -359,7 +359,7 @@ class _LeadCardState extends ConsumerState<_LeadCard> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('L?i: $e'),
+            content: Text('Lỗi: $e'),
             backgroundColor: AppColors.errorRed,
           ),
         );

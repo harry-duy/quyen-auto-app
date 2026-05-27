@@ -48,7 +48,11 @@ public class OrderController {
     @Operation(summary = "Tất cả đơn hàng (staff)")
     public ResponseEntity<ApiResponse<PageResponse<OrderResponse>>> allOrders(
             @RequestParam(required = false) String status,
-            @PageableDefault(size = 20) Pageable pageable) {
+            @RequestParam(required = false) String phone,
+            @PageableDefault(size = 50) Pageable pageable) {
+        if (phone != null && !phone.isBlank()) {
+            return ResponseEntity.ok(ApiResponse.ok(PageResponse.of(orderService.getByCustomerPhone(phone, pageable))));
+        }
         if (status != null) {
             return ResponseEntity.ok(ApiResponse.ok(PageResponse.of(orderService.getByStatus(status, pageable))));
         }

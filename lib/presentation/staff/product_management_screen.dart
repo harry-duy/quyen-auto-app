@@ -13,7 +13,7 @@ class ProductManagementScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('Qu?n l� s?n ph?m')),
+      appBar: AppBar(title: const Text('Quản lý sản phẩm')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showProductForm(context, ref),
         child: const Icon(Icons.add),
@@ -28,7 +28,7 @@ class ProductManagementScreen extends ConsumerWidget {
                   Icon(Icons.inventory_2_outlined,
                       color: AppColors.textGray, size: 56),
                   SizedBox(height: 12),
-                  Text('Chua c� s?n ph?m n�o',
+                  Text('Chưa có sản phẩm nào',
                       style: TextStyle(color: AppColors.textGray)),
                 ],
               ),
@@ -61,7 +61,7 @@ class ProductManagementScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => ref.invalidate(adminProductListProvider),
-                child: const Text('Th? l?i'),
+                child: const Text('Thử lại'),
               ),
             ],
           ),
@@ -75,12 +75,12 @@ class ProductManagementScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xo� s?n ph?m'),
+        title: const Text('Xoá sản phẩm'),
         content: Text(
-            'B?n c� ch?c mu?n xo� "${product.name}"?\nS?n ph?m s? b? ?n kh?i danh s�ch.'),
+            'Bạn có chắc muốn xoá "${product.name}"?\nSản phẩm sẽ bị ẩn khỏi danh sách.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Hu?')),
+              onPressed: () => Navigator.pop(ctx), child: const Text('Huỷ')),
           ElevatedButton(
             style:
                 ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
@@ -92,20 +92,20 @@ class ProductManagementScreen extends ConsumerWidget {
                     .deleteProduct(product.id);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('�� xo� s?n ph?m')),
+                    const SnackBar(content: Text('Đã xoá sản phẩm')),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text('L?i: $e'),
+                        content: Text('Lỗi: $e'),
                         backgroundColor: AppColors.errorRed),
                   );
                 }
               }
             },
-            child: const Text('Xo�'),
+            child: const Text('Xoá'),
           ),
         ],
       ),
@@ -181,7 +181,7 @@ class _ProductCard extends StatelessWidget {
                       color: AppColors.errorRed.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text('�� ?n',
+                    child: const Text('Đã ẩn',
                         style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -210,10 +210,10 @@ class _ProductCard extends StatelessWidget {
             if (v == 'delete') onDelete();
           },
           itemBuilder: (_) => const [
-            PopupMenuItem(value: 'edit', child: Text('Ch?nh s?a')),
+            PopupMenuItem(value: 'edit', child: Text('Chỉnh sửa')),
             PopupMenuItem(
                 value: 'delete',
-                child: Text('Xo�', style: TextStyle(color: Colors.red))),
+                child: Text('Xoá', style: TextStyle(color: Colors.red))),
           ],
           icon: const Icon(Icons.more_vert, color: AppColors.textGray),
         ),
@@ -223,9 +223,9 @@ class _ProductCard extends StatelessWidget {
 
   String _formatPrice(double price) {
     if (price >= 1000000) {
-      return '${(price / 1000000).toStringAsFixed(price % 1000000 == 0 ? 0 : 1)} tri?u d?ng';
+      return '${(price / 1000000).toStringAsFixed(price % 1000000 == 0 ? 0 : 1)} triệu đồng';
     }
-    return '${price.toStringAsFixed(0)} d?ng';
+    return '${price.toStringAsFixed(0)} đồng';
   }
 }
 
@@ -279,8 +279,8 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                     const SizedBox(height: 16),
                     Text(
                       product == null
-                          ? 'Th�m s?n ph?m m?i'
-                          : 'Ch?nh s?a s?n ph?m',
+                          ? 'Thêm sản phẩm mới'
+                          : 'Chỉnh sửa sản phẩm',
                       style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -292,13 +292,13 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                       controller: nameCtrl,
                       textCapitalization: TextCapitalization.words,
                       decoration: const InputDecoration(
-                        labelText: 'T�n s?n ph?m *',
+                        labelText: 'Tên sản phẩm *',
                         prefixIcon: Icon(Icons.inventory_2_outlined),
                         border: OutlineInputBorder(),
                       ),
                       validator: (v) =>
                           (v == null || v.trim().isEmpty)
-                              ? 'Vui l�ng nh?p t�n s?n ph?m'
+                              ? 'Vui lòng nhập tên sản phẩm'
                               : null,
                     ),
                     const SizedBox(height: 10),
@@ -307,7 +307,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                       DropdownButtonFormField<String>(
                         initialValue: selectedCategoryId,
                         decoration: const InputDecoration(
-                          labelText: 'Danh m?c *',
+                          labelText: 'Danh mục *',
                           prefixIcon: Icon(Icons.category_outlined),
                           border: OutlineInputBorder(),
                         ),
@@ -319,7 +319,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                             .toList(),
                         onChanged: (v) => setState(() => selectedCategoryId = v),
                         validator: (v) =>
-                            v == null ? 'Vui l�ng ch?n danh m?c' : null,
+                            v == null ? 'Vui lòng chọn danh mục' : null,
                       ),
                     const SizedBox(height: 10),
 
@@ -327,16 +327,16 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                       controller: priceCtrl,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        labelText: 'Gi� co b?n (VN�) *',
+                        labelText: 'Giá cơ bản (VNĐ) *',
                         prefixIcon: Icon(Icons.attach_money),
                         border: OutlineInputBorder(),
                       ),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
-                          return 'Vui l�ng nh?p gi�';
+                          return 'Vui lòng nhập giá';
                         }
                         if (double.tryParse(v.trim()) == null) {
-                          return 'Gi� kh�ng h?p l?';
+                          return 'Giá không hợp lệ';
                         }
                         return null;
                       },
@@ -347,7 +347,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                       controller: descCtrl,
                       maxLines: 3,
                       decoration: const InputDecoration(
-                        labelText: 'M� t?',
+                        labelText: 'Mô tả',
                         prefixIcon: Icon(Icons.description_outlined),
                         border: OutlineInputBorder(),
                         alignLabelWithHint: true,
@@ -359,7 +359,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                       controller: specsCtrl,
                       maxLines: 2,
                       decoration: const InputDecoration(
-                        labelText: 'Th�ng s? k? thu?t',
+                        labelText: 'Thông số kỹ thuật',
                         prefixIcon: Icon(Icons.settings_outlined),
                         border: OutlineInputBorder(),
                         alignLabelWithHint: true,
@@ -404,15 +404,15 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                     content: Text(product == null
-                                        ? '�� th�m s?n ph?m'
-                                        : '�� c?p nh?t s?n ph?m')),
+                                        ? 'Đã thêm sản phẩm'
+                                        : 'Đã cập nhật sản phẩm')),
                               );
                             }
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                    content: Text('L?i: $e'),
+                                    content: Text('Lỗi: $e'),
                                     backgroundColor: AppColors.errorRed),
                               );
                             }
@@ -421,7 +421,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                         icon: Icon(
                             product == null ? Icons.add : Icons.save_outlined),
                         label: Text(
-                            product == null ? 'Th�m s?n ph?m' : 'Luu thay d?i'),
+                            product == null ? 'Thêm sản phẩm' : 'Lưu thay đổi'),
                       ),
                     ),
                   ],

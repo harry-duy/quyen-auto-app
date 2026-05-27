@@ -33,18 +33,18 @@ class _CustomerManagementScreenState
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('Qu?n l� kh�ch h�ng'),
+        title: const Text('Quản lý khách hàng'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => ref.invalidate(customerListProvider),
-            tooltip: 'T?i l?i',
+            tooltip: 'Tải lại',
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showCreateCustomerDialog(context, ref),
-        tooltip: 'T?o t�i kho?n kh�ch h�ng',
+        tooltip: 'Tạo tài khoản khách hàng',
         child: const Icon(Icons.person_add),
       ),
       body: Column(
@@ -56,7 +56,7 @@ class _CustomerManagementScreenState
             child: TextField(
               controller: _searchCtrl,
               decoration: InputDecoration(
-                hintText: 'T�m theo t�n, S�T, email�',
+                hintText: 'Tìm theo tên, SĐT, email...',
                 prefixIcon: const Icon(Icons.search, size: 20),
                 suffixIcon: query.isNotEmpty
                     ? IconButton(
@@ -73,11 +73,11 @@ class _CustomerManagementScreenState
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.borderLight),
+                  borderSide: const BorderSide(color: AppColors.borderLight),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: AppColors.borderLight),
+                  borderSide: const BorderSide(color: AppColors.borderLight),
                 ),
                 filled: true,
                 fillColor: AppColors.backgroundLight,
@@ -108,8 +108,8 @@ class _CustomerManagementScreenState
                         const SizedBox(height: 8),
                         Text(
                           query.isNotEmpty
-                              ? 'Kh�ng t�m th?y "$query"'
-                              : 'Chua c� kh�ch h�ng n�o',
+                              ? 'Không tìm thấy "$query"'
+                              : 'Chưa có khách hàng nào',
                           style: const TextStyle(
                               color: AppColors.textGray, fontSize: 14),
                         ),
@@ -119,7 +119,7 @@ class _CustomerManagementScreenState
                             onPressed: () =>
                                 _showCreateCustomerDialog(context, ref),
                             icon: const Icon(Icons.person_add, size: 18),
-                            label: const Text('T?o t�i kho?n d?u ti�n'),
+                            label: const Text('Tạo tài khoản đầu tiên'),
                           ),
                         ],
                       ],
@@ -149,8 +149,8 @@ class _CustomerManagementScreenState
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(customers[i].isActive
-                                      ? '�� v� hi?u h�a t�i kho?n'
-                                      : '�� k�ch ho?t t�i kho?n'),
+                                      ? 'Đã vô hiệu hóa tài khoản'
+                                      : 'Đã kích hoạt tài khoản'),
                                   behavior: SnackBarBehavior.floating,
                                 ),
                               );
@@ -194,7 +194,7 @@ class _CustomerManagementScreenState
                     ElevatedButton(
                       onPressed: () =>
                           ref.invalidate(customerListProvider),
-                      child: const Text('Th? l?i'),
+                      child: const Text('Thử lại'),
                     ),
                   ],
                 ),
@@ -207,17 +207,17 @@ class _CustomerManagementScreenState
   }
 
   Future<bool> _confirmToggle(BuildContext context, User customer) async {
-    final action = customer.isActive ? 'v� hi?u h�a' : 'k�ch ho?t';
+    final action = customer.isActive ? 'vô hiệu hóa' : 'kích hoạt';
     return await showDialog<bool>(
           context: context,
           builder: (_) => AlertDialog(
-            title: Text('${action.toUpperCase()} t�i kho?n?'),
+            title: Text('${action.toUpperCase()} tài khoản?'),
             content: Text(
-                'B?n mu?n $action t�i kho?n c?a ${customer.fullName}?'),
+                'Bạn muốn $action tài khoản của ${customer.fullName}?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('H?y'),
+                child: const Text('Hủy'),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
@@ -278,7 +278,7 @@ class _CreateCustomerSheetState
   }
 
   void _autoGeneratePassword() {
-    // Sinh m?t kh?u t? S�T + 3 k� t? d?c bi?t d? d? nh?
+    // Sinh mật khẩu từ SĐT + 3 ký tự đặc biệt dễ dễ nhớ
     final phone = _phoneCtrl.text.trim();
     if (phone.length >= 4) {
       final pass = 'QA${phone.substring(phone.length - 4)}@auto';
@@ -311,7 +311,7 @@ class _CreateCustomerSheetState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                '�� t?o t�i kho?n cho ${_nameCtrl.text.trim()}'),
+                'Đã tạo tài khoản cho ${_nameCtrl.text.trim()}'),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
           ),
@@ -382,12 +382,12 @@ class _CreateCustomerSheetState
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('T?o t�i kho?n kh�ch h�ng',
+                      Text('Tạo tài khoản khách hàng',
                           style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: AppColors.textDark)),
-                      Text('Sau khi ch?t h?p d?ng',
+                      Text('Sau khi chốt hợp đồng',
                           style: TextStyle(
                               fontSize: 12, color: AppColors.textGray)),
                     ],
@@ -409,8 +409,8 @@ class _CreateCustomerSheetState
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Kh�ch h�ng s? d�ng S�T + m?t kh?u n�y d? dang nh?p '
-                        'v� xem ti?n d? don h�ng, b?o h�nh.',
+                        'Khách hàng sẽ dùng SĐT + mật khẩu này để đăng nhập '
+                        'và xem tiến độ đơn hàng, bảo hành.',
                         style:
                             TextStyle(fontSize: 12, color: Colors.green),
                       ),
@@ -425,11 +425,11 @@ class _CreateCustomerSheetState
                   enabled: !_loading,
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
-                    labelText: 'H? v� t�n *',
+                    labelText: 'Họ và tên *',
                     prefixIcon: Icon(Icons.person_outline),
                   ),
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Nh?p h? t�n' : null,
+                      (v == null || v.trim().isEmpty) ? 'Nhập họ tên' : null,
                 ),
                 const SizedBox(height: 12),
 
@@ -440,7 +440,7 @@ class _CreateCustomerSheetState
                   keyboardType: TextInputType.phone,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: const InputDecoration(
-                    labelText: 'S? di?n tho?i *',
+                    labelText: 'Số điện thoại *',
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
                   validator: Validators.phone,
@@ -453,7 +453,7 @@ class _CreateCustomerSheetState
                   enabled: !_loading,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    labelText: 'Email (kh�ng b?t bu?c)',
+                    labelText: 'Email (không bắt buộc)',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   validator: (v) {
@@ -469,7 +469,7 @@ class _CreateCustomerSheetState
                   enabled: !_loading,
                   obscureText: _obscurePass,
                   decoration: InputDecoration(
-                    labelText: 'M?t kh?u *',
+                    labelText: 'Mật khẩu *',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -483,16 +483,16 @@ class _CreateCustomerSheetState
                         ),
                         TextButton(
                           onPressed: _loading ? null : _autoGeneratePassword,
-                          child: const Text('T? sinh',
+                          child: const Text('Tự sinh',
                               style: TextStyle(fontSize: 12)),
                         ),
                       ],
                     ),
-                    helperText: 'T?i thi?u 6 k� t?',
+                    helperText: 'Tối thiểu 6 ký tự',
                   ),
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Nh?p m?t kh?u';
-                    if (v.length < 6) return 'T?i thi?u 6 k� t?';
+                    if (v == null || v.isEmpty) return 'Nhập mật khẩu';
+                    if (v.length < 6) return 'Tối thiểu 6 ký tự';
                     return null;
                   },
                 ),
@@ -504,9 +504,9 @@ class _CreateCustomerSheetState
                   enabled: !_loading,
                   maxLines: 2,
                   decoration: const InputDecoration(
-                    labelText: 'Ghi ch� n?i b? (kh�ng b?t bu?c)',
+                    labelText: 'Ghi chú nội bộ (không bắt buộc)',
                     prefixIcon: Icon(Icons.note_alt_outlined),
-                    hintText: 'VD: H?p d?ng #123, xe Isuzu 3.5T',
+                    hintText: 'VD: Hợp đồng #123, xe Isuzu 3.5T',
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -525,7 +525,7 @@ class _CreateCustomerSheetState
                           )
                         : const Icon(Icons.check_circle_outline),
                     label: Text(
-                        _loading ? '�ang t?o�' : 'T?o t�i kho?n'),
+                        _loading ? 'Đang tạo...' : 'Tạo tài khoản'),
                   ),
                 ),
               ],
@@ -592,7 +592,7 @@ class _CustomerTile extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            customer.isActive ? 'Ho?t d?ng' : '�� kh�a',
+            customer.isActive ? 'Hoạt động' : 'Đã khóa',
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -645,8 +645,8 @@ class _CustomerTile extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(customer.isActive
-                  ? 'V� hi?u h�a'
-                  : 'K�ch ho?t l?i'),
+                  ? 'Vô hiệu hóa'
+                  : 'Kích hoạt lại'),
             ]),
           ),
         ],

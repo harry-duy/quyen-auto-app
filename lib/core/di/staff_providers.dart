@@ -30,15 +30,25 @@ final staffDashboardProvider = FutureProvider.autoDispose<Map<String, dynamic>>(
 // ─── Staff Order Management ──────────────────────────────────────────────────
 
 final staffOrderStatusFilter = StateProvider<String?>((ref) => null);
+final staffOrderPhoneFilter  = StateProvider<String>((ref) => '');
 
 final staffOrderListProvider = FutureProvider.autoDispose<List<Order>>((
   ref,
 ) async {
-  final api = ref.watch(apiServiceProvider);
+  final api    = ref.watch(apiServiceProvider);
   final status = ref.watch(staffOrderStatusFilter);
+  final phone  = ref.watch(staffOrderPhoneFilter).trim();
+
+  final Map<String, dynamic> params = {'page': 0, 'size': 50};
+  if (phone.isNotEmpty) {
+    params['phone'] = phone;
+  } else if (status != null) {
+    params['status'] = status;
+  }
+
   final res = await api.get<List<Order>>(
     ApiConstants.staffOrders,
-    queryParams: {'page': 0, 'size': 50, 'status': ?status},
+    queryParams: params,
     fromData: (json) => _toList(
       json,
     ).map((e) => _orderFromJson(e as Map<String, dynamic>)).toList(),

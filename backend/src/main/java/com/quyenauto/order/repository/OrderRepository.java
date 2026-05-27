@@ -23,6 +23,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Page<Order> findByAssignedStaffId(Long staffId, Pageable pageable);
 
+    @Query("SELECT o FROM Order o WHERE o.customer.phone LIKE %:phone% ORDER BY o.createdAt DESC")
+    Page<Order> findByCustomerPhoneContaining(
+            @org.springframework.data.repository.query.Param("phone") String phone,
+            Pageable pageable);
+
     long countByStatus(Order.OrderStatus status);
 
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status = :status")
