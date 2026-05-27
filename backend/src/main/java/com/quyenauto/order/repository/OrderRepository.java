@@ -13,6 +13,10 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Optional<Order> findByOrderCode(String orderCode);
 
+    Optional<Order> findByQuotationId(Long quotationId);
+
+    boolean existsByOrderCode(String orderCode);
+
     Page<Order> findByCustomerId(Long customerId, Pageable pageable);
 
     Page<Order> findByStatus(Order.OrderStatus status, Pageable pageable);

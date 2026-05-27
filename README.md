@@ -4,6 +4,45 @@ Hệ thống quản lý đặt hàng thùng xe tải — Flutter (Android) + Spr
 
 ---
 
+## Setup lần đầu (cho teammate mới)
+
+> Yêu cầu cài sẵn: **Java 17+**, **Flutter 3.x**, **MySQL 8.0**
+
+### Bước 1 — Clone repo
+```bash
+git clone <repo-url>
+cd quyen_auto_app
+flutter pub get
+```
+
+### Bước 2 — Flutter `.env`
+```bash
+cp .env.example .env
+# Nếu chạy thiết bị thật: đổi 10.0.2.2 thành IP máy tính trong mạng LAN
+```
+
+### Bước 3 — Backend `.env`
+```bash
+cp backend/.env.example backend/.env
+# Mở backend/.env, điền DB_PASSWORD = password MySQL của máy bạn
+```
+
+### Bước 4 — Firebase `google-services.json`
+Nhận 3 file từ team lead (hoặc download từ Firebase Console → Project `quyen-auto`):
+```
+android/app/google-services.json
+android/app/src/customer/google-services.json
+android/app/src/staff/google-services.json
+```
+> Không có 3 file này thì app **build không được**. File `backend/firebase-service-account.json` có thể bỏ qua khi dev.
+
+### Bước 5 — Chạy
+```bash
+make dev   # Mở backend + 2 Flutter app cùng lúc
+```
+
+---
+
 ## Chạy nhanh
 
 ```bash

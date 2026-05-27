@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -32,8 +31,7 @@ const _kHeroBanners = [
     subtitle: 'Công nghệ Sandwich Panel — bền, đẹp, tiết kiệm năng lượng',
   ),
   _HeroBanner(
-    imageUrl:
-        'https://quyenauto.com/wp-content/uploads/2020/01/1920-1080.jpg',
+    imageUrl: 'https://quyenauto.com/wp-content/uploads/2020/01/1920-1080.jpg',
     title: 'ISUZU Thùng Đông Lạnh',
     subtitle: 'Chuyên chở hàng lạnh — thủy sản, dược phẩm, thực phẩm',
   ),
@@ -62,8 +60,7 @@ const _kCategories = [
   ),
   _CategoryData(
     name: 'Thùng Tải Kín',
-    imageUrl:
-        'https://quyenauto.com/wp-content/uploads/2018/11/TK-HINO-FG.png',
+    imageUrl: 'https://quyenauto.com/wp-content/uploads/2018/11/TK-HINO-FG.png',
     desc: 'An toàn, bảo mật hàng hoá mọi địa hình',
     webUrl: 'https://quyenauto.com/products-category/thung-tai-kin/',
   ),
@@ -87,19 +84,16 @@ const _kNews = [
         'https://quyenauto.com/quyen-auto-dao-tao-san-pham-huan-luyen-bao-duong-thung-xe-lanh-cho-dai-ly-isuzu-khu-vuc-mien-bac/',
   ),
   _NewsData(
-    title:
-        'Chương trình đào tạo sản phẩm cho đại lý ISUZU tại Quyen Auto 2026',
+    title: 'Chương trình đào tạo sản phẩm cho đại lý ISUZU tại Quyen Auto 2026',
     date: '04/2026',
-    imageUrl:
-        'https://quyenauto.com/wp-content/uploads/2026/04/1-scaled.jpg',
+    imageUrl: 'https://quyenauto.com/wp-content/uploads/2026/04/1-scaled.jpg',
     link:
         'https://quyenauto.com/chuong-trinh-dao-tao-san-pham-cho-dai-ly-isuzu-tai-quyen-auto-2026/',
   ),
   _NewsData(
     title: 'Tất niên Quyen Auto 2025',
     date: '02/2026',
-    imageUrl:
-        'https://quyenauto.com/wp-content/uploads/2026/02/1-scaled.jpg',
+    imageUrl: 'https://quyenauto.com/wp-content/uploads/2026/02/1-scaled.jpg',
     link: 'https://quyenauto.com/https-quyenauto-com-tat-nien-quyen-auto-2025/',
   ),
   _NewsData(
@@ -118,10 +112,11 @@ class _HeroBanner {
   final String imageUrl;
   final String title;
   final String subtitle;
-  const _HeroBanner(
-      {required this.imageUrl,
-      required this.title,
-      required this.subtitle});
+  const _HeroBanner({
+    required this.imageUrl,
+    required this.title,
+    required this.subtitle,
+  });
 }
 
 class _CategoryData {
@@ -129,11 +124,12 @@ class _CategoryData {
   final String imageUrl;
   final String desc;
   final String webUrl;
-  const _CategoryData(
-      {required this.name,
-      required this.imageUrl,
-      required this.desc,
-      required this.webUrl});
+  const _CategoryData({
+    required this.name,
+    required this.imageUrl,
+    required this.desc,
+    required this.webUrl,
+  });
 }
 
 class _NewsData {
@@ -141,11 +137,12 @@ class _NewsData {
   final String date;
   final String imageUrl;
   final String link;
-  const _NewsData(
-      {required this.title,
-      required this.date,
-      required this.imageUrl,
-      required this.link});
+  const _NewsData({
+    required this.title,
+    required this.date,
+    required this.imageUrl,
+    required this.link,
+  });
 }
 
 // ─── HomeScreen (shell với 5 tab) ────────────────────────────────────────────
@@ -157,11 +154,14 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = ref.watch(homeTabIndexProvider);
     final ordersAsync = ref.watch(orderListProvider);
-    final processingCount = ordersAsync.valueOrNull
-            ?.where((o) =>
-                o.status == OrderStatus.pending ||
-                o.status == OrderStatus.confirmed ||
-                o.status == OrderStatus.inProduction)
+    final processingCount =
+        ordersAsync.valueOrNull
+            ?.where(
+              (o) =>
+                  o.status == OrderStatus.pending ||
+                  o.status == OrderStatus.confirmed ||
+                  o.status == OrderStatus.inProduction,
+            )
             .length ??
         0;
 
@@ -259,8 +259,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   @override
   void initState() {
     super.initState();
-    _bannerTimer =
-        Timer.periodic(const Duration(seconds: 4), (_) {
+    _bannerTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted) return;
       _bannerIndex = (_bannerIndex + 1) % _kHeroBanners.length;
       _bannerController.animateToPage(
@@ -311,18 +310,17 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             actions: [
               badges.Badge(
                 showBadge: notifCount > 0,
-                position:
-                    badges.BadgePosition.topEnd(top: 6, end: 6),
+                position: badges.BadgePosition.topEnd(top: 6, end: 6),
                 badgeContent: Text(
                   '$notifCount',
-                  style:
-                      const TextStyle(color: Colors.white, fontSize: 9),
+                  style: const TextStyle(color: Colors.white, fontSize: 9),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.notifications_outlined,
-                      color: AppColors.textWhite),
-                  onPressed: () =>
-                      context.push(AppRoutes.notifications),
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    color: AppColors.textWhite,
+                  ),
+                  onPressed: () => context.push(AppRoutes.notifications),
                 ),
               ),
               const SizedBox(width: 4),
@@ -347,16 +345,14 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                       const _SectionTitle('Dịch vụ nhanh'),
                       const SizedBox(height: 12),
                       Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceAround,
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
                           Expanded(
                             child: ShortcutCard(
                               icon: Icons.request_quote_outlined,
                               label: 'Báo giá nhanh',
                               color: AppColors.primaryOrange,
-                              onTap: () =>
-                                  context.push(AppRoutes.quotation),
+                              onTap: () => context.push(AppRoutes.quotation),
                             ),
                           ),
                           Expanded(
@@ -380,8 +376,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                               icon: Icons.phone_outlined,
                               label: 'Liên hệ',
                               color: AppColors.primaryNavy,
-                              onTap: () =>
-                                  launchUrlString('tel:0908109929'),
+                              onTap: () => launchUrlString('tel:0908109929'),
                             ),
                           ),
                         ],
@@ -396,8 +391,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                 const SizedBox(height: 24),
 
                 // ── Sản phẩm nổi bật ────────────────────────────────────────
-                _FeaturedProductsSection(
-                    productsAsync: productsAsync),
+                _FeaturedProductsSection(productsAsync: productsAsync),
                 const SizedBox(height: 24),
 
                 // ── Tin tức nổi bật ─────────────────────────────────────────
@@ -454,7 +448,9 @@ class _SectionTitle extends StatelessWidget {
             child: Text(
               actionLabel!,
               style: const TextStyle(
-                  fontSize: 13, color: AppColors.primaryOrange),
+                fontSize: 13,
+                color: AppColors.primaryOrange,
+              ),
             ),
           ),
       ],
@@ -489,13 +485,17 @@ class _HeroBannerSlider extends StatelessWidget {
                       color: AppColors.primaryNavy,
                       child: const Center(
                         child: CircularProgressIndicator(
-                            color: AppColors.primaryOrange),
+                          color: AppColors.primaryOrange,
+                        ),
                       ),
                     ),
                     errorWidget: (_, _, _) => Container(
                       color: AppColors.primaryNavy,
-                      child: const Icon(Icons.local_shipping,
-                          color: Colors.white, size: 60),
+                      child: const Icon(
+                        Icons.local_shipping,
+                        color: Colors.white,
+                        size: 60,
+                      ),
                     ),
                   ),
                   // Gradient overlay
@@ -526,9 +526,7 @@ class _HeroBannerSlider extends StatelessWidget {
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             shadows: [
-                              Shadow(
-                                  blurRadius: 8,
-                                  color: Colors.black54)
+                              Shadow(blurRadius: 8, color: Colors.black54),
                             ],
                           ),
                         ),
@@ -586,16 +584,14 @@ class _ProductCategoriesSection extends StatelessWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
               childAspectRatio: 1.15,
             ),
             itemCount: _kCategories.length,
-            itemBuilder: (_, i) =>
-                _CategoryCard(data: _kCategories[i]),
+            itemBuilder: (_, i) => _CategoryCard(data: _kCategories[i]),
           ),
         ],
       ),
@@ -632,15 +628,21 @@ class _CategoryCard extends StatelessWidget {
               imageUrl: data.imageUrl,
               fit: BoxFit.cover,
               placeholder: (_, _) => Container(
-                  color: AppColors.backgroundLight,
-                  child: const Center(
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.primaryOrange))),
+                color: AppColors.backgroundLight,
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primaryOrange,
+                  ),
+                ),
+              ),
               errorWidget: (_, _, _) => Container(
                 color: AppColors.backgroundLight,
-                child: const Icon(Icons.local_shipping_outlined,
-                    color: AppColors.primaryNavy, size: 40),
+                child: const Icon(
+                  Icons.local_shipping_outlined,
+                  color: AppColors.primaryNavy,
+                  size: 40,
+                ),
               ),
             ),
             // Bottom gradient + label
@@ -722,10 +724,8 @@ class _FeaturedProductsSection extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 itemCount: products.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(width: 12),
-                itemBuilder: (_, i) =>
-                    _ProductCard(product: products[i]),
+                separatorBuilder: (_, _) => const SizedBox(width: 12),
+                itemBuilder: (_, i) => _ProductCard(product: products[i]),
               ),
             ),
           ],
@@ -743,9 +743,6 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat.currency(
-        locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
-
     return GestureDetector(
       onTap: () => context.push(AppRoutes.productOf(product.id)),
       child: Container(
@@ -773,13 +770,19 @@ class _ProductCard extends StatelessWidget {
                       imageUrl: product.imageUrls.first,
                       fit: BoxFit.cover,
                       errorWidget: (_, _, _) => const Center(
-                        child: Icon(Icons.local_shipping_outlined,
-                            color: AppColors.primaryNavy, size: 36),
+                        child: Icon(
+                          Icons.local_shipping_outlined,
+                          color: AppColors.primaryNavy,
+                          size: 36,
+                        ),
                       ),
                     )
                   : const Center(
-                      child: Icon(Icons.local_shipping_outlined,
-                          color: AppColors.primaryNavy, size: 36),
+                      child: Icon(
+                        Icons.local_shipping_outlined,
+                        color: AppColors.primaryNavy,
+                        size: 36,
+                      ),
                     ),
             ),
             Padding(
@@ -798,11 +801,9 @@ class _ProductCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 5),
-                  Text(
-                    product.price > 0
-                        ? fmt.format(product.price)
-                        : 'Liên hệ',
-                    style: const TextStyle(
+                  const Text(
+                    'Liên hệ báo giá',
+                    style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       color: AppColors.primaryOrange,
@@ -831,8 +832,7 @@ class _NewsSection extends StatelessWidget {
           _SectionTitle(
             'Tin tức nổi bật',
             actionLabel: 'Xem thêm',
-            onAction: () =>
-                launchUrlString('https://quyenauto.com/tin-tuc/'),
+            onAction: () => launchUrlString('https://quyenauto.com/tin-tuc/'),
           ),
           const SizedBox(height: 12),
           // Feature card (first news, large)
@@ -873,12 +873,16 @@ class _NewsCardLarge extends StatelessWidget {
             CachedNetworkImage(
               imageUrl: item.imageUrl,
               fit: BoxFit.cover,
-              placeholder: (_, _) => Container(
-                  color: AppColors.backgroundLight),
+              placeholder: (_, _) =>
+                  Container(color: AppColors.backgroundLight),
               errorWidget: (_, _, _) => Container(
-                  color: AppColors.backgroundLight,
-                  child: const Icon(Icons.article_outlined,
-                      size: 40, color: AppColors.textGray)),
+                color: AppColors.backgroundLight,
+                child: const Icon(
+                  Icons.article_outlined,
+                  size: 40,
+                  color: AppColors.textGray,
+                ),
+              ),
             ),
             Container(
               decoration: BoxDecoration(
@@ -901,15 +905,16 @@ class _NewsCardLarge extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primaryOrange,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       item.date,
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 10),
+                      style: const TextStyle(color: Colors.white, fontSize: 10),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -970,8 +975,11 @@ class _NewsCardCompact extends StatelessWidget {
                     Container(color: AppColors.backgroundLight),
                 errorWidget: (_, _, _) => Container(
                   color: AppColors.backgroundLight,
-                  child: const Icon(Icons.article_outlined,
-                      color: AppColors.textGray, size: 24),
+                  child: const Icon(
+                    Icons.article_outlined,
+                    color: AppColors.textGray,
+                    size: 24,
+                  ),
                 ),
               ),
             ),
@@ -979,7 +987,9 @@ class _NewsCardCompact extends StatelessWidget {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 10),
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -997,20 +1007,25 @@ class _NewsCardCompact extends StatelessWidget {
                     const SizedBox(height: 5),
                     Row(
                       children: [
-                        const Icon(Icons.calendar_today_outlined,
-                            size: 11,
-                            color: AppColors.textGray),
+                        const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 11,
+                          color: AppColors.textGray,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           item.date,
                           style: const TextStyle(
-                              fontSize: 11,
-                              color: AppColors.textGray),
+                            fontSize: 11,
+                            color: AppColors.textGray,
+                          ),
                         ),
                         const Spacer(),
-                        const Icon(Icons.arrow_forward_ios,
-                            size: 11,
-                            color: AppColors.primaryOrange),
+                        const Icon(
+                          Icons.arrow_forward_ios,
+                          size: 11,
+                          color: AppColors.primaryOrange,
+                        ),
                       ],
                     ),
                   ],

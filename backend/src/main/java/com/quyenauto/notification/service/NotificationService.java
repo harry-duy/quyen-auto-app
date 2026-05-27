@@ -90,45 +90,93 @@ public class NotificationService {
     @Transactional
     public void notifyAllStaff(String title, String body, String type, String refId) {
         List<UserRole> staffRoles = List.of(UserRole.STAFF, UserRole.MANAGER);
-        List<User> staffUsers = userRepository
-                .findByRoleIn(staffRoles, PageRequest.of(0, 200))
-                .getContent();
-
         List<Long> staffIds = new ArrayList<>();
 
-        for (User staff : staffUsers) {
-            if (!staff.getIsActive()) continue;
+        Pageable pageable = PageRequest.of(0, 200);
+        Page<User> page;
+        do {
+            page = userRepository.findByRoleIn(staffRoles, pageable);
+            for (User staff : page.getContent()) {
+                if (!staff.getIsActive()) continue;
 
-            Notification notification = Notification.builder()
-                    .user(staff)
-                    .title(title)
-                    .body(body)
-                    .type(type)
-                    .refId(refId)
-                    .isRead(false)
-                    .build();
-            Notification saved = notificationRepository.save(notification);
-            staffIds.add(staff.getId());
+                Notification notification = Notification.builder()
+                        .user(staff)
+                        .title(title)
+                        .body(body)
+                        .type(type)
+                        .refId(refId)
+                        .isRead(false)
+                        .build();
+                Notification saved = notificationRepository.save(notification);
+                staffIds.add(staff.getId());
 
-            // WebSocket: push real-time to each staff user's personal queue
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(staff.getId()),
-                    "/queue/notifications",
-                    Map.of(
-                            "id", saved.getId(),
-                            "title", title,
-                            "body", body,
-                            "type", type,
-                            "refId", refId,
-                            "isRead", false
-                    )
-            );
-        }
+                // WebSocket: push real-time to each staff user's personal queue
+                messagingTemplate.convertAndSendToUser(
+                        String.valueOf(staff.getId()),
+                        "/queue/notifications",
+                        Map.of(
+                                "id", saved.getId(),
+                                "title", title,
+                                "body", body,
+                                "type", type,
+                                "refId", refId,
+                                "isRead", false
+                        )
+                );
+            }
+            pageable = pageable.next();
+        } while (page.hasNext());
 
         // FCM: push notification to all staff devices (async, non-blocking)
         if (!staffIds.isEmpty()) {
             firebasePushService.sendToUsers(staffIds, title, body, type, refId);
             log.info("Notified {} staff via DB + WebSocket + FCM: {}", staffIds.size(), type);
+        }
+    }
+
+    /** Gửi thông báo đến tất cả MANAGER và ADMIN */
+    @Transactional
+    public void notifyAllManagers(String title, String body, String type, String refId) {
+        List<UserRole> managerRoles = List.of(UserRole.MANAGER, UserRole.ADMIN);
+        List<Long> managerIds = new ArrayList<>();
+
+        Pageable pageable = PageRequest.of(0, 200);
+        Page<User> page;
+        do {
+            page = userRepository.findByRoleIn(managerRoles, pageable);
+            for (User manager : page.getContent()) {
+                if (!manager.getIsActive()) continue;
+
+                Notification notification = Notification.builder()
+                        .user(manager)
+                        .title(title)
+                        .body(body)
+                        .type(type)
+                        .refId(refId)
+                        .isRead(false)
+                        .build();
+                Notification saved = notificationRepository.save(notification);
+                managerIds.add(manager.getId());
+
+                messagingTemplate.convertAndSendToUser(
+                        String.valueOf(manager.getId()),
+                        "/queue/notifications",
+                        Map.of(
+                                "id", saved.getId(),
+                                "title", title,
+                                "body", body,
+                                "type", type,
+                                "refId", refId,
+                                "isRead", false
+                        )
+                );
+            }
+            pageable = pageable.next();
+        } while (page.hasNext());
+
+        if (!managerIds.isEmpty()) {
+            firebasePushService.sendToUsers(managerIds, title, body, type, refId);
+            log.info("Notified {} managers via DB + WebSocket + FCM: {}", managerIds.size(), type);
         }
     }
 }

@@ -63,6 +63,42 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.noContent());
     }
 
+    // ─── Customer Management (STAFF + MANAGER + ADMIN) ───────────────────────
+
+    @GetMapping("/staff/customers")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Danh sách khách hàng")
+    public ResponseEntity<ApiResponse<PageResponse<UserResponse>>> getCustomers(
+            @RequestParam(required = false) String keyword,
+            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.ok(
+                PageResponse.of(userService.getCustomers(keyword, pageable))));
+    }
+
+    @PostMapping("/staff/customers")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Tạo tài khoản khách hàng")
+    public ResponseEntity<ApiResponse<UserResponse>> createCustomer(
+            @Valid @RequestBody CreateCustomerRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(userService.createCustomer(request)));
+    }
+
+    @GetMapping("/staff/customers/{id}")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Chi tiết khách hàng")
+    public ResponseEntity<ApiResponse<UserResponse>> getCustomerDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.ok(userService.getById(id)));
+    }
+
+    @PatchMapping("/staff/customers/{id}/toggle-active")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "Bật/tắt tài khoản khách hàng")
+    public ResponseEntity<ApiResponse<Void>> toggleCustomerActive(@PathVariable Long id) {
+        userService.toggleActive(id);
+        return ResponseEntity.ok(ApiResponse.noContent());
+    }
+
     @PutMapping("/auth/me")
     @Operation(summary = "Cập nhật hồ sơ cá nhân")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfile(

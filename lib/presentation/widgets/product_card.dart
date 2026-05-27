@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../core/constants/app_colors.dart';
@@ -32,9 +31,6 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmt =
-        NumberFormat.currency(locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
-
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(12),
@@ -108,11 +104,9 @@ class ProductCard extends StatelessWidget {
                             fontSize: 11, color: AppColors.textGray),
                       ),
                     const Spacer(),
-                    Text(
-                      product.price > 0
-                          ? 'Từ ${fmt.format(product.price)}'
-                          : 'Liên hệ báo giá',
-                      style: const TextStyle(
+                    const Text(
+                      'Liên hệ báo giá',
+                      style: TextStyle(
                         color: AppColors.primaryOrange,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,

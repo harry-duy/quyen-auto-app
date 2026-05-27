@@ -55,8 +55,18 @@ const _kFloorRequirements = [
 ];
 const _kRearPillarTypes = ['SBL', 'BLT', 'BLD', 'CND'];
 const _kPanelCodes = [
-  'E1-F', 'E1-C', 'E2', 'A1', 'A2', 'E3',
-  'RPB', 'CPB', 'RLL', 'CLL', 'S-CS', 'T-CS',
+  'E1-F',
+  'E1-C',
+  'E2',
+  'A1',
+  'A2',
+  'E3',
+  'RPB',
+  'CPB',
+  'RLL',
+  'CLL',
+  'S-CS',
+  'T-CS',
 ];
 const _kEquipmentOptions = [
   'Máy Oxy: RT90-M + ZLE-50LA',
@@ -79,7 +89,6 @@ class QuotationFormScreen extends ConsumerStatefulWidget {
 
 class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  int _currentStep = 0;
 
   // ─── Step 1: Thông tin cơ bản ────────────────────────────────────────────
   String _boxCategory = _kBoxCategories[0];
@@ -89,10 +98,10 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   final _chassisWidthCtrl = TextEditingController();
   final _boxCodeCtrl = TextEditingController();
   String? _boxType;
-  String? _pillarType;         // Loại trụ (NH/INOX)
-  String? _doorGasketType;    // Loại roon cửa
-  String? _floorType;          // Loại sàn
-  String? _acType;             // Loại máy lạnh
+  String? _pillarType; // Loại trụ (NH/INOX)
+  String? _doorGasketType; // Loại roon cửa
+  String? _floorType; // Loại sàn
+  String? _acType; // Loại máy lạnh
   final _acModelCtrl = TextEditingController();
   bool _innerWallInsulated = false; // Mặt trong Panel TK
 
@@ -107,7 +116,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   final _innerHeightCtrl = TextEditingController();
 
   // ─── Step 2: Phụ kiện & trang bị ────────────────────────────────────────
-  String? _floorRequirement;  // Yêu cầu sàn
+  String? _floorRequirement; // Yêu cầu sàn
 
   bool _sideLight = false;
   final _sideLightQtyCtrl = TextEditingController(text: '0');
@@ -125,9 +134,9 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   bool _oxyPipeFront = false;
   bool _oxyPipeSide = false;
 
-  bool _oxyMachine = false;           // Máy Oxy RT90-M + ZLE-50LA
+  bool _oxyMachine = false; // Máy Oxy RT90-M + ZLE-50LA
   final _oxyMachineQtyCtrl = TextEditingController(text: '1');
-  bool _liftingGateDLC3 = false;      // Bửng nâng hạ DLC3
+  bool _liftingGateDLC3 = false; // Bửng nâng hạ DLC3
   final _liftingGateDLC3QtyCtrl = TextEditingController(text: '1');
 
   final _equip1Ctrl = TextEditingController();
@@ -153,9 +162,9 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   String? _rearPillarFrame;
 
   // Thông số phủ bì lam trụ
-  final _pillarCNTCtrl = TextEditingController();   // CN-T
-  final _pillarCDCtrl = TextEditingController();    // CD
-  final _pillarCNDCtrl = TextEditingController();   // CN-D
+  final _pillarCNTCtrl = TextEditingController(); // CN-T
+  final _pillarCDCtrl = TextEditingController(); // CD
+  final _pillarCNDCtrl = TextEditingController(); // CN-D
 
   // Đà sàn
   final _floorBeamCtrl = TextEditingController();
@@ -196,21 +205,43 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   }
 
   List<TextEditingController> get _allControllers => [
-        _quantityCtrl, _chassisWidthCtrl, _boxCodeCtrl,
-        _acModelCtrl,
-        _outerLengthCtrl, _outerWidthCtrl, _outerHeightCtrl,
-        _innerLengthCtrl, _innerWidthCtrl, _innerHeightCtrl,
-        _sideLightQtyCtrl, _cabinRackQtyCtrl, _ladderQtyCtrl,
-        _oxyMachineQtyCtrl, _liftingGateDLC3QtyCtrl,
-        _equip1Ctrl, _equip2Ctrl, _equip3Ctrl,
-        _foamFloorCtrl, _foamFrontCtrl, _foamSideCtrl, _foamRoofCtrl, _foamDoorCtrl,
-        _pillarCNTCtrl, _pillarCDCtrl, _pillarCNDCtrl,
-        _floorBeamCtrl,
-        _airTubeStdQtyCtrl, _airTubeHrzQtyCtrl, _protectionPartQtyCtrl,
-        _airChamberCapQtyCtrl, _tankCapQtyCtrl, _traceCargoQtyCtrl,
-        _noteCtrl,
-        _guestPhoneCtrl, _guestNameCtrl,
-      ];
+    _quantityCtrl,
+    _chassisWidthCtrl,
+    _boxCodeCtrl,
+    _acModelCtrl,
+    _outerLengthCtrl,
+    _outerWidthCtrl,
+    _outerHeightCtrl,
+    _innerLengthCtrl,
+    _innerWidthCtrl,
+    _innerHeightCtrl,
+    _sideLightQtyCtrl,
+    _cabinRackQtyCtrl,
+    _ladderQtyCtrl,
+    _oxyMachineQtyCtrl,
+    _liftingGateDLC3QtyCtrl,
+    _equip1Ctrl,
+    _equip2Ctrl,
+    _equip3Ctrl,
+    _foamFloorCtrl,
+    _foamFrontCtrl,
+    _foamSideCtrl,
+    _foamRoofCtrl,
+    _foamDoorCtrl,
+    _pillarCNTCtrl,
+    _pillarCDCtrl,
+    _pillarCNDCtrl,
+    _floorBeamCtrl,
+    _airTubeStdQtyCtrl,
+    _airTubeHrzQtyCtrl,
+    _protectionPartQtyCtrl,
+    _airChamberCapQtyCtrl,
+    _tankCapQtyCtrl,
+    _traceCargoQtyCtrl,
+    _noteCtrl,
+    _guestPhoneCtrl,
+    _guestNameCtrl,
+  ];
 
   // ─── Build spec JSON ─────────────────────────────────────────────────────
   Map<String, dynamic> _buildSpecifications() {
@@ -230,10 +261,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
       },
       'pillarType': _pillarType,
       'doorGasketType': _doorGasketType,
-      'floor': {
-        'type': _floorType,
-        'requirement': _floorRequirement,
-      },
+      'floor': {'type': _floorType, 'requirement': _floorRequirement},
       'innerWallCargo': _innerWallCargo,
       'doors': {
         'sideDoorPassenger': _sideDoorPassenger,
@@ -261,7 +289,9 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
       },
       'liftingGateDLC3': {
         'enabled': _liftingGateDLC3,
-        'qty': _liftingGateDLC3 ? (int.tryParse(_liftingGateDLC3QtyCtrl.text) ?? 1) : 0,
+        'qty': _liftingGateDLC3
+            ? (int.tryParse(_liftingGateDLC3QtyCtrl.text) ?? 1)
+            : 0,
       },
       'equipments': [
         if (_equip1Ctrl.text.trim().isNotEmpty) _equip1Ctrl.text.trim(),
@@ -288,21 +318,40 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
         'CD': int.tryParse(_pillarCDCtrl.text),
         'CND': int.tryParse(_pillarCNDCtrl.text),
       },
-      'floorBeam': _floorBeamCtrl.text.trim().isEmpty ? null : _floorBeamCtrl.text.trim(),
+      'floorBeam': _floorBeamCtrl.text.trim().isEmpty
+          ? null
+          : _floorBeamCtrl.text.trim(),
       'options': {
-        'airTubeStandard': {'enabled': _airTubeStandard, 'qty': int.tryParse(_airTubeStdQtyCtrl.text) ?? 0},
-        'airTubeHorizontal': {'enabled': _airTubeHorizontal, 'qty': int.tryParse(_airTubeHrzQtyCtrl.text) ?? 0},
-        'protectionPart': {'enabled': _protectionPart, 'qty': int.tryParse(_protectionPartQtyCtrl.text) ?? 0},
-        'airChamberCap': {'enabled': _airChamberCap, 'qty': int.tryParse(_airChamberCapQtyCtrl.text) ?? 0},
-        'tankCap': {'enabled': _tankCap, 'qty': int.tryParse(_tankCapQtyCtrl.text) ?? 0},
-        'traceCargo': {'enabled': _traceCargo, 'qty': int.tryParse(_traceCargoQtyCtrl.text) ?? 0},
+        'airTubeStandard': {
+          'enabled': _airTubeStandard,
+          'qty': int.tryParse(_airTubeStdQtyCtrl.text) ?? 0,
+        },
+        'airTubeHorizontal': {
+          'enabled': _airTubeHorizontal,
+          'qty': int.tryParse(_airTubeHrzQtyCtrl.text) ?? 0,
+        },
+        'protectionPart': {
+          'enabled': _protectionPart,
+          'qty': int.tryParse(_protectionPartQtyCtrl.text) ?? 0,
+        },
+        'airChamberCap': {
+          'enabled': _airChamberCap,
+          'qty': int.tryParse(_airChamberCapQtyCtrl.text) ?? 0,
+        },
+        'tankCap': {
+          'enabled': _tankCap,
+          'qty': int.tryParse(_tankCapQtyCtrl.text) ?? 0,
+        },
+        'traceCargo': {
+          'enabled': _traceCargo,
+          'qty': int.tryParse(_traceCargoQtyCtrl.text) ?? 0,
+        },
       },
     };
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
-      setState(() => _currentStep = 0);
       return;
     }
     FocusScope.of(context).unfocus();
@@ -321,10 +370,14 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
       vehicleModel: _vehicleModel ?? '',
       quantity: int.tryParse(_quantityCtrl.text) ?? 1,
       chassisWidth: int.tryParse(_chassisWidthCtrl.text),
-      boxCode: _boxCodeCtrl.text.trim().isEmpty ? null : _boxCodeCtrl.text.trim(),
+      boxCode: _boxCodeCtrl.text.trim().isEmpty
+          ? null
+          : _boxCodeCtrl.text.trim(),
       boxType: _boxType,
       acType: _acType,
-      acModel: _acModelCtrl.text.trim().isEmpty ? null : _acModelCtrl.text.trim(),
+      acModel: _acModelCtrl.text.trim().isEmpty
+          ? null
+          : _acModelCtrl.text.trim(),
       innerWallInsulated: _innerWallInsulated,
       specifications: _buildSpecifications(),
       note: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
@@ -334,7 +387,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
     if (!mounted) return;
 
     if (success) {
-      _showSuccessDialog(ref.read(quotationProvider).value!.orderCode);
+      _showSuccessDialog();
     } else {
       final err = ref.read(quotationProvider).error;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -354,19 +407,26 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
     try {
       final api = ref.read(apiServiceProvider);
       final allProducts = ref.read(productListProvider).valueOrNull ?? [];
-      final matchedProducts = allProducts.where((p) => p.id == _selectedProductId);
-      final productName = matchedProducts.isEmpty ? null : matchedProducts.first.name;
+      final matchedProducts = allProducts.where(
+        (p) => p.id == _selectedProductId,
+      );
+      final productName = matchedProducts.isEmpty
+          ? null
+          : matchedProducts.first.name;
 
-      await api.post(ApiConstants.guestLead, data: {
-        'phone': _guestPhoneCtrl.text.trim(),
-        if (_guestNameCtrl.text.trim().isNotEmpty)
-          'name': _guestNameCtrl.text.trim(),
-        if (_selectedProductId != null)
-          'productId': int.tryParse(_selectedProductId!),
-        'productName': ?productName,
-        'specifications': jsonEncode(_buildSpecifications()),
-        if (_noteCtrl.text.trim().isNotEmpty) 'note': _noteCtrl.text.trim(),
-      });
+      await api.post(
+        ApiConstants.guestLead,
+        data: {
+          'phone': _guestPhoneCtrl.text.trim(),
+          if (_guestNameCtrl.text.trim().isNotEmpty)
+            'name': _guestNameCtrl.text.trim(),
+          if (_selectedProductId != null)
+            'productId': int.tryParse(_selectedProductId!),
+          'productName': productName,
+          'specifications': jsonEncode(_buildSpecifications()),
+          if (_noteCtrl.text.trim().isNotEmpty) 'note': _noteCtrl.text.trim(),
+        },
+      );
       if (!mounted) return;
       _showGuestSuccessDialog();
     } catch (_) {
@@ -398,23 +458,30 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                 color: AppColors.successGreen.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle_outline,
-                  color: AppColors.successGreen, size: 40),
+              child: const Icon(
+                Icons.check_circle_outline,
+                color: AppColors.successGreen,
+                size: 40,
+              ),
             ),
             const SizedBox(height: 16),
             const Text(
               'Đã gửi yêu cầu!',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textDark),
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
               'Nhân viên Quyen Auto sẽ liên hệ với bạn trong thời gian sớm nhất.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                  fontSize: 13, color: AppColors.textGray, height: 1.5),
+                fontSize: 13,
+                color: AppColors.textGray,
+                height: 1.5,
+              ),
             ),
           ],
         ),
@@ -434,7 +501,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
     );
   }
 
-  void _showSuccessDialog(String orderCode) {
+  void _showSuccessDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -443,22 +510,29 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle_outline,
-                color: AppColors.successGreen, size: 64),
+            const Icon(
+              Icons.check_circle_outline,
+              color: AppColors.successGreen,
+              size: 64,
+            ),
             const SizedBox(height: 16),
             const Text(
               'Gửi yêu cầu thành công!',
               style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textDark),
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Mã đơn: $orderCode\nChúng tôi sẽ liên hệ sớm để xác nhận báo giá.',
+            const Text(
+              'Yêu cầu báo giá đã được gửi. Nhân viên sẽ liên hệ để tư vấn và chốt đơn nếu bạn đồng ý.',
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                  fontSize: 13, color: AppColors.textGray, height: 1.5),
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.textGray,
+                height: 1.5,
+              ),
             ),
           ],
         ),
@@ -468,9 +542,9 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
             child: ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-                context.go(AppRoutes.orders);
+                context.go(AppRoutes.home);
               },
-              child: const Text('Xem đơn hàng'),
+              child: const Text('Về trang chủ'),
             ),
           ),
         ],
@@ -483,7 +557,8 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isLoggedIn = ref.watch(isAuthenticatedProvider);
-    final isLoading = ref.watch(quotationProvider).isLoading || _guestSubmitting;
+    final isLoading =
+        ref.watch(quotationProvider).isLoading || _guestSubmitting;
     final productsAsync = ref.watch(productListProvider);
 
     return Scaffold(
@@ -491,82 +566,28 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
       appBar: AppBar(title: const Text('Tạo yêu cầu báo giá')),
       body: Form(
         key: _formKey,
-        child: Stepper(
-          currentStep: _currentStep,
-          onStepTapped: (step) => setState(() => _currentStep = step),
-          onStepContinue: () {
-            if (_currentStep < 3) {
-              setState(() => _currentStep++);
-            } else {
-              _submit();
-            }
-          },
-          onStepCancel: () {
-            if (_currentStep > 0) setState(() => _currentStep--);
-          },
-          controlsBuilder: (context, details) {
-            // Step 4: submit button is embedded in content; show only "Quay lại" here
-            if (_currentStep == 3) {
-              return Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: OutlinedButton(
-                    onPressed: details.onStepCancel,
-                    child: const Text('Quay lại'),
-                  ),
-                ),
-              );
-            }
-            return Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: isLoading ? null : details.onStepContinue,
-                      child: const Text('Tiếp theo'),
-                    ),
-                  ),
-                  if (_currentStep > 0) ...[
-                    const SizedBox(width: 12),
-                    OutlinedButton(
-                      onPressed: details.onStepCancel,
-                      child: const Text('Quay lại'),
-                    ),
-                  ],
-                ],
-              ),
-            );
-          },
-          steps: [
-            Step(
-              title: const Text('Thông tin cơ bản'),
-              subtitle: const Text('Loại xe, kích thước thùng'),
-              isActive: _currentStep >= 0,
-              state: _currentStep > 0 ? StepState.complete : StepState.indexed,
-              content: _buildStep1(productsAsync),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+          children: [
+            _FormSection(
+              title: 'Thông tin cơ bản',
+              subtitle: 'Loại xe, kích thước thùng',
+              child: _buildStep1(productsAsync),
             ),
-            Step(
-              title: const Text('Phụ kiện & trang bị'),
-              subtitle: const Text('Sàn, cửa, thang leo, thiết bị'),
-              isActive: _currentStep >= 1,
-              state: _currentStep > 1 ? StepState.complete : StepState.indexed,
-              content: _buildStep2(),
+            _FormSection(
+              title: 'Phụ kiện & trang bị',
+              subtitle: 'Sàn, cửa, thang leo, thiết bị',
+              child: _buildStep2(),
             ),
-            Step(
-              title: const Text('Thông số kỹ thuật'),
-              subtitle: const Text('Panel, foam, khung trụ'),
-              isActive: _currentStep >= 2,
-              state: _currentStep > 2 ? StepState.complete : StepState.indexed,
-              content: _buildStep3(),
+            _FormSection(
+              title: 'Thông số kỹ thuật',
+              subtitle: 'Panel, foam, khung trụ',
+              child: _buildStep3(),
             ),
-            Step(
-              title: const Text('Tùy chọn & ghi chú'),
-              subtitle: const Text('Option khác, ghi chú thêm'),
-              isActive: _currentStep >= 3,
-              state: StepState.indexed,
-              content: _buildStep4(isLoggedIn, isLoading),
+            _FormSection(
+              title: 'Tùy chọn & ghi chú',
+              subtitle: 'Option khác, ghi chú thêm',
+              child: _buildStep4(isLoggedIn, isLoading),
             ),
           ],
         ),
@@ -593,9 +614,12 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                 onTap: () => setState(() => _boxCategory = cat),
                 child: Container(
                   margin: EdgeInsets.only(
-                      right: cat == _kBoxCategories[0] ? 6 : 0),
+                    right: cat == _kBoxCategories[0] ? 6 : 0,
+                  ),
                   padding: const EdgeInsets.symmetric(
-                      vertical: 10, horizontal: 8),
+                    vertical: 10,
+                    horizontal: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: selected
                         ? AppColors.primaryOrange
@@ -642,10 +666,12 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
               ),
               isExpanded: true,
               items: products
-                  .map((p) => DropdownMenuItem<String>(
-                        value: p.id,
-                        child: Text(p.name, overflow: TextOverflow.ellipsis),
-                      ))
+                  .map(
+                    (p) => DropdownMenuItem<String>(
+                      value: p.id,
+                      child: Text(p.name, overflow: TextOverflow.ellipsis),
+                    ),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => _selectedProductId = v),
               validator: (v) => v == null ? 'Vui lòng chọn sản phẩm' : null,
@@ -672,7 +698,12 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
           ),
           isExpanded: true,
           items: _kVehicleModels
-              .map((m) => DropdownMenuItem<String>(value: m, child: Text(m, overflow: TextOverflow.ellipsis)))
+              .map(
+                (m) => DropdownMenuItem<String>(
+                  value: m,
+                  child: Text(m, overflow: TextOverflow.ellipsis),
+                ),
+              )
               .toList(),
           onChanged: (v) => setState(() => _vehicleModel = v),
           validator: (v) => v == null ? 'Vui lòng chọn kiểu loại xe' : null,
@@ -709,7 +740,9 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                     controller: _chassisWidthCtrl,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: const InputDecoration(labelText: 'Rộng chassis'),
+                    decoration: const InputDecoration(
+                      labelText: 'Rộng chassis',
+                    ),
                   ),
                 ],
               ),
@@ -747,7 +780,12 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                     decoration: const InputDecoration(labelText: 'Loại'),
                     isExpanded: true,
                     items: _kBoxTypes
-                        .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
+                        .map(
+                          (t) => DropdownMenuItem<String>(
+                            value: t,
+                            child: Text(t),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _boxType = v),
                   ),
@@ -773,7 +811,12 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                     decoration: const InputDecoration(labelText: 'Loại sàn'),
                     isExpanded: true,
                     items: _kFloorTypes
-                        .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
+                        .map(
+                          (t) => DropdownMenuItem<String>(
+                            value: t,
+                            child: Text(t),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _floorType = v),
                   ),
@@ -792,7 +835,12 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                     decoration: const InputDecoration(labelText: 'Loại trụ'),
                     isExpanded: true,
                     items: _kPillarTypes
-                        .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
+                        .map(
+                          (t) => DropdownMenuItem<String>(
+                            value: t,
+                            child: Text(t),
+                          ),
+                        )
                         .toList(),
                     onChanged: (v) => setState(() => _pillarType = v),
                   ),
@@ -813,7 +861,8 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
             hintText: 'VD: LL cửa hông',
             prefixIcon: Icon(Icons.door_sliding_outlined),
           ),
-          onChanged: (v) => _doorGasketType = v.trim().isEmpty ? null : v.trim(),
+          onChanged: (v) =>
+              _doorGasketType = v.trim().isEmpty ? null : v.trim(),
         ),
 
         const SizedBox(height: 16),
@@ -850,7 +899,10 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                   decoration: const InputDecoration(labelText: 'Loại máy lạnh'),
                   isExpanded: true,
                   items: _kAcTypes
-                      .map((t) => DropdownMenuItem<String>(value: t, child: Text(t)))
+                      .map(
+                        (t) =>
+                            DropdownMenuItem<String>(value: t, child: Text(t)),
+                      )
                       .toList(),
                   onChanged: (v) => setState(() => _acType = v),
                 ),
@@ -860,7 +912,9 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                 child: TextFormField(
                   controller: _acModelCtrl,
                   decoration: const InputDecoration(
-                      labelText: 'Model', hintText: 'VD: T-2500 12V'),
+                    labelText: 'Model',
+                    hintText: 'VD: T-2500 12V',
+                  ),
                 ),
               ),
             ],
@@ -893,10 +947,12 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
           decoration: const InputDecoration(labelText: 'Yêu cầu sàn'),
           isExpanded: true,
           items: _kFloorRequirements
-              .map((r) => DropdownMenuItem<String>(
-                    value: r,
-                    child: Text(r, overflow: TextOverflow.ellipsis),
-                  ))
+              .map(
+                (r) => DropdownMenuItem<String>(
+                  value: r,
+                  child: Text(r, overflow: TextOverflow.ellipsis),
+                ),
+              )
               .toList(),
           onChanged: (v) => setState(() => _floorRequirement = v),
         ),
@@ -1000,7 +1056,13 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
   Widget _buildStep3() {
     const surfaces = ['Sàn', 'Đầu', 'Hông', 'Nóc', 'Cửa'];
 
-    final panelValues = [_panelFloor, _panelFront, _panelSide, _panelRoof, _panelDoor];
+    final panelValues = [
+      _panelFloor,
+      _panelFront,
+      _panelSide,
+      _panelRoof,
+      _panelDoor,
+    ];
     final panelSetters = <void Function(String?)>[
       (v) => setState(() => _panelFloor = v),
       (v) => setState(() => _panelFront = v),
@@ -1009,7 +1071,11 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
       (v) => setState(() => _panelDoor = v),
     ];
     final foamCtrls = [
-      _foamFloorCtrl, _foamFrontCtrl, _foamSideCtrl, _foamRoofCtrl, _foamDoorCtrl
+      _foamFloorCtrl,
+      _foamFrontCtrl,
+      _foamSideCtrl,
+      _foamRoofCtrl,
+      _foamDoorCtrl,
     ];
 
     return Column(
@@ -1018,74 +1084,47 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
         // Panel & Foam table
         _label('Thông số Panel & Foam (mm)'),
         const SizedBox(height: 8),
-        Table(
-          border: TableBorder.all(
-              color: AppColors.borderLight.withValues(alpha: 0.5), width: 0.8),
-          columnWidths: const {
-            0: IntrinsicColumnWidth(),
-            1: FlexColumnWidth(2),
-            2: FlexColumnWidth(1),
-          },
-          children: [
-            // Header row
-            TableRow(
-              decoration: BoxDecoration(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.1)),
-              children: const [
-                _TableCell(text: 'Bề mặt', header: true),
-                _TableCell(text: 'Loại Panel', header: true),
-                _TableCell(text: 'Foam', header: true),
-              ],
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: AppColors.borderLight.withValues(alpha: 0.6),
+              width: 0.8,
             ),
-            // Data rows
-            for (int i = 0; i < surfaces.length; i++)
-              TableRow(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 6, horizontal: 8),
-                    child: Text(surfaces[i],
-                        style: const TextStyle(
-                            fontSize: 12, fontWeight: FontWeight.w500)),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange.withValues(alpha: 0.08),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(10),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: DropdownButtonFormField<String>(
-                      initialValue: panelValues[i],
-                      isDense: true,
-                      decoration: const InputDecoration(
-                        isDense: true,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                        hintText: 'Chọn',
-                      ),
-                      isExpanded: true,
-                      items: _kPanelCodes
-                          .map((c) =>
-                              DropdownMenuItem<String>(value: c, child: Text(c, style: const TextStyle(fontSize: 12))))
-                          .toList(),
-                      onChanged: panelSetters[i],
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: TextFormField(
-                      controller: foamCtrls[i],
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      textAlign: TextAlign.center,
-                      decoration: const InputDecoration(
-                        isDense: true,
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                        suffixText: 'mm',
-                        suffixStyle: TextStyle(fontSize: 10),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
+                child: const Row(
+                  children: [
+                    SizedBox(width: 52, child: _TableCell(text: 'Bề mặt')),
+                    SizedBox(width: 8),
+                    Expanded(child: _TableCell(text: 'Loại Panel')),
+                    SizedBox(width: 8),
+                    SizedBox(width: 74, child: _TableCell(text: 'Foam')),
+                  ],
+                ),
               ),
-          ],
+              for (int i = 0; i < surfaces.length; i++)
+                _PanelFoamRow(
+                  surface: surfaces[i],
+                  panelValue: panelValues[i],
+                  foamController: foamCtrls[i],
+                  onPanelChanged: panelSetters[i],
+                  showDivider: i < surfaces.length - 1,
+                ),
+            ],
+          ),
         ),
 
         const SizedBox(height: 16),
@@ -1115,7 +1154,10 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                 controller: _pillarCNTCtrl,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(labelText: 'CN-T', isDense: true),
+                decoration: const InputDecoration(
+                  labelText: 'CN-T',
+                  isDense: true,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -1124,7 +1166,10 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                 controller: _pillarCDCtrl,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(labelText: 'CD', isDense: true),
+                decoration: const InputDecoration(
+                  labelText: 'CD',
+                  isDense: true,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -1133,7 +1178,10 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                 controller: _pillarCNDCtrl,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: const InputDecoration(labelText: 'CN-D', isDense: true),
+                decoration: const InputDecoration(
+                  labelText: 'CN-D',
+                  isDense: true,
+                ),
               ),
             ),
           ],
@@ -1169,12 +1217,16 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
               color: AppColors.primaryOrange.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                  color: AppColors.primaryOrange.withValues(alpha: 0.3)),
+                color: AppColors.primaryOrange.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.phone_in_talk_outlined,
-                    color: AppColors.primaryOrange, size: 20),
+                const Icon(
+                  Icons.phone_in_talk_outlined,
+                  color: AppColors.primaryOrange,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
@@ -1290,7 +1342,8 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
               backgroundColor: AppColors.primaryOrange,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12),
+              ),
               elevation: 2,
             ),
             icon: isLoading
@@ -1298,13 +1351,14 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2.5, color: Colors.white),
+                      strokeWidth: 2.5,
+                      color: Colors.white,
+                    ),
                   )
                 : const Icon(Icons.send_rounded, size: 20),
             label: Text(
               isLoggedIn ? 'Gửi báo giá' : 'Gửi yêu cầu',
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w700),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
           ),
         ),
@@ -1328,11 +1382,14 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
           ),
         ),
         const SizedBox(width: 6),
-        Text(text,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textDark)),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDark,
+          ),
+        ),
       ],
     );
   }
@@ -1343,24 +1400,38 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
       decoration: BoxDecoration(
         color: AppColors.primaryOrange.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.primaryOrange.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: AppColors.primaryOrange.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
-          const Icon(Icons.local_shipping, color: AppColors.primaryOrange, size: 22),
+          const Icon(
+            Icons.local_shipping,
+            color: AppColors.primaryOrange,
+            size: 22,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        color: AppColors.textDark)),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: AppColors.textDark,
+                  ),
+                ),
                 if (type != null)
-                  Text(type,
-                      style: const TextStyle(fontSize: 11, color: AppColors.textGray)),
+                  Text(
+                    type,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textGray,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -1419,7 +1490,11 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
     return Row(
       children: [
         Expanded(
-          child: _checkboxTile(label: label, value: value, onChanged: onChanged),
+          child: _checkboxTile(
+            label: label,
+            value: value,
+            onChanged: onChanged,
+          ),
         ),
         if (value)
           SizedBox(
@@ -1440,8 +1515,9 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
     return Autocomplete<String>(
       optionsBuilder: (textEditingValue) {
         if (textEditingValue.text.isEmpty) return const [];
-        return _kEquipmentOptions.where((o) =>
-            o.toLowerCase().contains(textEditingValue.text.toLowerCase()));
+        return _kEquipmentOptions.where(
+          (o) => o.toLowerCase().contains(textEditingValue.text.toLowerCase()),
+        );
       },
       onSelected: (v) => ctrl.text = v,
       fieldViewBuilder: (_, fieldCtrl, focusNode, _) {
@@ -1484,3 +1560,168 @@ class _TableCell extends StatelessWidget {
   }
 }
 
+class _PanelFoamRow extends StatelessWidget {
+  final String surface;
+  final String? panelValue;
+  final TextEditingController foamController;
+  final ValueChanged<String?> onPanelChanged;
+  final bool showDivider;
+
+  const _PanelFoamRow({
+    required this.surface,
+    required this.panelValue,
+    required this.foamController,
+    required this.onPanelChanged,
+    required this.showDivider,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: showDivider
+            ? Border(
+                bottom: BorderSide(
+                  color: AppColors.borderLight.withValues(alpha: 0.5),
+                  width: 0.8,
+                ),
+              )
+            : null,
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 52,
+            child: Text(
+              surface,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textDark,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              initialValue: panelValue,
+              isDense: true,
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 8,
+                ),
+                hintText: 'Chọn',
+              ),
+              isExpanded: true,
+              items: _kPanelCodes
+                  .map(
+                    (code) => DropdownMenuItem<String>(
+                      value: code,
+                      child: Text(
+                        code,
+                        style: const TextStyle(fontSize: 12),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: onPanelChanged,
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 74,
+            child: TextFormField(
+              controller: foamController,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              textAlign: TextAlign.center,
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 4,
+                ),
+                suffixText: 'mm',
+                suffixStyle: TextStyle(fontSize: 10),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FormSection extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Widget child;
+
+  const _FormSection({
+    required this.title,
+    required this.subtitle,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.borderLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 4,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryOrange,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textGray,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
+  }
+}

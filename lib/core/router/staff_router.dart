@@ -10,6 +10,7 @@ import '../../presentation/staff/dealer_map_screen.dart';
 import '../../presentation/staff/department_management_screen.dart';
 import '../../presentation/staff/product_management_screen.dart';
 import '../../presentation/staff/staff_member_management_screen.dart';
+import '../../presentation/staff/customer_management_screen.dart';
 import '../di/providers.dart';
 
 abstract final class StaffRoutes {
@@ -21,7 +22,8 @@ abstract final class StaffRoutes {
   static const dealerMap         = '/dealers/map';
   static const departments       = '/management/departments';
   static const staffMembers      = '/management/staff';
-  static const productManagement = '/management/products';
+  static const productManagement  = '/management/products';
+  static const customerManagement = '/management/customers';
 
   static String orderOf(String id)    => '/order/$id';
   static String chatOf(String roomId) => '/chat/$roomId';
@@ -61,6 +63,7 @@ final staffRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: StaffRoutes.departments,         builder: (_, _) => const DepartmentManagementScreen()),
       GoRoute(path: StaffRoutes.staffMembers,        builder: (_, _) => const StaffMemberManagementScreen()),
       GoRoute(path: StaffRoutes.productManagement,   builder: (_, _) => const ProductManagementScreen()),
+      GoRoute(path: StaffRoutes.customerManagement,  builder: (_, _) => const CustomerManagementScreen()),
     ],
   );
 });

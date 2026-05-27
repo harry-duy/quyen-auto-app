@@ -25,12 +25,12 @@ class ServiceResult<T> {
     T Function(dynamic)? fromData,
   ) {
     return ServiceResult(
-      success:    json['success'] as bool? ?? false,
-      message:    json['message'] as String? ?? '',
+      success: json['success'] as bool? ?? false,
+      message: json['message'] as String? ?? '',
       statusCode: json['statusCode'] as int? ?? 0,
-      data:       json['data'] != null && fromData != null
-                    ? fromData(json['data'])
-                    : null,
+      data: json['data'] != null && fromData != null
+          ? fromData(json['data'])
+          : null,
     );
   }
 }
@@ -101,11 +101,11 @@ class _AuthInterceptor extends Interceptor {
         data: {'refreshToken': refreshToken},
       );
 
-      final newAccess  = refreshRes.data['data']['accessToken']  as String;
+      final newAccess = refreshRes.data['data']['accessToken'] as String;
       final newRefresh = refreshRes.data['data']['refreshToken'] as String;
 
       await _tokenService.saveTokens(
-        accessToken:  newAccess,
+        accessToken: newAccess,
         refreshToken: newRefresh,
       );
 
@@ -132,16 +132,16 @@ class ApiService {
   final Logger _log = Logger();
 
   ApiService({TokenService? tokenService})
-      : _tokenService = tokenService ?? TokenService() {
+    : _tokenService = tokenService ?? TokenService() {
     _dio = Dio(
       BaseOptions(
-        baseUrl:        ApiConstants.baseUrl,
+        baseUrl: ApiConstants.baseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
-        sendTimeout:    const Duration(seconds: 30),
+        sendTimeout: const Duration(seconds: 30),
         headers: {
           HttpHeaders.contentTypeHeader: ContentType.json.value,
-          HttpHeaders.acceptHeader:      ContentType.json.value,
+          HttpHeaders.acceptHeader: ContentType.json.value,
         },
       ),
     );
@@ -151,11 +151,11 @@ class ApiService {
     if (kDebugMode) {
       _dio.interceptors.add(
         LogInterceptor(
-          request:        true,
-          requestBody:    true,
-          responseBody:   true,
+          request: true,
+          requestBody: true,
+          responseBody: true,
           responseHeader: false,
-          error:          true,
+          error: true,
           logPrint: (obj) => _log.d(obj),
         ),
       );
@@ -169,10 +169,10 @@ class ApiService {
     Map<String, dynamic>? queryParams,
     T Function(dynamic)? fromData,
   }) async {
-    return _execute(() => _dio.get<Map<String, dynamic>>(
-      path,
-      queryParameters: queryParams,
-    ), fromData);
+    return _execute(
+      () => _dio.get<Map<String, dynamic>>(path, queryParameters: queryParams),
+      fromData,
+    );
   }
 
   Future<ServiceResult<T>> post<T>(
@@ -180,9 +180,10 @@ class ApiService {
     dynamic data,
     T Function(dynamic)? fromData,
   }) async {
-    return _execute(() => _dio.post<Map<String, dynamic>>(
-      path, data: data,
-    ), fromData);
+    return _execute(
+      () => _dio.post<Map<String, dynamic>>(path, data: data),
+      fromData,
+    );
   }
 
   Future<ServiceResult<T>> put<T>(
@@ -190,9 +191,10 @@ class ApiService {
     dynamic data,
     T Function(dynamic)? fromData,
   }) async {
-    return _execute(() => _dio.put<Map<String, dynamic>>(
-      path, data: data,
-    ), fromData);
+    return _execute(
+      () => _dio.put<Map<String, dynamic>>(path, data: data),
+      fromData,
+    );
   }
 
   Future<ServiceResult<T>> patch<T>(
@@ -200,18 +202,17 @@ class ApiService {
     dynamic data,
     T Function(dynamic)? fromData,
   }) async {
-    return _execute(() => _dio.patch<Map<String, dynamic>>(
-      path, data: data,
-    ), fromData);
+    return _execute(
+      () => _dio.patch<Map<String, dynamic>>(path, data: data),
+      fromData,
+    );
   }
 
   Future<ServiceResult<T>> delete<T>(
     String path, {
     T Function(dynamic)? fromData,
   }) async {
-    return _execute(() => _dio.delete<Map<String, dynamic>>(
-      path,
-    ), fromData);
+    return _execute(() => _dio.delete<Map<String, dynamic>>(path), fromData);
   }
 
   Future<ServiceResult<T>> postMultipart<T>(
@@ -219,11 +220,14 @@ class ApiService {
     required FormData formData,
     T Function(dynamic)? fromData,
   }) async {
-    return _execute(() => _dio.post<Map<String, dynamic>>(
-      path,
-      data: formData,
-      options: Options(contentType: 'multipart/form-data'),
-    ), fromData);
+    return _execute(
+      () => _dio.post<Map<String, dynamic>>(
+        path,
+        data: formData,
+        options: Options(contentType: 'multipart/form-data'),
+      ),
+      fromData,
+    );
   }
 
   Future<ServiceResult<T>> _execute<T>(
@@ -233,10 +237,7 @@ class ApiService {
     try {
       final res = await request();
       if (res.data == null) {
-        throw const ApiException(
-          'Server trả về dữ liệu rỗng',
-          statusCode: 204,
-        );
+        throw const ApiException('Server trả về dữ liệu rỗng', statusCode: 204);
       }
       return ServiceResult.fromJson(res.data!, fromData);
     } on DioException catch (e) {

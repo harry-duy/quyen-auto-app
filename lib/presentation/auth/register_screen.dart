@@ -16,33 +16,39 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
-  final _formKey         = GlobalKey<FormState>();
-  final _phoneCtrl       = TextEditingController();
-  final _fullNameCtrl    = TextEditingController();
-  final _companyCtrl     = TextEditingController();
-  final _emailCtrl       = TextEditingController();
-  final _passwordCtrl    = TextEditingController();
-  final _confirmCtrl     = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _phoneCtrl = TextEditingController();
+  final _fullNameCtrl = TextEditingController();
+  final _companyCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
 
-  bool _obscurePass    = true;
+  bool _obscurePass = true;
   bool _obscureConfirm = true;
 
   // FocusNodes để chuyển focus khi nhấn next
-  final _phoneFocus    = FocusNode();
-  final _nameFocus     = FocusNode();
-  final _companyFocus  = FocusNode();
-  final _emailFocus    = FocusNode();
-  final _passFocus     = FocusNode();
-  final _confirmFocus  = FocusNode();
+  final _phoneFocus = FocusNode();
+  final _nameFocus = FocusNode();
+  final _companyFocus = FocusNode();
+  final _emailFocus = FocusNode();
+  final _passFocus = FocusNode();
+  final _confirmFocus = FocusNode();
 
   @override
   void dispose() {
-    _phoneCtrl.dispose();    _phoneFocus.dispose();
-    _fullNameCtrl.dispose(); _nameFocus.dispose();
-    _companyCtrl.dispose();  _companyFocus.dispose();
-    _emailCtrl.dispose();    _emailFocus.dispose();
-    _passwordCtrl.dispose(); _passFocus.dispose();
-    _confirmCtrl.dispose();  _confirmFocus.dispose();
+    _phoneCtrl.dispose();
+    _phoneFocus.dispose();
+    _fullNameCtrl.dispose();
+    _nameFocus.dispose();
+    _companyCtrl.dispose();
+    _companyFocus.dispose();
+    _emailCtrl.dispose();
+    _emailFocus.dispose();
+    _passwordCtrl.dispose();
+    _passFocus.dispose();
+    _confirmCtrl.dispose();
+    _confirmFocus.dispose();
     super.dispose();
   }
 
@@ -51,31 +57,37 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
 
-    await ref.read(authProvider.notifier).register(
-      phone:       _phoneCtrl.text.trim(),
-      fullName:    _fullNameCtrl.text.trim(),
-      email:       _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
-      companyName: _companyCtrl.text.trim().isEmpty ? null : _companyCtrl.text.trim(),
-      password:    _passwordCtrl.text,
-    );
+    await ref
+        .read(authProvider.notifier)
+        .register(
+          phone: _phoneCtrl.text.trim(),
+          fullName: _fullNameCtrl.text.trim(),
+          email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
+          companyName: _companyCtrl.text.trim().isEmpty
+              ? null
+              : _companyCtrl.text.trim(),
+          password: _passwordCtrl.text,
+        );
 
     if (!mounted) return;
 
-    ref.read(authProvider).when(
-      data: (user) {
-        if (user != null) context.go(AppRoutes.home);
-      },
-      error: (e, _) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception:', '').trim()),
-            backgroundColor: AppColors.errorRed,
-            behavior: SnackBarBehavior.floating,
-          ),
+    ref
+        .read(authProvider)
+        .when(
+          data: (user) {
+            if (user != null) context.go(AppRoutes.home);
+          },
+          error: (e, _) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.toString().replaceAll('Exception:', '').trim()),
+                backgroundColor: AppColors.errorRed,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          },
+          loading: () {},
         );
-      },
-      loading: () {},
-    );
   }
 
   @override
@@ -96,7 +108,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-
                 // ── Header ───────────────────────────────────────────────
                 const Text(
                   'Tạo tài khoản mới',
@@ -198,7 +209,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             : Icons.visibility_off_outlined,
                         color: AppColors.textGray,
                       ),
-                      onPressed: () => setState(() => _obscurePass = !_obscurePass),
+                      onPressed: () =>
+                          setState(() => _obscurePass = !_obscurePass),
                     ),
                   ),
                   validator: Validators.password,
@@ -229,7 +241,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   // ← Realtime validate: khớp với password field
                   validator: (v) {
-                    if (v == null || v.isEmpty) return 'Vui lòng xác nhận mật khẩu';
+                    if (v == null || v.isEmpty)
+                      return 'Vui lòng xác nhận mật khẩu';
                     if (v != _passwordCtrl.text) return 'Mật khẩu không khớp';
                     return null;
                   },
@@ -241,9 +254,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   onPressed: isLoading ? null : _submit,
                   child: isLoading
                       ? const SizedBox(
-                          width: 22, height: 22,
+                          width: 22,
+                          height: 22,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2.5, color: Colors.white,
+                            strokeWidth: 2.5,
+                            color: Colors.white,
                           ),
                         )
                       : const Text(AppStrings.register),
@@ -251,14 +266,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 16),
 
                 // ── Đã có tài khoản ───────────────────────────────────────
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Text('Đã có tài khoản?',
-                      style: TextStyle(color: AppColors.textGray)),
-                  TextButton(
-                    onPressed: isLoading ? null : () => context.pop(),
-                    child: const Text(AppStrings.login),
-                  ),
-                ]),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Đã có tài khoản?',
+                      style: TextStyle(color: AppColors.textGray),
+                    ),
+                    TextButton(
+                      onPressed: isLoading ? null : () => context.pop(),
+                      child: const Text(AppStrings.login),
+                    ),
+                  ],
+                ),
 
                 const SizedBox(height: 16),
               ],

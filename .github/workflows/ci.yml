@@ -92,3 +92,13 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/quyen-auto-backend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Scan image for vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/quyen-auto-backend:${{ github.sha }}
+          format: table
+          exit-code: '0'       # cảnh báo nhưng không fail build
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH

@@ -13,7 +13,7 @@ class ProductManagementScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('Quản lý sản phẩm')),
+      appBar: AppBar(title: const Text('Qu?n l� s?n ph?m')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showProductForm(context, ref),
         child: const Icon(Icons.add),
@@ -28,7 +28,7 @@ class ProductManagementScreen extends ConsumerWidget {
                   Icon(Icons.inventory_2_outlined,
                       color: AppColors.textGray, size: 56),
                   SizedBox(height: 12),
-                  Text('Chưa có sản phẩm nào',
+                  Text('Chua c� s?n ph?m n�o',
                       style: TextStyle(color: AppColors.textGray)),
                 ],
               ),
@@ -61,7 +61,7 @@ class ProductManagementScreen extends ConsumerWidget {
               const SizedBox(height: 12),
               TextButton(
                 onPressed: () => ref.invalidate(adminProductListProvider),
-                child: const Text('Thử lại'),
+                child: const Text('Th? l?i'),
               ),
             ],
           ),
@@ -75,12 +75,12 @@ class ProductManagementScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Xoá sản phẩm'),
+        title: const Text('Xo� s?n ph?m'),
         content: Text(
-            'Bạn có chắc muốn xoá "${product.name}"?\nSản phẩm sẽ bị ẩn khỏi danh sách.'),
+            'B?n c� ch?c mu?n xo� "${product.name}"?\nS?n ph?m s? b? ?n kh?i danh s�ch.'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Huỷ')),
+              onPressed: () => Navigator.pop(ctx), child: const Text('Hu?')),
           ElevatedButton(
             style:
                 ElevatedButton.styleFrom(backgroundColor: AppColors.errorRed),
@@ -92,20 +92,20 @@ class ProductManagementScreen extends ConsumerWidget {
                     .deleteProduct(product.id);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Đã xoá sản phẩm')),
+                    const SnackBar(content: Text('�� xo� s?n ph?m')),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text('Lỗi: $e'),
+                        content: Text('L?i: $e'),
                         backgroundColor: AppColors.errorRed),
                   );
                 }
               }
             },
-            child: const Text('Xoá'),
+            child: const Text('Xo�'),
           ),
         ],
       ),
@@ -113,7 +113,7 @@ class ProductManagementScreen extends ConsumerWidget {
   }
 }
 
-// ─── Product card ─────────────────────────────────────────────────────────────
+// --- Product card -------------------------------------------------------------
 
 class _ProductCard extends StatelessWidget {
   final AdminProduct product;
@@ -181,7 +181,7 @@ class _ProductCard extends StatelessWidget {
                       color: AppColors.errorRed.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text('Đã ẩn',
+                    child: const Text('�� ?n',
                         style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -210,10 +210,10 @@ class _ProductCard extends StatelessWidget {
             if (v == 'delete') onDelete();
           },
           itemBuilder: (_) => const [
-            PopupMenuItem(value: 'edit', child: Text('Chỉnh sửa')),
+            PopupMenuItem(value: 'edit', child: Text('Ch?nh s?a')),
             PopupMenuItem(
                 value: 'delete',
-                child: Text('Xoá', style: TextStyle(color: Colors.red))),
+                child: Text('Xo�', style: TextStyle(color: Colors.red))),
           ],
           icon: const Icon(Icons.more_vert, color: AppColors.textGray),
         ),
@@ -223,13 +223,13 @@ class _ProductCard extends StatelessWidget {
 
   String _formatPrice(double price) {
     if (price >= 1000000) {
-      return '${(price / 1000000).toStringAsFixed(price % 1000000 == 0 ? 0 : 1)} triệu đồng';
+      return '${(price / 1000000).toStringAsFixed(price % 1000000 == 0 ? 0 : 1)} tri?u d?ng';
     }
-    return '${price.toStringAsFixed(0)} đồng';
+    return '${price.toStringAsFixed(0)} d?ng';
   }
 }
 
-// ─── Product form (create / edit) ────────────────────────────────────────────
+// --- Product form (create / edit) --------------------------------------------
 
 void _showProductForm(BuildContext context, WidgetRef ref,
     {AdminProduct? product}) {
@@ -279,8 +279,8 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                     const SizedBox(height: 16),
                     Text(
                       product == null
-                          ? 'Thêm sản phẩm mới'
-                          : 'Chỉnh sửa sản phẩm',
+                          ? 'Th�m s?n ph?m m?i'
+                          : 'Ch?nh s?a s?n ph?m',
                       style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -292,13 +292,13 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                       controller: nameCtrl,
                       textCapitalization: TextCapitalization.words,
                       decoration: const InputDecoration(
-                        labelText: 'Tên sản phẩm *',
+                        labelText: 'T�n s?n ph?m *',
                         prefixIcon: Icon(Icons.inventory_2_outlined),
                         border: OutlineInputBorder(),
                       ),
                       validator: (v) =>
                           (v == null || v.trim().isEmpty)
-                              ? 'Vui lòng nhập tên sản phẩm'
+                              ? 'Vui l�ng nh?p t�n s?n ph?m'
                               : null,
                     ),
                     const SizedBox(height: 10),
@@ -307,7 +307,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                       DropdownButtonFormField<String>(
                         initialValue: selectedCategoryId,
                         decoration: const InputDecoration(
-                          labelText: 'Danh mục *',
+                          labelText: 'Danh m?c *',
                           prefixIcon: Icon(Icons.category_outlined),
                           border: OutlineInputBorder(),
                         ),
@@ -319,7 +319,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                             .toList(),
                         onChanged: (v) => setState(() => selectedCategoryId = v),
                         validator: (v) =>
-                            v == null ? 'Vui lòng chọn danh mục' : null,
+                            v == null ? 'Vui l�ng ch?n danh m?c' : null,
                       ),
                     const SizedBox(height: 10),
 
@@ -327,16 +327,16 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                       controller: priceCtrl,
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        labelText: 'Giá cơ bản (VNĐ) *',
+                        labelText: 'Gi� co b?n (VN�) *',
                         prefixIcon: Icon(Icons.attach_money),
                         border: OutlineInputBorder(),
                       ),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
-                          return 'Vui lòng nhập giá';
+                          return 'Vui l�ng nh?p gi�';
                         }
                         if (double.tryParse(v.trim()) == null) {
-                          return 'Giá không hợp lệ';
+                          return 'Gi� kh�ng h?p l?';
                         }
                         return null;
                       },
@@ -347,7 +347,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                       controller: descCtrl,
                       maxLines: 3,
                       decoration: const InputDecoration(
-                        labelText: 'Mô tả',
+                        labelText: 'M� t?',
                         prefixIcon: Icon(Icons.description_outlined),
                         border: OutlineInputBorder(),
                         alignLabelWithHint: true,
@@ -359,7 +359,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                       controller: specsCtrl,
                       maxLines: 2,
                       decoration: const InputDecoration(
-                        labelText: 'Thông số kỹ thuật',
+                        labelText: 'Th�ng s? k? thu?t',
                         prefixIcon: Icon(Icons.settings_outlined),
                         border: OutlineInputBorder(),
                         alignLabelWithHint: true,
@@ -404,15 +404,15 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                     content: Text(product == null
-                                        ? 'Đã thêm sản phẩm'
-                                        : 'Đã cập nhật sản phẩm')),
+                                        ? '�� th�m s?n ph?m'
+                                        : '�� c?p nh?t s?n ph?m')),
                               );
                             }
                           } catch (e) {
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                    content: Text('Lỗi: $e'),
+                                    content: Text('L?i: $e'),
                                     backgroundColor: AppColors.errorRed),
                               );
                             }
@@ -421,7 +421,7 @@ void _showProductForm(BuildContext context, WidgetRef ref,
                         icon: Icon(
                             product == null ? Icons.add : Icons.save_outlined),
                         label: Text(
-                            product == null ? 'Thêm sản phẩm' : 'Lưu thay đổi'),
+                            product == null ? 'Th�m s?n ph?m' : 'Luu thay d?i'),
                       ),
                     ),
                   ],

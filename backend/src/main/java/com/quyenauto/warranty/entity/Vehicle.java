@@ -39,6 +39,12 @@ public class Vehicle {
     @Column(name = "purchase_date", nullable = false)
     private LocalDate purchaseDate;
 
+    @Column(name = "contract_code", length = 50)
+    private String contractCode;
+
+    @Column(name = "warranty_expiry_date")
+    private LocalDate warrantyExpiryDate;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

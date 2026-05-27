@@ -4,26 +4,25 @@ enum UserRole {
   manager,
   admin;
 
-  bool get isStaffOrAbove =>
-      this == staff || this == manager || this == admin;
+  bool get isStaffOrAbove => this == staff || this == manager || this == admin;
 
   bool get isManagerOrAbove => this == manager || this == admin;
 
   bool get isAdmin => this == admin;
 
   String get label => switch (this) {
-        customer => 'Khách hàng',
-        staff => 'Nhân viên',
-        manager => 'Quản lý',
-        admin => 'Quản trị viên',
-      };
+    customer => 'Khách hàng',
+    staff => 'Nhân viên',
+    manager => 'Quản lý',
+    admin => 'Quản trị viên',
+  };
 
   static UserRole fromString(String? value) => switch (value?.toUpperCase()) {
-        'STAFF' => staff,
-        'MANAGER' => manager,
-        'ADMIN' => admin,
-        _ => customer,
-      };
+    'STAFF' => staff,
+    'MANAGER' => manager,
+    'ADMIN' => admin,
+    _ => customer,
+  };
 }
 
 class User {

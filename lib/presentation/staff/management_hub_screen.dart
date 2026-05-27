@@ -15,6 +15,7 @@ class ManagementHubScreen extends ConsumerWidget {
     final user = ref.watch(authProvider).valueOrNull;
     final staffAsync = ref.watch(staffMemberListProvider);
     final deptAsync = ref.watch(departmentListProvider);
+    final customersAsync = ref.watch(customerListProvider);
     final productsAsync = user?.role.isAdmin == true
         ? ref.watch(adminProductListProvider)
         : const AsyncData(<AdminProduct>[]);
@@ -22,22 +23,26 @@ class ManagementHubScreen extends ConsumerWidget {
     final staffList = staffAsync.valueOrNull ?? [];
     final activeCount = staffList.where((s) => s.isActive).length;
     final deptCount = deptAsync.valueOrNull?.length ?? 0;
+    final customerCount = customersAsync.valueOrNull?.length ?? 0;
+    final activeCustomers =
+        customersAsync.valueOrNull?.where((c) => c.isActive).length ?? 0;
     final productCount = productsAsync.valueOrNull?.length ?? 0;
     final isAdmin = user?.role.isAdmin ?? false;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('Quản lý')),
+      appBar: AppBar(title: const Text('Qu?n l�')),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(staffMemberListProvider);
           ref.invalidate(departmentListProvider);
+          ref.invalidate(customerListProvider);
           if (isAdmin) ref.invalidate(adminProductListProvider);
         },
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
           children: [
-            // ── Logged-in user card ──────────────────────────────────────
+            // -- Logged-in user card --------------------------------------
             if (user != null)
               Container(
                 padding: const EdgeInsets.all(14),
@@ -85,16 +90,16 @@ class ManagementHubScreen extends ConsumerWidget {
               ),
             const SizedBox(height: 16),
 
-            // ── Stats ────────────────────────────────────────────────────
+            // -- Stats row 1: Nh�n vi�n + Ph�ng ban ----------------------
             Row(children: [
               Expanded(
                 child: _StatCard(
                   icon: Icons.people_alt,
-                  label: 'Nhân viên',
-                  value: staffAsync.isLoading ? '…' : '${staffList.length}',
+                  label: 'Nh�n vi�n',
+                  value: staffAsync.isLoading ? '�' : '${staffList.length}',
                   sub: staffAsync.isLoading
                       ? ''
-                      : '$activeCount đang hoạt động',
+                      : '$activeCount dang ho?t d?ng',
                   color: AppColors.infoBlue,
                 ),
               ),
@@ -102,10 +107,26 @@ class ManagementHubScreen extends ConsumerWidget {
               Expanded(
                 child: _StatCard(
                   icon: Icons.business,
-                  label: 'Phòng ban',
-                  value: deptAsync.isLoading ? '…' : '$deptCount',
-                  sub: 'Cơ cấu tổ chức',
+                  label: 'Ph�ng ban',
+                  value: deptAsync.isLoading ? '�' : '$deptCount',
+                  sub: 'Co c?u t? ch?c',
                   color: AppColors.primaryOrange,
+                ),
+              ),
+            ]),
+            const SizedBox(height: 12),
+
+            // -- Stats row 2: Kh�ch h�ng (+ S?n ph?m n?u l� admin) -------
+            Row(children: [
+              Expanded(
+                child: _StatCard(
+                  icon: Icons.person,
+                  label: 'Kh�ch h�ng',
+                  value: customersAsync.isLoading ? '�' : '$customerCount',
+                  sub: customersAsync.isLoading
+                      ? ''
+                      : '$activeCustomers dang ho?t d?ng',
+                  color: Colors.green,
                 ),
               ),
               if (isAdmin) ...[
@@ -113,9 +134,9 @@ class ManagementHubScreen extends ConsumerWidget {
                 Expanded(
                   child: _StatCard(
                     icon: Icons.inventory_2,
-                    label: 'Sản phẩm',
-                    value: productsAsync.isLoading ? '…' : '$productCount',
-                    sub: 'Đang hiển thị',
+                    label: 'S?n ph?m',
+                    value: productsAsync.isLoading ? '�' : '$productCount',
+                    sub: '�ang hi?n th?',
                     color: Colors.purple,
                   ),
                 ),
@@ -123,13 +144,13 @@ class ManagementHubScreen extends ConsumerWidget {
             ]),
             const SizedBox(height: 24),
 
-            // ── HR section (MANAGER + ADMIN) ─────────────────────────────
-            const _SectionHeader('Nhân sự'),
+            // -- HR section (MANAGER + ADMIN) -----------------------------
+            const _SectionHeader('Nh�n s?'),
             const SizedBox(height: 8),
             _NavCard(
               icon: Icons.people_alt_outlined,
-              title: 'Quản lý nhân viên',
-              subtitle: 'Tạo, chỉnh sửa, phân quyền tài khoản',
+              title: 'Qu?n l� nh�n vi�n',
+              subtitle: 'T?o, ch?nh s?a, ph�n quy?n t�i kho?n',
               badge: staffAsync.isLoading ? null : '${staffList.length} NV',
               color: AppColors.infoBlue,
               onTap: () => context.push(StaffRoutes.staffMembers),
@@ -137,22 +158,35 @@ class ManagementHubScreen extends ConsumerWidget {
             const SizedBox(height: 10),
             _NavCard(
               icon: Icons.business_outlined,
-              title: 'Phòng ban',
-              subtitle: 'Tổ chức cơ cấu phòng ban trong công ty',
+              title: 'Ph�ng ban',
+              subtitle: 'T? ch?c co c?u ph�ng ban trong c�ng ty',
               badge: deptAsync.isLoading ? null : '$deptCount PB',
               color: AppColors.primaryNavy,
               onTap: () => context.push(StaffRoutes.departments),
             ),
+            const SizedBox(height: 24),
 
-            // ── Product section (ADMIN only) ─────────────────────────────
+            // -- Customer section (t?t c? staff) -------------------------
+            const _SectionHeader('Kh�ch h�ng'),
+            const SizedBox(height: 8),
+            _NavCard(
+              icon: Icons.person_search_outlined,
+              title: 'Qu?n l� kh�ch h�ng',
+              subtitle: 'T?o TK sau khi ch?t h?p d?ng, xem ti?n d? don h�ng',
+              badge: customersAsync.isLoading ? null : '$customerCount KH',
+              color: Colors.green,
+              onTap: () => context.push(StaffRoutes.customerManagement),
+            ),
+
+            // -- Product section (ADMIN only) -----------------------------
             if (isAdmin) ...[
               const SizedBox(height: 24),
-              const _SectionHeader('Sản phẩm & Danh mục'),
+              const _SectionHeader('S?n ph?m & Danh m?c'),
               const SizedBox(height: 8),
               _NavCard(
                 icon: Icons.inventory_2_outlined,
-                title: 'Quản lý sản phẩm',
-                subtitle: 'Thêm, chỉnh sửa, ẩn/hiện sản phẩm',
+                title: 'Qu?n l� s?n ph?m',
+                subtitle: 'Th�m, ch?nh s?a, ?n/hi?n s?n ph?m',
                 badge: productsAsync.isLoading ? null : '$productCount SP',
                 color: Colors.purple,
                 onTap: () => context.push(StaffRoutes.productManagement),
@@ -165,7 +199,7 @@ class ManagementHubScreen extends ConsumerWidget {
   }
 }
 
-// ─── Subwidgets ───────────────────────────────────────────────────────────────
+// --- Subwidgets ---------------------------------------------------------------
 
 class _StatCard extends StatelessWidget {
   final IconData icon;

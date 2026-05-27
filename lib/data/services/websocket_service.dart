@@ -11,8 +11,20 @@ class WebSocketService {
   StompClient? _client;
   final Logger _log = Logger();
   final Map<String, StompUnsubscribe> _subscriptions = {};
+  // Tracks active callbacks so they can be replayed after reconnect
+  final Map<String, MessageCallback> _callbacks = {};
   Completer<void>? _connectCompleter;
   int _errorCount = 0;
+  int _connectCount = 0;
+  final List<void Function()> _onReconnectListeners = [];
+
+  void addReconnectListener(void Function() listener) {
+    _onReconnectListeners.add(listener);
+  }
+
+  void removeReconnectListener(void Function() listener) {
+    _onReconnectListeners.remove(listener);
+  }
 
   bool get isConnected => _client != null && _connectCompleter?.isCompleted == true;
 
@@ -28,8 +40,22 @@ class WebSocketService {
         onConnect: (frame) {
           _log.i('WebSocket connected');
           _errorCount = 0;
+          final isReconnect = _connectCount > 0;
+          _connectCount++;
           if (!_connectCompleter!.isCompleted) {
             _connectCompleter!.complete();
+          }
+          // Re-subscribe any callbacks that were active before disconnect
+          if (_callbacks.isNotEmpty) {
+            final toRestore = Map<String, MessageCallback>.from(_callbacks);
+            _subscriptions.clear();
+            toRestore.forEach(_doSubscribe);
+          }
+          // Notify listeners on reconnect so they can reload missed data
+          if (isReconnect) {
+            for (final listener in List.of(_onReconnectListeners)) {
+              listener();
+            }
           }
         },
         onWebSocketError: (err) {
@@ -66,8 +92,33 @@ class WebSocketService {
   }
 
   void subscribeChat(String roomId, MessageCallback onMessage) {
-    final dest = '/topic/room/$roomId';
+    final dest = '/topic/chat.room.$roomId';
     _subscribe(dest, onMessage);
+  }
+
+  void subscribeNewRooms(MessageCallback onMessage) {
+    _subscribe('/topic/chat.new-room', onMessage);
+  }
+
+  void subscribeRoomClaimed(String roomId, MessageCallback onMessage) {
+    _subscribe('/topic/chat.claimed.$roomId', onMessage);
+  }
+
+  void subscribeTyping(String roomId, MessageCallback onMessage) {
+    _subscribe('/topic/chat.typing.$roomId', onMessage);
+  }
+
+  void unsubscribeTyping(String roomId) {
+    unsubscribe('/topic/chat.typing.$roomId');
+  }
+
+  void sendTyping(String roomId, bool isTyping) {
+    send('/app/chat.typing',
+        '{"roomId":$roomId,"typing":$isTyping}');
+  }
+
+  void unsubscribeChat(String roomId) {
+    unsubscribe('/topic/chat.room.$roomId');
   }
 
   void subscribeNotifications(String userId, MessageCallback onMessage) {
@@ -76,9 +127,22 @@ class WebSocketService {
   }
 
   void _subscribe(String destination, MessageCallback onMessage) {
+    _callbacks[destination] = onMessage;
     if (_subscriptions.containsKey(destination)) return;
-    if (_client == null || !isConnected) return;
+    if (_client == null || !isConnected) {
+      // Retry once the connection completes (handles race on screen open)
+      _connectCompleter?.future.then((_) {
+        if (!_subscriptions.containsKey(destination)) {
+          _doSubscribe(destination, onMessage);
+        }
+      }).catchError((_) {});
+      return;
+    }
+    _doSubscribe(destination, onMessage);
+  }
 
+  void _doSubscribe(String destination, MessageCallback onMessage) {
+    if (_subscriptions.containsKey(destination)) return;
     final unsub = _client!.subscribe(
       destination: destination,
       callback: (frame) {
@@ -88,11 +152,11 @@ class WebSocketService {
         }
       },
     );
-
     _subscriptions[destination] = unsub;
   }
 
   void unsubscribe(String destination) {
+    _callbacks.remove(destination);
     final unsub = _subscriptions.remove(destination);
     if (unsub != null) {
       unsub(unsubscribeHeaders: {});
@@ -105,6 +169,7 @@ class WebSocketService {
 
   void disconnect() {
     _subscriptions.clear();
+    _callbacks.clear();
     _client?.deactivate();
     _client = null;
     _connectCompleter = null;

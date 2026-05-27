@@ -54,6 +54,29 @@ final staffMemberListProvider =
   return res.data ?? [];
 });
 
+// ─── Customer Management ─────────────────────────────────────────────────────
+
+final customerSearchQueryProvider = StateProvider<String>((ref) => '');
+
+final customerListProvider =
+    FutureProvider.autoDispose<List<User>>((ref) async {
+  final api = ref.watch(apiServiceProvider);
+  final keyword = ref.watch(customerSearchQueryProvider);
+  final res = await api.get<List<User>>(
+    ApiConstants.staffCustomers,
+    queryParams: {
+      'page': 0,
+      'size': 100,
+      'sort': 'createdAt,desc',
+      if (keyword.isNotEmpty) 'keyword': keyword,
+    },
+    fromData: (json) => _asList(json)
+        .map((e) => _staffFromJson(e as Map<String, dynamic>))
+        .toList(),
+  );
+  return res.data ?? [];
+});
+
 // ─── Management Actions ──────────────────────────────────────────────────────
 
 class ManagementActionsNotifier extends Notifier<void> {
@@ -148,6 +171,34 @@ class ManagementActionsNotifier extends Notifier<void> {
       ApiConstants.resolve(ApiConstants.staffMemberToggle, {'id': id}),
     );
     ref.invalidate(staffMemberListProvider);
+  }
+
+  // Customer CRUD
+  Future<void> createCustomer({
+    required String fullName,
+    required String phone,
+    required String password,
+    String? email,
+    String? note,
+  }) async {
+    await _api.post(
+      ApiConstants.staffCustomers,
+      data: {
+        'fullName': fullName,
+        'phone': phone,
+        'password': password,
+        'email': ?email,
+        'note': ?note,
+      },
+    );
+    ref.invalidate(customerListProvider);
+  }
+
+  Future<void> toggleCustomerActive(String id) async {
+    await _api.patch(
+      ApiConstants.resolve(ApiConstants.staffCustomerToggle, {'id': id}),
+    );
+    ref.invalidate(customerListProvider);
   }
 
   // Product CRUD (ADMIN only)

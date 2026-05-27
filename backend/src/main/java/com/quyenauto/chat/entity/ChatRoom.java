@@ -22,4 +22,7 @@ public class ChatRoom extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id")
     private User staff;
+
+    @Column(name = "order_code", length = 50)
+    private String orderCode;
 }

@@ -4,9 +4,9 @@ part 'order_response.g.dart';
 
 @JsonSerializable()
 class OrderStatusLogResponse {
-  final int      id;
-  final String   status;
-  final String?  note;
+  final int id;
+  final String status;
+  final String? note;
   final DateTime createdAt;
 
   const OrderStatusLogResponse({
@@ -23,14 +23,14 @@ class OrderStatusLogResponse {
 
 @JsonSerializable()
 class QuotationResponse {
-  final int              id;
-  final int              customerId;
+  final int id;
+  final int customerId;
   final ProductResponse? product;
-  final String           weightRange;
-  final String           cargoType;
-  final String?          note;
-  final String           status;
-  final DateTime         createdAt;
+  final String weightRange;
+  final String cargoType;
+  final String? note;
+  final String status;
+  final DateTime createdAt;
 
   const QuotationResponse({
     required this.id,
@@ -50,22 +50,33 @@ class QuotationResponse {
 
 @JsonSerializable()
 class OrderResponse {
-  final int                      id;
-  final int                      quotationId;
-  final double                   totalAmount;
-  final double                   depositAmount;
-  final String                   status;
-  final String                   productionStatus;
-  final String?                  orderCode;
-  final String?                  productName;
-  final String?                  note;
-  final DateTime?                createdAt;
-  final DateTime?                estimatedDate;
+  final int id;
+  final int? quotationId;
+  final int? customerId;
+  final String? customerName;
+  final String? customerPhone;
+  final int? productId;
+  final double totalAmount;
+  final double depositAmount;
+  final String status;
+  final String productionStatus;
+  final String? orderCode;
+  final String? productName;
+  final String? note;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final DateTime? estimatedDate;
+  final int? assignedStaffId;
+  final String? assignedStaffName;
   final List<OrderStatusLogResponse> statusLogs;
 
   const OrderResponse({
     required this.id,
-    required this.quotationId,
+    this.quotationId,
+    this.customerId,
+    this.customerName,
+    this.customerPhone,
+    this.productId,
     required this.totalAmount,
     required this.depositAmount,
     required this.status,
@@ -74,8 +85,11 @@ class OrderResponse {
     this.productName,
     this.note,
     this.createdAt,
+    this.updatedAt,
     this.estimatedDate,
-    required this.statusLogs,
+    this.assignedStaffId,
+    this.assignedStaffName,
+    this.statusLogs = const [],
   });
 
   factory OrderResponse.fromJson(Map<String, dynamic> json) =>

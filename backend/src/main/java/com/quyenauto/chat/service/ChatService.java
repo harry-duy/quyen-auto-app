@@ -3,21 +3,25 @@ package com.quyenauto.chat.service;
 import com.quyenauto.chat.dto.ChatMessageResponse;
 import com.quyenauto.chat.dto.ChatRoomResponse;
 import com.quyenauto.chat.dto.SendMessageRequest;
+import com.quyenauto.chat.dto.StartChatRequest;
 import com.quyenauto.chat.entity.ChatMessage;
 import com.quyenauto.chat.entity.ChatRoom;
 import com.quyenauto.chat.repository.ChatMessageRepository;
 import com.quyenauto.chat.repository.ChatRoomRepository;
 import com.quyenauto.common.exception.BusinessException;
+import com.quyenauto.notification.service.NotificationService;
 import com.quyenauto.user.entity.User;
 import com.quyenauto.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +31,13 @@ public class ChatService {
     private final ChatRoomRepository roomRepository;
     private final ChatMessageRepository messageRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public List<ChatRoomResponse> getRooms(Long userId) {
-        List<ChatRoom> rooms = roomRepository.findByUserId(userId);
+    public List<ChatRoomResponse> getRooms(Long userId, boolean isStaff) {
+        List<ChatRoom> rooms = isStaff
+                ? roomRepository.findByStaffIdOrWaiting(userId)
+                : roomRepository.findByUserId(userId);
         return rooms.stream().map(room -> toChatRoomResponse(room, userId)).toList();
     }
 
@@ -55,6 +63,107 @@ public class ChatService {
                 .build();
 
         return ChatMessageResponse.from(messageRepository.save(message));
+    }
+
+    /**
+     * Khách hàng mở chat mới (chưa cần biết staff nào).
+     * Tạo phòng với staff = null, gửi thông báo đến tất cả STAFF/MANAGER.
+     */
+    @Transactional
+    public ChatRoomResponse startChat(Long customerId, StartChatRequest request) {
+        User customer = userRepository.findById(customerId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy khách hàng"));
+
+        // Nếu đã có phòng chờ (staff = null) của customer này → dùng lại
+        ChatRoom room = roomRepository
+                .findWaitingRoomByCustomerId(customerId)
+                .orElseGet(() -> roomRepository.save(
+                        ChatRoom.builder()
+                                .customer(customer)
+                                .orderCode(request.getOrderCode())
+                                .build()));
+
+        // Gửi tin nhắn đầu tiên nếu có
+        if (request.getFirstMessage() != null && !request.getFirstMessage().isBlank()) {
+            ChatMessage firstMsg = ChatMessage.builder()
+                    .room(room)
+                    .sender(customer)
+                    .content(request.getFirstMessage())
+                    .type(ChatMessage.MessageType.TEXT)
+                    .isRead(false)
+                    .build();
+            messageRepository.save(firstMsg);
+        }
+
+        // Thông báo đến toàn bộ STAFF/MANAGER
+        String orderInfo = request.getOrderCode() != null ? " — Đơn: " + request.getOrderCode() : "";
+        notificationService.notifyAllStaff(
+                "Khách hàng cần hỗ trợ",
+                customer.getFullName() + " cần tư vấn" + orderInfo,
+                "CHAT_REQUEST",
+                room.getId().toString()
+        );
+
+        // Push WS event đến topic chung để staff-list tự refresh
+        messagingTemplate.convertAndSend("/topic/chat.new-room",
+                toChatRoomResponse(room, customerId));
+
+        return toChatRoomResponse(room, customerId);
+    }
+
+    /**
+     * Nhân viên tiếp nhận phòng chat đang chờ.
+     * Sau khi claim, broadcast "/topic/chat.claimed.{roomId}" để các staff khác bỏ badge.
+     */
+    @Transactional
+    public ChatRoomResponse claimRoom(Long roomId, Long staffId) {
+        ChatRoom room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy phòng chat"));
+
+        if (room.getStaff() != null) {
+            throw new BusinessException(HttpStatus.CONFLICT,
+                    "Phòng chat đã được tiếp nhận bởi " + room.getStaff().getFullName());
+        }
+
+        User staff = userRepository.findById(staffId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"));
+
+        // If this staff already has a room with the same customer (unique constraint),
+        // discard the waiting room and redirect to the existing one.
+        Optional<ChatRoom> existing = roomRepository
+                .findByCustomerIdAndStaffId(room.getCustomer().getId(), staffId);
+        if (existing.isPresent()) {
+            roomRepository.delete(room);
+            return toChatRoomResponse(existing.get(), staffId);
+        }
+
+        room.setStaff(staff);
+        roomRepository.save(room);
+
+        // Gửi tin nhắn hệ thống
+        ChatMessage sysMsg = ChatMessage.builder()
+                .room(room)
+                .sender(staff)
+                .content(staff.getFullName() + " đã tiếp nhận cuộc trò chuyện")
+                .type(ChatMessage.MessageType.TEXT)
+                .isRead(false)
+                .build();
+        messageRepository.save(sysMsg);
+
+        // Thông báo cho khách hàng
+        notificationService.createNotification(
+                room.getCustomer().getId(),
+                "Hỗ trợ đã tiếp nhận",
+                staff.getFullName() + " đang hỗ trợ bạn",
+                "CHAT_CLAIMED",
+                room.getId().toString()
+        );
+
+        // Push WS event để tất cả staff refresh danh sách
+        messagingTemplate.convertAndSend("/topic/chat.claimed." + roomId,
+                toChatRoomResponse(room, staffId));
+
+        return toChatRoomResponse(room, staffId);
     }
 
     @Transactional
@@ -87,6 +196,8 @@ public class ChatService {
                 .staffId(room.getStaff() != null ? room.getStaff().getId() : null)
                 .staffName(room.getStaff() != null ? room.getStaff().getFullName() : null)
                 .staffAvatar(room.getStaff() != null ? room.getStaff().getAvatarUrl() : null)
+                .orderCode(room.getOrderCode())
+                .isWaiting(room.getStaff() == null)
                 .lastMessage(latest != null ? latest.getContent() : null)
                 .lastMessageAt(latest != null ? latest.getCreatedAt() : room.getCreatedAt())
                 .unreadCount(unread)

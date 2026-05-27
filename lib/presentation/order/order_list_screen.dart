@@ -53,10 +53,14 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen>
           unselectedLabelColor: AppColors.textGray,
           indicatorColor: AppColors.primaryOrange,
           indicatorWeight: 3,
-          labelStyle:
-              const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          unselectedLabelStyle:
-              const TextStyle(fontWeight: FontWeight.w400, fontSize: 14),
+          labelStyle: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+          unselectedLabelStyle: const TextStyle(
+            fontWeight: FontWeight.w400,
+            fontSize: 14,
+          ),
           tabs: _kTabs.map((t) => Tab(text: t.label)).toList(),
         ),
       ),
@@ -65,11 +69,12 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen>
           return TabBarView(
             controller: _tabs,
             children: _kTabs.map((tab) {
-              final filtered = allOrders
-                  .where((o) => tab.statuses.contains(o.status.name == 'inProduction'
-                      ? 'in_production'
-                      : o.status.name))
-                  .toList();
+              final filtered = allOrders.where((order) {
+                final status = order.status.name == 'inProduction'
+                    ? 'in_production'
+                    : order.status.name;
+                return tab.statuses.contains(status);
+              }).toList();
 
               if (filtered.isEmpty) {
                 return _EmptyOrders(
@@ -92,26 +97,32 @@ class _OrderListScreenState extends ConsumerState<OrderListScreen>
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.error_outline,
-                color: AppColors.errorRed, size: 48),
-            const SizedBox(height: 12),
-            const Text('Không thể tải đơn hàng',
-                style: TextStyle(color: AppColors.textGray)),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () => ref.invalidate(orderListProvider),
-              icon: const Icon(Icons.refresh),
-              label: const Text('Thử lại'),
-            ),
-          ]),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: AppColors.errorRed,
+                size: 48,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Không thể tải đơn hàng',
+                style: TextStyle(color: AppColors.textGray),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                onPressed: () => ref.invalidate(orderListProvider),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Thử lại'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
-// ─── Order Card ──────────────────────────────────────────────────────────────
 
 class _OrderCard extends StatelessWidget {
   final Order order;
@@ -120,7 +131,10 @@ class _OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fmt = NumberFormat.currency(
-        locale: 'vi_VN', symbol: '₫', decimalDigits: 0);
+      locale: 'vi_VN',
+      symbol: '₫',
+      decimalDigits: 0,
+    );
     final dateFmt = DateFormat('dd/MM/yyyy');
     final statusColor = AppColors.forOrderStatus(order.status.name);
     final statusBg = AppColors.bgForOrderStatus(order.status.name);
@@ -135,75 +149,94 @@ class _OrderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            // Code + status badge
-            Row(children: [
-              Expanded(
-                child: Text(order.orderCode,
-                    style: const TextStyle(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      order.orderCode,
+                      style: const TextStyle(
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
-                        color: AppColors.textDark)),
+                        color: AppColors.textDark,
+                      ),
+                    ),
+                  ),
+                  _StatusBadge(
+                    label: _statusLabel(order.status),
+                    color: statusColor,
+                    backgroundColor: statusBg,
+                  ),
+                ],
               ),
-              _StatusBadge(
-                label: _statusLabel(order.status),
-                color: statusColor,
-                backgroundColor: statusBg,
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.local_shipping_outlined,
+                    size: 15,
+                    color: AppColors.textGray,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      order.productName,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textGray,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-            ]),
-            const SizedBox(height: 10),
-
-            // Product name
-            Row(children: [
-              const Icon(Icons.local_shipping_outlined,
-                  size: 15, color: AppColors.textGray),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(order.productName,
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 13,
+                    color: AppColors.textGray,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    dateFmt.format(order.createdAt),
                     style: const TextStyle(
-                        fontSize: 13, color: AppColors.textGray),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
+                      fontSize: 12,
+                      color: AppColors.textGray,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    order.totalAmount > 0
+                        ? fmt.format(order.totalAmount)
+                        : 'Chờ báo giá',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      color: AppColors.primaryOrange,
+                    ),
+                  ),
+                ],
               ),
-            ]),
-            const SizedBox(height: 6),
-
-            // Date + amount
-            Row(children: [
-              const Icon(Icons.calendar_today_outlined,
-                  size: 13, color: AppColors.textGray),
-              const SizedBox(width: 6),
-              Text(dateFmt.format(order.createdAt),
-                  style: const TextStyle(
-                      fontSize: 12, color: AppColors.textGray)),
-              const Spacer(),
-              Text(
-                order.totalAmount > 0
-                    ? fmt.format(order.totalAmount)
-                    : 'Chờ báo giá',
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                    color: AppColors.primaryOrange),
-              ),
-            ]),
-          ]),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  String _statusLabel(OrderStatus s) => switch (s) {
-        OrderStatus.pending => 'Chờ xác nhận',
-        OrderStatus.confirmed => 'Đã xác nhận',
-        OrderStatus.inProduction => 'Đang sản xuất',
-        OrderStatus.completed => 'Hoàn thành',
-        OrderStatus.cancelled => 'Đã hủy',
-      };
+  String _statusLabel(OrderStatus status) => switch (status) {
+    OrderStatus.pending => 'Chờ xác nhận',
+    OrderStatus.confirmed => 'Đã xác nhận',
+    OrderStatus.inProduction => 'Đang sản xuất',
+    OrderStatus.completed => 'Hoàn thành',
+    OrderStatus.cancelled => 'Đã hủy',
+  };
 }
-
-// ─── Status Badge ────────────────────────────────────────────────────────────
 
 class _StatusBadge extends StatelessWidget {
   final String label;
@@ -224,14 +257,17 @@ class _StatusBadge extends StatelessWidget {
         color: backgroundColor,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
     );
   }
 }
-
-// ─── Empty state ─────────────────────────────────────────────────────────────
 
 class _EmptyOrders extends StatelessWidget {
   final bool isProcessing;
@@ -241,36 +277,42 @@ class _EmptyOrders extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Icon(
-          isProcessing
-              ? Icons.receipt_long_outlined
-              : Icons.check_circle_outline,
-          size: 72,
-          color: AppColors.textGray.withValues(alpha: 0.4),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          isProcessing ? 'Không có đơn đang xử lý' : 'Chưa có đơn hoàn thành',
-          style: const TextStyle(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isProcessing
+                ? Icons.receipt_long_outlined
+                : Icons.check_circle_outline,
+            size: 72,
+            color: AppColors.textGray.withValues(alpha: 0.4),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            isProcessing ? 'Không có đơn đang xử lý' : 'Chưa có đơn hoàn thành',
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: AppColors.textGray),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          isProcessing ? 'Hãy đặt hàng để bắt đầu!' : '',
-          style: const TextStyle(fontSize: 13, color: AppColors.textGray),
-        ),
-        if (isProcessing) ...[
-          const SizedBox(height: 24),
-          SizedBox(
-            width: 180,
-            child: ElevatedButton(
-                onPressed: onOrder, child: const Text('Đặt hàng ngay')),
+              color: AppColors.textGray,
+            ),
           ),
+          if (isProcessing) ...[
+            const SizedBox(height: 8),
+            const Text(
+              'Hãy đặt hàng để bắt đầu.',
+              style: TextStyle(fontSize: 13, color: AppColors.textGray),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: 180,
+              child: ElevatedButton(
+                onPressed: onOrder,
+                child: const Text('Đặt hàng ngay'),
+              ),
+            ),
+          ],
         ],
-      ]),
+      ),
     );
   }
 }

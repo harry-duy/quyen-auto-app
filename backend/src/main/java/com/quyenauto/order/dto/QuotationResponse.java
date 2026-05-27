@@ -46,6 +46,15 @@ public class QuotationResponse {
     private String contactedByName;
     private LocalDateTime contactedAt;
 
+    // Staff-created flow
+    private Boolean isStaffCreated;
+    private Boolean isNewProductRequest;
+    private String newProductDescription;
+    private Long approvedById;
+    private String approvedByName;
+    private LocalDateTime approvedAt;
+    private LocalDateTime sentAt;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -77,6 +86,13 @@ public class QuotationResponse {
                 .contactedById(q.getContactedBy() != null ? q.getContactedBy().getId() : null)
                 .contactedByName(q.getContactedBy() != null ? q.getContactedBy().getFullName() : null)
                 .contactedAt(q.getContactedAt())
+                .isStaffCreated(q.getIsStaffCreated())
+                .isNewProductRequest(q.getIsNewProductRequest())
+                .newProductDescription(q.getNewProductDescription())
+                .approvedById(q.getApprovedBy() != null ? q.getApprovedBy().getId() : null)
+                .approvedByName(q.getApprovedBy() != null ? q.getApprovedBy().getFullName() : null)
+                .approvedAt(q.getApprovedAt())
+                .sentAt(q.getSentAt())
                 .createdAt(q.getCreatedAt())
                 .updatedAt(q.getUpdatedAt())
                 .build();

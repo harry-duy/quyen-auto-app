@@ -15,14 +15,14 @@ class StaffMemberManagementScreen extends ConsumerWidget {
     final membersAsync = ref.watch(staffMemberListProvider);
     final deptFilter = ref.watch(staffMemberDepartmentFilter);
     final deptsAsync = ref.watch(departmentListProvider);
-    // Current logged-in user — used to gate which roles can be assigned
+    // Current logged-in user � used to gate which roles can be assigned
     final caller = ref.watch(authProvider).valueOrNull;
     final callerRole = caller?.role ?? UserRole.staff;
     final canCreate = callerRole.isManagerOrAbove;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('Quản lý nhân viên')),
+      appBar: AppBar(title: const Text('Qu?n l� nh�n vi�n')),
       floatingActionButton: canCreate
           ? FloatingActionButton(
               onPressed: () =>
@@ -41,7 +41,7 @@ class StaffMemberManagementScreen extends ConsumerWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(children: [
                 _FilterChipItem(
-                  label: 'Tất cả',
+                  label: 'T?t c?',
                   isSelected: deptFilter == null,
                   onTap: () => ref
                       .read(staffMemberDepartmentFilter.notifier)
@@ -72,7 +72,7 @@ class StaffMemberManagementScreen extends ConsumerWidget {
                         Icon(Icons.people_outline,
                             color: AppColors.textGray, size: 48),
                         SizedBox(height: 8),
-                        Text('Chưa có nhân viên',
+                        Text('Chua c� nh�n vi�n',
                             style: TextStyle(
                                 color: AppColors.textGray, fontSize: 14)),
                       ],
@@ -219,7 +219,7 @@ class _StaffMemberCard extends ConsumerWidget {
                       style: const TextStyle(
                           fontSize: 12, color: AppColors.textGray)),
                   if (member.position != null) ...[
-                    const Text(' · ',
+                    const Text(' � ',
                         style: TextStyle(color: AppColors.textGray)),
                     Text(member.position!,
                         style: const TextStyle(
@@ -229,7 +229,7 @@ class _StaffMemberCard extends ConsumerWidget {
               ],
               if (member.employeeCode != null) ...[
                 const SizedBox(height: 2),
-                Text('Mã NV: ${member.employeeCode}',
+                Text('M� NV: ${member.employeeCode}',
                     style: const TextStyle(
                         fontSize: 11, color: AppColors.textGray)),
               ],
@@ -241,12 +241,12 @@ class _StaffMemberCard extends ConsumerWidget {
               _handleAction(context, ref, action, member),
           itemBuilder: (_) => [
             const PopupMenuItem(
-                value: 'edit', child: Text('Chỉnh sửa')),
+                value: 'edit', child: Text('Ch?nh s?a')),
             PopupMenuItem(
               value: 'toggle',
               child: Text(member.isActive
-                  ? 'Vô hiệu hóa'
-                  : 'Kích hoạt lại'),
+                  ? 'V� hi?u h�a'
+                  : 'K�ch ho?t l?i'),
             ),
           ],
           icon: const Icon(Icons.more_vert, color: AppColors.textGray),
@@ -273,16 +273,16 @@ class _StaffMemberCard extends ConsumerWidget {
 
   void _confirmToggle(
       BuildContext context, WidgetRef ref, User member) {
-    final action = member.isActive ? 'vô hiệu hóa' : 'kích hoạt lại';
+    final action = member.isActive ? 'v� hi?u h�a' : 'k�ch ho?t l?i';
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('${member.isActive ? "Vô hiệu hóa" : "Kích hoạt"} tài khoản'),
-        content: Text('Bạn có chắc muốn $action tài khoản ${member.fullName}?'),
+        title: Text('${member.isActive ? "V� hi?u h�a" : "K�ch ho?t"} t�i kho?n'),
+        content: Text('B?n c� ch?c mu?n $action t�i kho?n ${member.fullName}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Hủy'),
+            child: const Text('H?y'),
           ),
           ElevatedButton(
             style: member.isActive
@@ -297,20 +297,20 @@ class _StaffMemberCard extends ConsumerWidget {
                     .toggleStaffActive(member.id);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Đã $action tài khoản')),
+                    SnackBar(content: Text('�� $action t�i kho?n')),
                   );
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text('Lỗi: $e'),
+                        content: Text('L?i: $e'),
                         backgroundColor: AppColors.errorRed),
                   );
                 }
               }
             },
-            child: Text(member.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'),
+            child: Text(member.isActive ? 'V� hi?u h�a' : 'K�ch ho?t'),
           ),
         ],
       ),
@@ -353,7 +353,7 @@ class _StaffMemberCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Text('Chỉnh sửa — ${member.fullName}',
+              Text('Ch?nh s?a � ${member.fullName}',
                   style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -362,7 +362,7 @@ class _StaffMemberCard extends ConsumerWidget {
               TextField(
                 controller: nameCtrl,
                 decoration: const InputDecoration(
-                  labelText: 'Họ tên',
+                  labelText: 'H? t�n',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -380,7 +380,7 @@ class _StaffMemberCard extends ConsumerWidget {
                     ? selectedRole
                     : allowedRoles.first['value'],
                 decoration: const InputDecoration(
-                  labelText: 'Vai trò',
+                  labelText: 'Vai tr�',
                   border: OutlineInputBorder(),
                 ),
                 items: allowedRoles
@@ -394,7 +394,7 @@ class _StaffMemberCard extends ConsumerWidget {
                 DropdownButtonFormField<String>(
                   initialValue: selectedDeptId,
                   decoration: const InputDecoration(
-                    labelText: 'Phòng ban',
+                    labelText: 'Ph�ng ban',
                     border: OutlineInputBorder(),
                   ),
                   items: depts
@@ -408,7 +408,7 @@ class _StaffMemberCard extends ConsumerWidget {
               TextField(
                 controller: posCtrl,
                 decoration: const InputDecoration(
-                  labelText: 'Chức vụ',
+                  labelText: 'Ch?c v?',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -436,20 +436,20 @@ class _StaffMemberCard extends ConsumerWidget {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                              content: Text('Đã cập nhật nhân viên')),
+                              content: Text('�� c?p nh?t nh�n vi�n')),
                         );
                       }
                     } catch (e) {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                              content: Text('Lỗi: $e'),
+                              content: Text('L?i: $e'),
                               backgroundColor: AppColors.errorRed),
                         );
                       }
                     }
                   },
-                  child: const Text('Cập nhật'),
+                  child: const Text('C?p nh?t'),
                 ),
               ),
             ],
@@ -461,19 +461,19 @@ class _StaffMemberCard extends ConsumerWidget {
 }
 
 /// Returns the role options this [caller] is allowed to assign.
-/// - ADMIN  → STAFF + MANAGER + ADMIN
-/// - MANAGER → STAFF only
+/// - ADMIN  ? STAFF + MANAGER + ADMIN
+/// - MANAGER ? STAFF only
 List<Map<String, String>> _allowedRoles(UserRole caller) {
   if (caller.isAdmin) {
     return const [
-      {'value': 'STAFF',   'label': 'Nhân viên'},
-      {'value': 'MANAGER', 'label': 'Quản lý'},
-      {'value': 'ADMIN',   'label': 'Quản trị viên'},
+      {'value': 'STAFF',   'label': 'Nh�n vi�n'},
+      {'value': 'MANAGER', 'label': 'Qu?n l�'},
+      {'value': 'ADMIN',   'label': 'Qu?n tr? vi�n'},
     ];
   }
   // MANAGER can only create / edit to STAFF
   return const [
-    {'value': 'STAFF', 'label': 'Nhân viên'},
+    {'value': 'STAFF', 'label': 'Nh�n vi�n'},
   ];
 }
 
@@ -518,7 +518,7 @@ void _showCreateStaffForm(
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text('Tạo tài khoản nhân viên',
+                const Text('T?o t�i kho?n nh�n vi�n',
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -528,18 +528,18 @@ void _showCreateStaffForm(
                   controller: nameCtrl,
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
-                    labelText: 'Họ tên *',
+                    labelText: 'H? t�n *',
                     prefixIcon: Icon(Icons.person_outline),
                     border: OutlineInputBorder(),
                   ),
-                  validator: (v) => Validators.required(v, 'Họ tên'),
+                  validator: (v) => Validators.required(v, 'H? t�n'),
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: phoneCtrl,
                   keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(
-                    labelText: 'Số điện thoại *',
+                    labelText: 'S? di?n tho?i *',
                     prefixIcon: Icon(Icons.phone_outlined),
                     border: OutlineInputBorder(),
                   ),
@@ -550,7 +550,7 @@ void _showCreateStaffForm(
                   controller: passCtrl,
                   obscureText: true,
                   decoration: const InputDecoration(
-                    labelText: 'Mật khẩu *',
+                    labelText: 'M?t kh?u *',
                     prefixIcon: Icon(Icons.lock_outline),
                     border: OutlineInputBorder(),
                   ),
@@ -570,7 +570,7 @@ void _showCreateStaffForm(
                 DropdownButtonFormField<String>(
                   initialValue: selectedRole,
                   decoration: const InputDecoration(
-                    labelText: 'Vai trò *',
+                    labelText: 'Vai tr� *',
                     prefixIcon: Icon(Icons.badge_outlined),
                     border: OutlineInputBorder(),
                   ),
@@ -587,7 +587,7 @@ void _showCreateStaffForm(
                   DropdownButtonFormField<String>(
                     initialValue: selectedDeptId,
                     decoration: const InputDecoration(
-                      labelText: 'Phòng ban',
+                      labelText: 'Ph�ng ban',
                       prefixIcon: Icon(Icons.business_outlined),
                       border: OutlineInputBorder(),
                     ),
@@ -602,7 +602,7 @@ void _showCreateStaffForm(
                 TextField(
                   controller: posCtrl,
                   decoration: const InputDecoration(
-                    labelText: 'Chức vụ',
+                    labelText: 'Ch?c v?',
                     prefixIcon: Icon(Icons.work_outline),
                     border: OutlineInputBorder(),
                   ),
@@ -633,21 +633,21 @@ void _showCreateStaffForm(
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text('Đã tạo tài khoản nhân viên')),
+                                content: Text('�� t?o t�i kho?n nh�n vi�n')),
                           );
                         }
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                                content: Text('Lỗi: $e'),
+                                content: Text('L?i: $e'),
                                 backgroundColor: AppColors.errorRed),
                           );
                         }
                       }
                     },
                     icon: const Icon(Icons.person_add),
-                    label: const Text('Tạo tài khoản'),
+                    label: const Text('T?o t�i kho?n'),
                   ),
                 ),
               ],
