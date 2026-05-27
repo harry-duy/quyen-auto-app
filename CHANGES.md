@@ -2,7 +2,7 @@
 
 ## [Unreleased] — Runtime Bugfixes
 
-Các lỗi runtime phát hiện khi chạy thực tế sau khi login thành công.
+Các lỗi runtime phát hiện khi chạy thực tế sau khi login thành công
 
 ### Flutter
 
