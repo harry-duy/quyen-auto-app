@@ -46,6 +46,12 @@ public class QuotationService {
     public Page<QuotationResponse> getVisibleForStaff(Long staffId, String status, Pageable pageable) {
         if (status != null) {
             Quotation.QuotationStatus qs = Quotation.QuotationStatus.valueOf(status.toUpperCase());
+            // Staff-created flow statuses: chỉ hiện BG của chính NV đó tạo ra.
+            // Dùng field `staff` thay vì `contactedBy` vì staff-created BG không có contactedBy.
+            if (isStaffCreatedStatus(qs)) {
+                return quotationRepository.findByStaffIdAndStatus(staffId, qs, pageable)
+                        .map(QuotationResponse::from);
+            }
             return quotationRepository.findVisibleByStatusForStaff(staffId, qs, pageable)
                     .map(QuotationResponse::from);
         }
@@ -55,6 +61,14 @@ public class QuotationService {
                 List.of(Quotation.QuotationStatus.PENDING, Quotation.QuotationStatus.QUOTED),
                 pageable
         ).map(QuotationResponse::from);
+    }
+
+    /** Status thuộc flow NV tạo BG — chỉ visible cho NV đó (dùng `staff` field). */
+    private static boolean isStaffCreatedStatus(Quotation.QuotationStatus qs) {
+        return qs == Quotation.QuotationStatus.DRAFT
+                || qs == Quotation.QuotationStatus.PENDING_APPROVAL
+                || qs == Quotation.QuotationStatus.APPROVED
+                || qs == Quotation.QuotationStatus.SENT;
     }
 
     public Page<QuotationResponse> getAll(Pageable pageable) {

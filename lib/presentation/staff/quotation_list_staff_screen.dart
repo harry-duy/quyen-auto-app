@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/di/auth_providers.dart';
 import '../../core/di/staff_providers.dart';
 import '../../data/models/response/quotation_response.dart';
 import 'staff_create_quotation_screen.dart';
@@ -19,9 +20,18 @@ class QuotationListStaffScreen extends ConsumerWidget {
       orElse: () => 0,
     );
 
-    // Số BG chờ duyệt (Manager role)
-    final pendingApprovalCount = ref.watch(managerPendingApprovalProvider)
-        .maybeWhen(data: (l) => l.length, orElse: () => 0);
+    // Phân biệt Manager vs Staff để dùng đúng provider
+    final user = ref.watch(authProvider).valueOrNull;
+    final isManager = user?.role.isManagerOrAbove ?? false;
+
+    // Badge "Chờ duyệt": Manager xem tổng BG cần duyệt; Staff xem BG mình đã gửi duyệt
+    final pendingApprovalCount = isManager
+        ? ref
+            .watch(managerPendingApprovalProvider)
+            .maybeWhen(data: (l) => l.length, orElse: () => 0)
+        : ref
+            .watch(staffOwnPendingApprovalProvider)
+            .maybeWhen(data: (l) => l.length, orElse: () => 0);
 
     return DefaultTabController(
       length: 3,
@@ -74,11 +84,13 @@ class QuotationListStaffScreen extends ConsumerWidget {
             indicatorColor: AppColors.primaryOrange,
           ),
         ),
-        body: const TabBarView(
+        body: TabBarView(
           children: [
-            _QuotationListTab(),
-            _PendingApprovalTab(),
-            StaffLeadListScreen(),
+            const _QuotationListTab(),
+            // Tab "Chờ duyệt": Manager thấy tất cả + nút duyệt/từ chối;
+            // Staff chỉ thấy BG của mình đang chờ (không có nút duyệt).
+            isManager ? const _ManagerPendingTab() : const _StaffOwnPendingTab(),
+            const StaffLeadListScreen(),
           ],
         ),
       ),
@@ -952,10 +964,10 @@ class _Badge extends StatelessWidget {
   }
 }
 
-// ─── Tab: Chờ Manager duyệt ───────────────────────────────────────────────────
+// ─── Tab: Chờ duyệt — Manager view (tất cả BG + nút Duyệt/Từ chối) ──────────
 
-class _PendingApprovalTab extends ConsumerWidget {
-  const _PendingApprovalTab();
+class _ManagerPendingTab extends ConsumerWidget {
+  const _ManagerPendingTab();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1003,6 +1015,213 @@ class _PendingApprovalTab extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ─── Tab: Chờ duyệt — Staff view (BG của mình đang chờ Manager) ──────────────
+
+class _StaffOwnPendingTab extends ConsumerWidget {
+  const _StaffOwnPendingTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final listAsync = ref.watch(staffOwnPendingApprovalProvider);
+
+    return listAsync.when(
+      data: (items) {
+        if (items.isEmpty) {
+          return const Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.hourglass_empty,
+                    size: 56, color: AppColors.textGray),
+                SizedBox(height: 12),
+                Text('Chưa có báo giá nào gửi duyệt',
+                    style: TextStyle(color: AppColors.textGray, fontSize: 14)),
+                SizedBox(height: 6),
+                Text(
+                  'Tạo báo giá và nhấn "Gửi Manager duyệt" để xem ở đây',
+                  style: TextStyle(color: AppColors.textGray, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+        return RefreshIndicator(
+          onRefresh: () async =>
+              ref.invalidate(staffOwnPendingApprovalProvider),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: items.length,
+            itemBuilder: (_, i) => _PendingInfoCard(quotation: items[i]),
+          ),
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.errorRed, size: 40),
+            const SizedBox(height: 8),
+            Text(e.toString(),
+                style: const TextStyle(color: AppColors.errorRed)),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => ref.invalidate(staffOwnPendingApprovalProvider),
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Card đọc-chỉ: BG đang chờ Manager duyệt (Staff view) ────────────────────
+
+class _PendingInfoCard extends StatelessWidget {
+  final StaffQuotationResponse quotation;
+  const _PendingInfoCard({required this.quotation});
+
+  @override
+  Widget build(BuildContext context) {
+    final q = quotation;
+    final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: AppColors.warningAmber.withValues(alpha: 0.4), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 6,
+              offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: AppColors.warningAmber.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.pending_actions,
+                      color: AppColors.warningAmber, size: 20),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Báo giá #${q.id}',
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textDark)),
+                      Text(dateFmt.format(q.createdAt),
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textGray)),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.warningAmber.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text('Chờ Manager',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.warningAmber)),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, indent: 14, endIndent: 14),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _InfoRow(
+                    icon: Icons.person_outline,
+                    label: 'Khách hàng',
+                    value: q.customerName ?? 'KH #${q.customerId}'),
+                if (q.customerPhone != null)
+                  _InfoRow(
+                      icon: Icons.phone_outlined,
+                      label: 'Điện thoại',
+                      value: q.customerPhone!,
+                      valueColor: AppColors.infoBlue),
+                if (q.vehicleModel != null)
+                  _InfoRow(
+                      icon: Icons.local_shipping_outlined,
+                      label: 'Loại xe',
+                      value: q.vehicleModel!),
+                if (q.isNewProductRequest == true)
+                  _InfoRow(
+                      icon: Icons.new_releases_outlined,
+                      label: 'SP mới',
+                      value: q.newProductDescription ?? '—',
+                      valueColor: AppColors.warningAmber),
+                if (q.productName != null)
+                  _InfoRow(
+                      icon: Icons.inventory_2_outlined,
+                      label: 'Sản phẩm',
+                      value: q.productName!),
+                if (q.note != null && q.note!.isNotEmpty)
+                  _InfoRow(
+                      icon: Icons.notes_outlined,
+                      label: 'Ghi chú',
+                      value: q.note!),
+                const SizedBox(height: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.warningAmber.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                        color: AppColors.warningAmber.withValues(alpha: 0.2)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline,
+                          size: 14, color: AppColors.warningAmber),
+                      SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          'Đang chờ Manager xem xét và duyệt',
+                          style: TextStyle(
+                              fontSize: 12, color: AppColors.warningAmber),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

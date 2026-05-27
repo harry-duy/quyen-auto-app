@@ -134,7 +134,7 @@ final staffLeadsProvider = FutureProvider.autoDispose<List<LeadResponse>>((
   return res.data ?? [];
 });
 
-// ─── Manager: BG chờ duyệt ───────────────────────────────────────────────────
+// ─── Manager: BG chờ duyệt (tất cả — chỉ MANAGER/ADMIN) ────────────────────
 
 final managerPendingApprovalProvider =
     FutureProvider.autoDispose<List<StaffQuotationResponse>>((ref) async {
@@ -142,6 +142,19 @@ final managerPendingApprovalProvider =
       final res = await api.get<List<StaffQuotationResponse>>(
         ApiConstants.managerPendingApproval,
         queryParams: {'page': 0, 'size': 100},
+        fromData: (json) => _parseQuotationPage(json),
+      );
+      return res.data ?? [];
+    });
+
+// ─── Staff: BG của mình đang chờ Manager duyệt ───────────────────────────────
+
+final staffOwnPendingApprovalProvider =
+    FutureProvider.autoDispose<List<StaffQuotationResponse>>((ref) async {
+      final api = ref.watch(apiServiceProvider);
+      final res = await api.get<List<StaffQuotationResponse>>(
+        ApiConstants.staffQuotations,
+        queryParams: {'page': 0, 'size': 100, 'status': 'PENDING_APPROVAL'},
         fromData: (json) => _parseQuotationPage(json),
       );
       return res.data ?? [];
@@ -252,6 +265,7 @@ class StaffActionsNotifier extends Notifier<void> {
           ApiConstants.staffSubmitApproval, {'id': quotationId}),
     );
     ref.invalidate(staffQuotationListProvider);
+    ref.invalidate(staffOwnPendingApprovalProvider);
     ref.invalidate(staffUncontactedCountProvider);
   }
 
@@ -271,6 +285,7 @@ class StaffActionsNotifier extends Notifier<void> {
       data: {'managerNote': note},
     );
     ref.invalidate(managerPendingApprovalProvider);
+    ref.invalidate(staffOwnPendingApprovalProvider);
     ref.invalidate(staffQuotationListProvider);
   }
 
@@ -281,6 +296,7 @@ class StaffActionsNotifier extends Notifier<void> {
       data: {'managerNote': note},
     );
     ref.invalidate(managerPendingApprovalProvider);
+    ref.invalidate(staffOwnPendingApprovalProvider);
     ref.invalidate(staffQuotationListProvider);
   }
 
