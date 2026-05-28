@@ -1,7 +1,6 @@
 package com.quyenauto.order.dto;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -11,9 +10,14 @@ import lombok.Data;
 @Data
 public class StaffCreateQuotationRequest {
 
-    /** ID khách hàng mà NV đang tạo BG cho */
-    @NotNull(message = "Khách hàng không được để trống")
+    /** ID khách hàng có sẵn trong hệ thống (null nếu là khách vãng lai) */
     private Long customerId;
+
+    /** Tên khách vãng lai — dùng khi customerId == null */
+    private String guestName;
+
+    /** SĐT khách vãng lai — dùng khi customerId == null */
+    private String guestPhone;
 
     /**
      * ID sản phẩm có sẵn trong hệ thống.

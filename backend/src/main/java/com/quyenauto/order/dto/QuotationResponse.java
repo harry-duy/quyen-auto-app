@@ -16,6 +16,8 @@ public class QuotationResponse {
     private Long customerId;
     private String customerName;
     private String customerPhone;
+    private String guestName;
+    private String guestPhone;
     private Long productId;
     private String productName;
 
@@ -61,9 +63,11 @@ public class QuotationResponse {
     public static QuotationResponse from(Quotation q) {
         return QuotationResponse.builder()
                 .id(q.getId())
-                .customerId(q.getCustomer().getId())
-                .customerName(q.getCustomer().getFullName())
-                .customerPhone(q.getCustomer().getPhone())
+                .customerId(q.getCustomer() != null ? q.getCustomer().getId() : null)
+                .customerName(q.getCustomer() != null ? q.getCustomer().getFullName() : q.getGuestName())
+                .customerPhone(q.getCustomer() != null ? q.getCustomer().getPhone() : q.getGuestPhone())
+                .guestName(q.getGuestName())
+                .guestPhone(q.getGuestPhone())
                 .productId(q.getProduct() != null ? q.getProduct().getId() : null)
                 .productName(q.getProduct() != null ? q.getProduct().getName() : null)
                 .vehicleModel(q.getVehicleModel())

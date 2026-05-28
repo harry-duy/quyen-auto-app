@@ -26,9 +26,9 @@ class StaffHomeScreen extends ConsumerWidget {
     void switchTab(int i) =>
         ref.read(staffTabIndexProvider.notifier).state = i;
 
-    // Tabs v� nav items du?c x�y d?ng d?a tr�n role:
-    // STAFF      ? 6 tabs: Dashboard / Orders / Quotations / Warranty / Chat / Profile
-    // MANAGER+   ? 7 tabs: Dashboard / Orders / Quotations / Warranty / Chat / Management / Profile
+    // Tabs và nav items được xây dựng dựa trên role:
+    // STAFF      → 6 tabs: Dashboard / Orders / Quotations / Warranty / Chat / Profile
+    // MANAGER+   → 7 tabs: Dashboard / Orders / Quotations / Warranty / Chat / Management / Profile
     final tabs = <Widget>[
       const StaffDashboardScreen(),
       const OrderManagementScreen(),
@@ -54,17 +54,17 @@ class StaffHomeScreen extends ConsumerWidget {
       const BottomNavigationBarItem(
         icon: Icon(Icons.receipt_long_outlined),
         activeIcon: Icon(Icons.receipt_long),
-        label: '�on h�ng',
+        label: 'Đơn hàng',
       ),
       BottomNavigationBarItem(
         icon: _BadgeIcon(icon: Icons.request_quote_outlined, count: uncontactedCount),
         activeIcon: _BadgeIcon(icon: Icons.request_quote, count: uncontactedCount, active: true),
-        label: 'B�o gi�',
+        label: 'Báo giá',
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.build_outlined),
         activeIcon: Icon(Icons.build),
-        label: 'B?o h�nh',
+        label: 'Bảo hành',
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.chat_outlined),
@@ -75,12 +75,12 @@ class StaffHomeScreen extends ConsumerWidget {
         const BottomNavigationBarItem(
           icon: Icon(Icons.admin_panel_settings_outlined),
           activeIcon: Icon(Icons.admin_panel_settings),
-          label: 'Qu?n l�',
+          label: 'Quản lý',
         ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.person_outline),
         activeIcon: Icon(Icons.person),
-        label: 'T�i kho?n',
+        label: 'Tài khoản',
       ),
     ];
 

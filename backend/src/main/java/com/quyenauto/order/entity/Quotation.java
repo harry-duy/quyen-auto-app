@@ -19,8 +19,16 @@ import java.time.LocalDateTime;
 public class Quotation extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customer_id", nullable = false)
+    @JoinColumn(name = "customer_id", nullable = true)
     private User customer;
+
+    /** Tên khách vãng lai (khi customer == null) */
+    @Column(name = "guest_name", length = 100)
+    private String guestName;
+
+    /** SĐT khách vãng lai */
+    @Column(name = "guest_phone", length = 20)
+    private String guestPhone;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")

@@ -233,8 +233,16 @@ public class QuotationService {
         User staff = userRepository.findById(staffId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy nhân viên"));
 
-        User customer = userRepository.findById(request.getCustomerId())
-                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy khách hàng"));
+        // Khách có tài khoản hoặc khách vãng lai
+        User customer = null;
+        if (request.getCustomerId() != null) {
+            customer = userRepository.findById(request.getCustomerId())
+                    .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy khách hàng"));
+        } else if ((request.getGuestName() == null || request.getGuestName().isBlank())
+                && (request.getGuestPhone() == null || request.getGuestPhone().isBlank())) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST,
+                    "Vui lòng chọn khách hàng hoặc nhập tên/SĐT khách vãng lai");
+        }
 
         Product product = null;
         Boolean isNewProduct = Boolean.TRUE.equals(request.getIsNewProductRequest());
@@ -251,6 +259,8 @@ public class QuotationService {
 
         Quotation quotation = Quotation.builder()
                 .customer(customer)
+                .guestName(request.getGuestName())
+                .guestPhone(request.getGuestPhone())
                 .product(product)
                 .staff(staff)
                 .vehicleModel(request.getVehicleModel())
@@ -298,7 +308,7 @@ public class QuotationService {
         // Thông báo đến Manager
         notificationService.notifyAllManagers(
                 "Báo giá chờ duyệt",
-                (quotation.getStaff().getFullName()) + " đã gửi báo giá #" + id + " cho KH " + quotation.getCustomer().getFullName(),
+                (quotation.getStaff().getFullName()) + " đã gửi báo giá #" + id + " cho KH " + (quotation.getCustomer() != null ? quotation.getCustomer().getFullName() : quotation.getGuestName()),
                 "QUOTATION_APPROVAL_REQUEST",
                 id.toString()
         );
@@ -332,7 +342,7 @@ public class QuotationService {
             notificationService.createNotification(
                     quotation.getStaff().getId(),
                     "Báo giá đã được duyệt",
-                    "Manager đã duyệt báo giá #" + id + " cho KH " + quotation.getCustomer().getFullName(),
+                    "Manager đã duyệt báo giá #" + id + " cho KH " + (quotation.getCustomer() != null ? quotation.getCustomer().getFullName() : quotation.getGuestName()),
                     "QUOTATION_APPROVED",
                     id.toString()
             );

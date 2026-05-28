@@ -37,6 +37,60 @@ const _kPanelCodes = [
   'E1-F','E1-C','E2','A1','A2','E3','RPB','CPB','RLL','CLL','S-CS','T-CS',
 ];
 
+// ─── Vehicle spec data (từ file PDF tờ rơi Quyen Auto) ───────────────────────
+
+class _VehicleSpec {
+  final int outerL, outerW, outerH;
+  final int innerL, innerW, innerH;
+  final int chassisW;
+  final int foamFloor, foamFront, foamSide, foamRoof, foamDoor;
+  const _VehicleSpec({
+    required this.outerL, required this.outerW, required this.outerH,
+    required this.innerL, required this.innerW, required this.innerH,
+    required this.chassisW,
+    required this.foamFloor, required this.foamFront, required this.foamSide,
+    required this.foamRoof, required this.foamDoor,
+  });
+}
+
+/// Thông số thùng đông lạnh chuẩn theo từng xe nền (từ tờ rơi kỹ thuật Quyen Auto).
+/// Mỗi entry: outer = kích thước phủ bì, inner = kích thước lọt lòng (mm).
+const _kVehicleSpecs = <String, _VehicleSpec>{
+  // ── ISUZU QKR / QMR ────────────────────────────────────────────────────────
+  'ISUZU QKR270 (1.9T)': _VehicleSpec(
+    outerL: 3700, outerW: 1950, outerH: 1950,
+    innerL: 3520, innerW: 1810, innerH: 1780, chassisW: 1820,
+    foamFloor: 80, foamFront: 65, foamSide: 65, foamRoof: 75, foamDoor: 65,
+  ),
+  'ISUZU QMR77HE5 (2.5T)': _VehicleSpec(
+    outerL: 4450, outerW: 1950, outerH: 1950,
+    innerL: 4270, innerW: 1810, innerH: 1780, chassisW: 1820,
+    foamFloor: 80, foamFront: 65, foamSide: 65, foamRoof: 75, foamDoor: 65,
+  ),
+  // ── ISUZU N-Series ──────────────────────────────────────────────────────────
+  'ISUZU NPR85HE (3.5T)': _VehicleSpec(
+    outerL: 5200, outerW: 2200, outerH: 2350,
+    innerL: 5020, innerW: 2060, innerH: 2165, chassisW: 2050,
+    foamFloor: 95, foamFront: 63, foamSide: 63, foamRoof: 78, foamDoor: 63,
+  ),
+  'ISUZU NQR75LE (5T)': _VehicleSpec(
+    outerL: 5750, outerW: 2200, outerH: 2350,
+    innerL: 5570, innerW: 2060, innerH: 2170, chassisW: 2050,
+    foamFloor: 95, foamFront: 63, foamSide: 63, foamRoof: 78, foamDoor: 63,
+  ),
+  // ── HINO 300 ────────────────────────────────────────────────────────────────
+  'HINO 300 XZU342 (3.5T)': _VehicleSpec(
+    outerL: 4600, outerW: 1860, outerH: 2000,
+    innerL: 4420, innerW: 1710, innerH: 1840, chassisW: 1695,
+    foamFloor: 80, foamFront: 65, foamSide: 65, foamRoof: 80, foamDoor: 65,
+  ),
+  'HINO 300 XZU720 (5T)': _VehicleSpec(
+    outerL: 5250, outerW: 2150, outerH: 2080,
+    innerL: 5070, innerW: 2000, innerH: 1895, chassisW: 1995,
+    foamFloor: 85, foamFront: 65, foamSide: 65, foamRoof: 80, foamDoor: 65,
+  ),
+};
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 class StaffCreateQuotationScreen extends ConsumerStatefulWidget {
@@ -52,9 +106,14 @@ class _StaffCreateQuotationScreenState
   final _formKey = GlobalKey<FormState>();
 
   // ─── Thông tin KH ────────────────────────────────────────────────────────
+  bool _isGuestCustomer = false;
+  // KH có tài khoản
   int? _selectedCustomerId;
   String? _selectedCustomerName;
   final _customerSearchCtrl = TextEditingController();
+  // KH vãng lai (chưa đăng ký)
+  final _guestNameCtrl = TextEditingController();
+  final _guestPhoneCtrl = TextEditingController();
 
   // ─── Sản phẩm ────────────────────────────────────────────────────────────
   bool _isNewProduct = false; // true = "Sản phẩm mới"
@@ -103,7 +162,8 @@ class _StaffCreateQuotationScreenState
   @override
   void dispose() {
     for (final c in [
-      _customerSearchCtrl, _newProductDescCtrl, _quantityCtrl, _chassisWidthCtrl,
+      _customerSearchCtrl, _guestNameCtrl, _guestPhoneCtrl,
+      _newProductDescCtrl, _quantityCtrl, _chassisWidthCtrl,
       _boxCodeCtrl, _acModelCtrl,
       _outerLCtrl, _outerWCtrl, _outerHCtrl,
       _innerLCtrl, _innerWCtrl, _innerHCtrl,
@@ -162,7 +222,7 @@ class _StaffCreateQuotationScreenState
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedCustomerId == null) {
+    if (!_isGuestCustomer && _selectedCustomerId == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Vui lòng chọn khách hàng'),
         backgroundColor: AppColors.errorRed,
@@ -173,7 +233,9 @@ class _StaffCreateQuotationScreenState
     setState(() => _loading = true);
     try {
       final data = <String, dynamic>{
-        'customerId': _selectedCustomerId,
+        if (!_isGuestCustomer) 'customerId': _selectedCustomerId,
+        if (_isGuestCustomer) 'guestName': _guestNameCtrl.text.trim(),
+        if (_isGuestCustomer) 'guestPhone': _guestPhoneCtrl.text.trim(),
         'isNewProductRequest': _isNewProduct,
         if (_isNewProduct)
           'newProductDescription': _newProductDescCtrl.text.trim(),
@@ -261,6 +323,32 @@ class _StaffCreateQuotationScreenState
     );
   }
 
+  // ─── Vehicle spec auto-fill ───────────────────────────────────────────────
+
+  void _autoFillSpecs(String? model) {
+    setState(() => _vehicleModel = model);
+    if (model == null) return;
+    final spec = _kVehicleSpecs[model];
+    if (spec == null) return; // model không có data → giữ nguyên
+    _outerLCtrl.text = spec.outerL.toString();
+    _outerWCtrl.text = spec.outerW.toString();
+    _outerHCtrl.text = spec.outerH.toString();
+    _innerLCtrl.text = spec.innerL.toString();
+    _innerWCtrl.text = spec.innerW.toString();
+    _innerHCtrl.text = spec.innerH.toString();
+    _chassisWidthCtrl.text = spec.chassisW.toString();
+    _foamFloorCtrl.text = spec.foamFloor.toString();
+    _foamFrontCtrl.text = spec.foamFront.toString();
+    _foamSideCtrl.text = spec.foamSide.toString();
+    _foamRoofCtrl.text = spec.foamRoof.toString();
+    _foamDoorCtrl.text = spec.foamDoor.toString();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('Đã điền thông số tự động cho $model'),
+      duration: const Duration(seconds: 2),
+      backgroundColor: AppColors.successGreen,
+    ));
+  }
+
   // ─── Customer picker ──────────────────────────────────────────────────────
 
   Future<void> _pickCustomer() async {
@@ -312,7 +400,7 @@ class _StaffCreateQuotationScreenState
             // ── Chọn KH ────────────────────────────────────────────────────
             _Section(
               title: 'Khách hàng',
-              subtitle: 'Chọn KH từ danh sách',
+              subtitle: 'KH có tài khoản hoặc khách vãng lai',
               child: _buildCustomerSection(),
             ),
 
@@ -390,50 +478,122 @@ class _StaffCreateQuotationScreenState
   // ─── Section builders ─────────────────────────────────────────────────────
 
   Widget _buildCustomerSection() {
-    if (_selectedCustomerId != null) {
-      return Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.primaryOrange.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-              color: AppColors.primaryOrange.withValues(alpha: 0.3)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.person, color: AppColors.primaryOrange, size: 22),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                _selectedCustomerName ?? 'KH #$_selectedCustomerId',
-                style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: AppColors.textDark),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Toggle: KH có sẵn / Khách vãng lai
+        Row(children: [
+          Expanded(
+            child: _ToggleOption(
+              label: 'KH có sẵn',
+              selected: !_isGuestCustomer,
+              icon: Icons.person_search_outlined,
+              onTap: () => setState(() => _isGuestCustomer = false),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _ToggleOption(
+              label: 'Khách vãng lai',
+              selected: _isGuestCustomer,
+              icon: Icons.person_add_outlined,
+              onTap: () => setState(() => _isGuestCustomer = true),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 12),
+
+        if (!_isGuestCustomer) ...[
+          // ── KH có tài khoản ────────────────────────────────────────────────
+          if (_selectedCustomerId != null)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primaryOrange.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: AppColors.primaryOrange.withValues(alpha: 0.3)),
+              ),
+              child: Row(children: [
+                const Icon(Icons.person, color: AppColors.primaryOrange, size: 22),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    _selectedCustomerName ?? 'KH #$_selectedCustomerId',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: AppColors.textDark),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, size: 16),
+                  onPressed: () => setState(() {
+                    _selectedCustomerId = null;
+                    _selectedCustomerName = null;
+                  }),
+                ),
+              ]),
+            )
+          else
+            OutlinedButton.icon(
+              onPressed: _pickCustomer,
+              icon: const Icon(Icons.person_search_outlined),
+              label: const Text('Chọn khách hàng *'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 48),
+                foregroundColor: AppColors.primaryOrange,
+                side: const BorderSide(color: AppColors.primaryOrange),
+                shape:
+                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.close, size: 16),
-              onPressed: () => setState(() {
-                _selectedCustomerId = null;
-                _selectedCustomerName = null;
-              }),
+        ] else ...[
+          // ── Khách vãng lai ─────────────────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primaryNavy.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                  color: AppColors.primaryNavy.withValues(alpha: 0.2)),
             ),
-          ],
-        ),
-      );
-    }
-
-    return OutlinedButton.icon(
-      onPressed: _pickCustomer,
-      icon: const Icon(Icons.person_search_outlined),
-      label: const Text('Chọn khách hàng *'),
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(double.infinity, 48),
-        foregroundColor: AppColors.primaryOrange,
-        side: const BorderSide(color: AppColors.primaryOrange),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+            child: const Row(children: [
+              Icon(Icons.info_outline,
+                  color: AppColors.primaryNavy, size: 15),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Khách chưa có tài khoản — nhập tên và SĐT để lưu vào báo giá.',
+                  style:
+                      TextStyle(fontSize: 11, color: AppColors.primaryNavy),
+                ),
+              ),
+            ]),
+          ),
+          const SizedBox(height: 10),
+          TextFormField(
+            controller: _guestNameCtrl,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(
+              labelText: 'Tên khách hàng *',
+              prefixIcon: Icon(Icons.person_outline),
+            ),
+            validator: (v) => _isGuestCustomer && (v == null || v.trim().isEmpty)
+                ? 'Vui lòng nhập tên khách hàng'
+                : null,
+          ),
+          const SizedBox(height: 10),
+          TextFormField(
+            controller: _guestPhoneCtrl,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+              labelText: 'Số điện thoại',
+              prefixIcon: Icon(Icons.phone_outlined),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -626,9 +786,20 @@ class _StaffCreateQuotationScreenState
           items: _kVehicleModels
               .map((m) => DropdownMenuItem<String>(
                   value: m,
-                  child: Text(m, overflow: TextOverflow.ellipsis)))
+                  child: Row(children: [
+                    Expanded(
+                        child: Text(m,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 13))),
+                    if (_kVehicleSpecs.containsKey(m))
+                      const Padding(
+                        padding: EdgeInsets.only(left: 4),
+                        child: Icon(Icons.auto_fix_high,
+                            size: 13, color: AppColors.successGreen),
+                      ),
+                  ])))
               .toList(),
-          onChanged: (v) => setState(() => _vehicleModel = v),
+          onChanged: _autoFillSpecs,
           validator: (v) =>
               !_isNewProduct && v == null ? 'Vui lòng chọn kiểu xe' : null,
         ),
