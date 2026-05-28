@@ -144,4 +144,22 @@ public class QuotationController {
         Long staffId = Long.parseLong(auth.getName());
         return ResponseEntity.ok(ApiResponse.ok(quotationService.staffSendToCustomer(id, staffId)));
     }
+
+    @PatchMapping("/staff/quotations/{id}/customer-confirm")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "NV xác nhận KH đồng ý báo giá (SENT → CONTRACT_PENDING)")
+    public ResponseEntity<ApiResponse<QuotationResponse>> customerConfirm(
+            @PathVariable Long id, Authentication auth) {
+        Long staffId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(quotationService.staffConfirmCustomerAgreed(id, staffId)));
+    }
+
+    @PatchMapping("/staff/quotations/{id}/customer-reject")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
+    @Operation(summary = "NV ghi nhận KH từ chối báo giá (SENT → CUSTOMER_REJECTED)")
+    public ResponseEntity<ApiResponse<QuotationResponse>> customerReject(
+            @PathVariable Long id, Authentication auth) {
+        Long staffId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(quotationService.staffMarkCustomerRejected(id, staffId)));
+    }
 }

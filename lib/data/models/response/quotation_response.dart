@@ -1,8 +1,10 @@
 class StaffQuotationResponse {
   final int id;
-  final int customerId;
+  final int? customerId;
   final String? customerName;
   final String? customerPhone;
+  final String? guestName;
+  final String? guestPhone;
   final int? productId;
   final String? productName;
   final String? vehicleModel;
@@ -46,14 +48,18 @@ class StaffQuotationResponse {
   bool get isPendingApproval => status == 'PENDING_APPROVAL';
   bool get isApproved => status == 'APPROVED';
   bool get isSent => status == 'SENT';
+  bool get isContractPending => status == 'CONTRACT_PENDING';
   bool get isAccepted => status == 'ACCEPTED';
   bool get isRejected => status == 'REJECTED';
+  bool get isCustomerRejected => status == 'CUSTOMER_REJECTED';
 
   const StaffQuotationResponse({
     required this.id,
-    required this.customerId,
+    this.customerId,
     this.customerName,
     this.customerPhone,
+    this.guestName,
+    this.guestPhone,
     this.productId,
     this.productName,
     this.vehicleModel,
@@ -90,9 +96,11 @@ class StaffQuotationResponse {
   factory StaffQuotationResponse.fromJson(Map<String, dynamic> json) {
     return StaffQuotationResponse(
       id: json['id'] as int,
-      customerId: json['customerId'] as int,
+      customerId: json['customerId'] as int?,
       customerName: json['customerName'] as String?,
       customerPhone: json['customerPhone'] as String?,
+      guestName: json['guestName'] as String?,
+      guestPhone: json['guestPhone'] as String?,
       productId: json['productId'] as int?,
       productName: json['productName'] as String?,
       vehicleModel: json['vehicleModel'] as String?,

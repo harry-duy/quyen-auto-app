@@ -124,6 +124,6 @@ public class Quotation extends BaseEntity {
         // ── Flow cũ (KH tự gửi) ──
         PENDING, QUOTED, ACCEPTED, REJECTED, EXPIRED,
         // ── Flow mới (NV tạo) ────
-        DRAFT, PENDING_APPROVAL, APPROVED, SENT
+        DRAFT, PENDING_APPROVAL, APPROVED, SENT, CONTRACT_PENDING, CUSTOMER_REJECTED
     }
 }

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -27,11 +27,11 @@ class QuotationListStaffScreen extends ConsumerWidget {
     // Badge "Chờ duyệt": Manager xem tổng BG cần duyệt; Staff xem BG mình đã gửi duyệt
     final pendingApprovalCount = isManager
         ? ref
-            .watch(managerPendingApprovalProvider)
-            .maybeWhen(data: (l) => l.length, orElse: () => 0)
+              .watch(managerPendingApprovalProvider)
+              .maybeWhen(data: (l) => l.length, orElse: () => 0)
         : ref
-            .watch(staffOwnPendingApprovalProvider)
-            .maybeWhen(data: (l) => l.length, orElse: () => 0);
+              .watch(staffOwnPendingApprovalProvider)
+              .maybeWhen(data: (l) => l.length, orElse: () => 0);
 
     return DefaultTabController(
       length: 3,
@@ -47,7 +47,8 @@ class QuotationListStaffScreen extends ConsumerWidget {
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (_) => const StaffCreateQuotationScreen()),
+                  builder: (_) => const StaffCreateQuotationScreen(),
+                ),
               ),
             ),
           ],
@@ -89,7 +90,9 @@ class QuotationListStaffScreen extends ConsumerWidget {
             const _QuotationListTab(),
             // Tab "Chờ duyệt": Manager thấy tất cả + nút duyệt/từ chối;
             // Staff chỉ thấy BG của mình đang chờ (không có nút duyệt).
-            isManager ? const _ManagerPendingTab() : const _StaffOwnPendingTab(),
+            isManager
+                ? const _ManagerPendingTab()
+                : const _StaffOwnPendingTab(),
             const StaffLeadListScreen(),
           ],
         ),
@@ -109,8 +112,10 @@ class _QuotationListTab extends ConsumerWidget {
     'PENDING_APPROVAL',
     'APPROVED',
     'SENT',
+    'CONTRACT_PENDING',
     'PENDING',
     'ACCEPTED',
+    'CUSTOMER_REJECTED',
     'REJECTED',
   ];
   static const _filterLabels = [
@@ -119,8 +124,10 @@ class _QuotationListTab extends ConsumerWidget {
     'Chờ duyệt',
     'Đã duyệt',
     'Đã gửi KH',
+    'Chờ ký HĐ',
     'Chờ xử lý',
     'Đã chốt',
+    'KH từ chối',
     'Từ chối',
   ];
 
@@ -278,9 +285,11 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
     'PENDING_APPROVAL' => AppColors.warningAmber,
     'APPROVED' => AppColors.infoBlue,
     'SENT' => AppColors.statusQuoted,
+    'CONTRACT_PENDING' => AppColors.primaryOrange,
     'PENDING' => AppColors.warningAmber,
     'QUOTED' => AppColors.statusQuoted,
     'ACCEPTED' => AppColors.successGreen,
+    'CUSTOMER_REJECTED' => AppColors.errorRed,
     'REJECTED' => AppColors.errorRed,
     _ => AppColors.textGray,
   };
@@ -290,9 +299,11 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
     'PENDING_APPROVAL' => AppColors.warningAmber.withValues(alpha: 0.12),
     'APPROVED' => AppColors.infoBlue.withValues(alpha: 0.1),
     'SENT' => AppColors.statusQuotedBg,
+    'CONTRACT_PENDING' => AppColors.primaryOrange.withValues(alpha: 0.12),
     'PENDING' => AppColors.warningAmber.withValues(alpha: 0.12),
     'QUOTED' => AppColors.statusQuotedBg,
     'ACCEPTED' => AppColors.successGreen.withValues(alpha: 0.1),
+    'CUSTOMER_REJECTED' => AppColors.errorRed.withValues(alpha: 0.1),
     'REJECTED' => AppColors.errorRed.withValues(alpha: 0.1),
     _ => AppColors.statusPendingBg,
   };
@@ -302,9 +313,11 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
     'PENDING_APPROVAL' => 'Chờ Manager duyệt',
     'APPROVED' => 'Đã duyệt',
     'SENT' => 'Đã gửi KH',
+    'CONTRACT_PENDING' => 'Chờ ký HĐ',
     'PENDING' => 'Chờ xử lý',
     'QUOTED' => 'Đã báo giá',
     'ACCEPTED' => 'Đã chốt',
+    'CUSTOMER_REJECTED' => 'KH từ chối',
     'REJECTED' => 'Từ chối',
     _ => widget.quotation.status,
   };
@@ -495,29 +508,35 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                               child: SizedBox(
                                 width: 24,
                                 height: 24,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
                             )
                           : OutlinedButton.icon(
                               onPressed: () => _markContacted(context, ref),
                               icon: const Icon(Icons.phone_callback, size: 16),
-                              label: const Text('Nhận & liên hệ',
-                                  style: TextStyle(fontSize: 13)),
+                              label: const Text(
+                                'Nhận & liên hệ',
+                                style: TextStyle(fontSize: 13),
+                              ),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: AppColors.successGreen,
                                 side: const BorderSide(
-                                    color: AppColors.successGreen),
+                                  color: AppColors.successGreen,
+                                ),
                               ),
                             ),
                     ),
                   if (!q.isContacted) const SizedBox(width: 8),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: () =>
-                          _showConfirmOrderDialog(context, ref),
+                      onPressed: () => _showConfirmOrderDialog(context, ref),
                       icon: const Icon(Icons.fact_check, size: 16),
-                      label: const Text('Chốt & tạo đơn',
-                          style: TextStyle(fontSize: 13)),
+                      label: const Text(
+                        'Chốt & tạo đơn',
+                        style: TextStyle(fontSize: 13),
+                      ),
                     ),
                   ),
                 ],
@@ -537,8 +556,10 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                       ? null
                       : () => _submitForApproval(context, ref),
                   icon: const Icon(Icons.send_outlined, size: 16),
-                  label: const Text('Gửi Manager duyệt',
-                      style: TextStyle(fontSize: 13)),
+                  label: const Text(
+                    'Gửi Manager duyệt',
+                    style: TextStyle(fontSize: 13),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.warningAmber,
                     foregroundColor: Colors.white,
@@ -559,13 +580,59 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                       ? null
                       : () => _sendToCustomer(context, ref),
                   icon: const Icon(Icons.forward_to_inbox, size: 16),
-                  label: const Text('Gửi Báo Giá cho KH',
-                      style: TextStyle(fontSize: 13)),
+                  label: const Text(
+                    'Gửi Báo Giá cho KH',
+                    style: TextStyle(fontSize: 13),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.infoBlue,
                     foregroundColor: Colors.white,
                   ),
                 ),
+              ),
+            ),
+          ],
+
+          if (q.isSent) ...[
+            const Divider(height: 1),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _loading
+                          ? null
+                          : () => _rejectByCustomer(context, ref),
+                      icon: const Icon(Icons.close, size: 16),
+                      label: const Text(
+                        'KH từ chối',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.errorRed,
+                        side: const BorderSide(color: AppColors.errorRed),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _loading
+                          ? null
+                          : () => _confirmCustomerAgreed(context, ref),
+                      icon: const Icon(Icons.assignment_turned_in, size: 16),
+                      label: const Text(
+                        'Chờ ký HĐ',
+                        style: TextStyle(fontSize: 13),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryOrange,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -581,17 +648,21 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
           .read(staffActionsProvider.notifier)
           .submitForApproval(widget.quotation.id.toString());
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Đã gửi Manager duyệt!'),
-          backgroundColor: AppColors.successGreen,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã gửi Manager duyệt!'),
+            backgroundColor: AppColors.successGreen,
+          ),
+        );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Lỗi: $e'),
-          backgroundColor: AppColors.errorRed,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -609,11 +680,13 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Hủy')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
           ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Xác nhận đã gửi')),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xác nhận đã gửi'),
+          ),
         ],
       ),
     );
@@ -626,17 +699,128 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
           .read(staffActionsProvider.notifier)
           .sendQuotationToCustomer(widget.quotation.id.toString());
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Đã đánh dấu gửi KH!'),
-          backgroundColor: AppColors.successGreen,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã đánh dấu gửi KH!'),
+            backgroundColor: AppColors.successGreen,
+          ),
+        );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Lỗi: $e'),
-          backgroundColor: AppColors.errorRed,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _confirmCustomerAgreed(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Khách đồng ý báo giá?'),
+        content: Text(
+          'Báo giá #${widget.quotation.id} sẽ chuyển sang trạng thái chờ ký hợp đồng.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xác nhận'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _loading = true);
+    try {
+      await ref
+          .read(staffActionsProvider.notifier)
+          .confirmCustomerAgreed(widget.quotation.id.toString());
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã chuyển sang chờ ký hợp đồng'),
+            backgroundColor: AppColors.successGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _rejectByCustomer(BuildContext context, WidgetRef ref) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Khách từ chối báo giá?'),
+        content: Text(
+          'Báo giá #${widget.quotation.id} sẽ được đánh dấu là khách từ chối.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.errorRed,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Xác nhận'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    setState(() => _loading = true);
+    try {
+      await ref
+          .read(staffActionsProvider.notifier)
+          .rejectByCustomer(widget.quotation.id.toString());
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã ghi nhận khách từ chối'),
+            backgroundColor: AppColors.successGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -699,8 +883,9 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 validator: (v) {
                   if (v == null || v.isEmpty) return 'Vui lòng nhập giá';
                   final cleaned = v.replaceAll(',', '').replaceAll('.', '');
-                  if (double.tryParse(cleaned) == null)
+                  if (double.tryParse(cleaned) == null) {
                     return 'Giá không hợp lệ';
+                  }
                   return null;
                 },
               ),
@@ -716,8 +901,9 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return null;
                   final cleaned = v.replaceAll(',', '').replaceAll('.', '');
-                  if (double.tryParse(cleaned) == null)
+                  if (double.tryParse(cleaned) == null) {
                     return 'Tiền cọc không hợp lệ';
+                  }
                   return null;
                 },
               ),
@@ -980,18 +1166,22 @@ class _ManagerPendingTab extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle_outline,
-                    size: 56, color: AppColors.successGreen),
+                Icon(
+                  Icons.check_circle_outline,
+                  size: 56,
+                  color: AppColors.successGreen,
+                ),
                 SizedBox(height: 12),
-                Text('Không có báo giá nào chờ duyệt',
-                    style: TextStyle(color: AppColors.textGray, fontSize: 14)),
+                Text(
+                  'Không có báo giá nào chờ duyệt',
+                  style: TextStyle(color: AppColors.textGray, fontSize: 14),
+                ),
               ],
             ),
           );
         }
         return RefreshIndicator(
-          onRefresh: () async =>
-              ref.invalidate(managerPendingApprovalProvider),
+          onRefresh: () async => ref.invalidate(managerPendingApprovalProvider),
           child: ListView.builder(
             padding: const EdgeInsets.all(12),
             itemCount: items.length,
@@ -1004,10 +1194,16 @@ class _ManagerPendingTab extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: AppColors.errorRed, size: 40),
+            const Icon(
+              Icons.error_outline,
+              color: AppColors.errorRed,
+              size: 40,
+            ),
             const SizedBox(height: 8),
-            Text(e.toString(),
-                style: const TextStyle(color: AppColors.errorRed)),
+            Text(
+              e.toString(),
+              style: const TextStyle(color: AppColors.errorRed),
+            ),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () => ref.invalidate(managerPendingApprovalProvider),
@@ -1036,11 +1232,16 @@ class _StaffOwnPendingTab extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.hourglass_empty,
-                    size: 56, color: AppColors.textGray),
+                Icon(
+                  Icons.hourglass_empty,
+                  size: 56,
+                  color: AppColors.textGray,
+                ),
                 SizedBox(height: 12),
-                Text('Chưa có báo giá nào gửi duyệt',
-                    style: TextStyle(color: AppColors.textGray, fontSize: 14)),
+                Text(
+                  'Chưa có báo giá nào gửi duyệt',
+                  style: TextStyle(color: AppColors.textGray, fontSize: 14),
+                ),
                 SizedBox(height: 6),
                 Text(
                   'Tạo báo giá và nhấn "Gửi Manager duyệt" để xem ở đây',
@@ -1066,10 +1267,16 @@ class _StaffOwnPendingTab extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: AppColors.errorRed, size: 40),
+            const Icon(
+              Icons.error_outline,
+              color: AppColors.errorRed,
+              size: 40,
+            ),
             const SizedBox(height: 8),
-            Text(e.toString(),
-                style: const TextStyle(color: AppColors.errorRed)),
+            Text(
+              e.toString(),
+              style: const TextStyle(color: AppColors.errorRed),
+            ),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () => ref.invalidate(staffOwnPendingApprovalProvider),
@@ -1099,12 +1306,15 @@ class _PendingInfoCard extends StatelessWidget {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-            color: AppColors.warningAmber.withValues(alpha: 0.4), width: 1.5),
+          color: AppColors.warningAmber.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2)),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -1121,37 +1331,52 @@ class _PendingInfoCard extends StatelessWidget {
                     color: AppColors.warningAmber.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.pending_actions,
-                      color: AppColors.warningAmber, size: 20),
+                  child: const Icon(
+                    Icons.pending_actions,
+                    color: AppColors.warningAmber,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Báo giá #${q.id}',
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textDark)),
-                      Text(dateFmt.format(q.createdAt),
-                          style: const TextStyle(
-                              fontSize: 11, color: AppColors.textGray)),
+                      Text(
+                        'Báo giá #${q.id}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      Text(
+                        dateFmt.format(q.createdAt),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textGray,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.warningAmber.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text('Chờ Manager',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.warningAmber)),
+                  child: const Text(
+                    'Chờ Manager',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.warningAmber,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1163,56 +1388,70 @@ class _PendingInfoCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _InfoRow(
-                    icon: Icons.person_outline,
-                    label: 'Khách hàng',
-                    value: q.customerName ?? 'KH #${q.customerId}'),
+                  icon: Icons.person_outline,
+                  label: 'Khách hàng',
+                  value: q.customerName ?? 'KH #${q.customerId}',
+                ),
                 if (q.customerPhone != null)
                   _InfoRow(
-                      icon: Icons.phone_outlined,
-                      label: 'Điện thoại',
-                      value: q.customerPhone!,
-                      valueColor: AppColors.infoBlue),
+                    icon: Icons.phone_outlined,
+                    label: 'Điện thoại',
+                    value: q.customerPhone!,
+                    valueColor: AppColors.infoBlue,
+                  ),
                 if (q.vehicleModel != null)
                   _InfoRow(
-                      icon: Icons.local_shipping_outlined,
-                      label: 'Loại xe',
-                      value: q.vehicleModel!),
+                    icon: Icons.local_shipping_outlined,
+                    label: 'Loại xe',
+                    value: q.vehicleModel!,
+                  ),
                 if (q.isNewProductRequest == true)
                   _InfoRow(
-                      icon: Icons.new_releases_outlined,
-                      label: 'SP mới',
-                      value: q.newProductDescription ?? '—',
-                      valueColor: AppColors.warningAmber),
+                    icon: Icons.new_releases_outlined,
+                    label: 'SP mới',
+                    value: q.newProductDescription ?? '—',
+                    valueColor: AppColors.warningAmber,
+                  ),
                 if (q.productName != null)
                   _InfoRow(
-                      icon: Icons.inventory_2_outlined,
-                      label: 'Sản phẩm',
-                      value: q.productName!),
+                    icon: Icons.inventory_2_outlined,
+                    label: 'Sản phẩm',
+                    value: q.productName!,
+                  ),
                 if (q.note != null && q.note!.isNotEmpty)
                   _InfoRow(
-                      icon: Icons.notes_outlined,
-                      label: 'Ghi chú',
-                      value: q.note!),
+                    icon: Icons.notes_outlined,
+                    label: 'Ghi chú',
+                    value: q.note!,
+                  ),
                 const SizedBox(height: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.warningAmber.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                        color: AppColors.warningAmber.withValues(alpha: 0.2)),
+                      color: AppColors.warningAmber.withValues(alpha: 0.2),
+                    ),
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.info_outline,
-                          size: 14, color: AppColors.warningAmber),
+                      Icon(
+                        Icons.info_outline,
+                        size: 14,
+                        color: AppColors.warningAmber,
+                      ),
                       SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           'Đang chờ Manager xem xét và duyệt',
                           style: TextStyle(
-                              fontSize: 12, color: AppColors.warningAmber),
+                            fontSize: 12,
+                            color: AppColors.warningAmber,
+                          ),
                         ),
                       ),
                     ],
@@ -1251,12 +1490,15 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-            color: AppColors.warningAmber.withValues(alpha: 0.5), width: 1.5),
+          color: AppColors.warningAmber.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2)),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -1273,37 +1515,52 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
                     color: AppColors.warningAmber.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.pending_actions,
-                      color: AppColors.warningAmber, size: 20),
+                  child: const Icon(
+                    Icons.pending_actions,
+                    color: AppColors.warningAmber,
+                    size: 20,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Báo giá #${q.id}',
-                          style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textDark)),
-                      Text(dateFmt.format(q.createdAt),
-                          style: const TextStyle(
-                              fontSize: 11, color: AppColors.textGray)),
+                      Text(
+                        'Báo giá #${q.id}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark,
+                        ),
+                      ),
+                      Text(
+                        dateFmt.format(q.createdAt),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textGray,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.warningAmber.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text('Chờ duyệt',
-                      style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.warningAmber)),
+                  child: const Text(
+                    'Chờ duyệt',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.warningAmber,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1318,41 +1575,48 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _InfoRow(
-                    icon: Icons.person_outline,
-                    label: 'Khách hàng',
-                    value: q.customerName ?? 'KH #${q.customerId}'),
+                  icon: Icons.person_outline,
+                  label: 'Khách hàng',
+                  value: q.customerName ?? 'KH #${q.customerId}',
+                ),
                 if (q.customerPhone != null)
                   _InfoRow(
-                      icon: Icons.phone_outlined,
-                      label: 'Điện thoại',
-                      value: q.customerPhone!,
-                      valueColor: AppColors.infoBlue),
+                    icon: Icons.phone_outlined,
+                    label: 'Điện thoại',
+                    value: q.customerPhone!,
+                    valueColor: AppColors.infoBlue,
+                  ),
                 if (q.staffName != null)
                   _InfoRow(
-                      icon: Icons.badge_outlined,
-                      label: 'Nhân viên',
-                      value: q.staffName!),
+                    icon: Icons.badge_outlined,
+                    label: 'Nhân viên',
+                    value: q.staffName!,
+                  ),
                 if (q.vehicleModel != null)
                   _InfoRow(
-                      icon: Icons.local_shipping_outlined,
-                      label: 'Loại xe',
-                      value: q.vehicleModel!),
+                    icon: Icons.local_shipping_outlined,
+                    label: 'Loại xe',
+                    value: q.vehicleModel!,
+                  ),
                 if (q.isNewProductRequest == true)
                   _InfoRow(
-                      icon: Icons.new_releases_outlined,
-                      label: 'SP mới',
-                      value: q.newProductDescription ?? '—',
-                      valueColor: AppColors.warningAmber),
+                    icon: Icons.new_releases_outlined,
+                    label: 'SP mới',
+                    value: q.newProductDescription ?? '—',
+                    valueColor: AppColors.warningAmber,
+                  ),
                 if (q.productName != null)
                   _InfoRow(
-                      icon: Icons.inventory_2_outlined,
-                      label: 'Sản phẩm',
-                      value: q.productName!),
+                    icon: Icons.inventory_2_outlined,
+                    label: 'Sản phẩm',
+                    value: q.productName!,
+                  ),
                 if (q.note != null && q.note!.isNotEmpty)
                   _InfoRow(
-                      icon: Icons.notes_outlined,
-                      label: 'Ghi chú',
-                      value: q.note!),
+                    icon: Icons.notes_outlined,
+                    label: 'Ghi chú',
+                    value: q.note!,
+                  ),
               ],
             ),
           ),
@@ -1364,22 +1628,24 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
             child: _loading
                 ? const Center(
                     child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child:
-                            CircularProgressIndicator(strokeWidth: 2)))
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
                 : Row(
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () => _reject(context),
                           icon: const Icon(Icons.close, size: 16),
-                          label: const Text('Từ chối',
-                              style: TextStyle(fontSize: 13)),
+                          label: const Text(
+                            'Từ chối',
+                            style: TextStyle(fontSize: 13),
+                          ),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.errorRed,
-                            side:
-                                const BorderSide(color: AppColors.errorRed),
+                            side: const BorderSide(color: AppColors.errorRed),
                           ),
                         ),
                       ),
@@ -1388,8 +1654,10 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
                         child: ElevatedButton.icon(
                           onPressed: () => _approve(context),
                           icon: const Icon(Icons.check, size: 16),
-                          label: const Text('Duyệt BG',
-                              style: TextStyle(fontSize: 13)),
+                          label: const Text(
+                            'Duyệt BG',
+                            style: TextStyle(fontSize: 13),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.successGreen,
                             foregroundColor: Colors.white,
@@ -1414,19 +1682,23 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
           controller: noteCtrl,
           maxLines: 3,
           decoration: const InputDecoration(
-              hintText: 'Ghi chú (tuỳ chọn)',
-              border: OutlineInputBorder()),
+            hintText: 'Ghi chú (tuỳ chọn)',
+            border: OutlineInputBorder(),
+          ),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Hủy')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
           ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.successGreen,
-                  foregroundColor: Colors.white),
-              child: const Text('Xác nhận duyệt')),
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.successGreen,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Xác nhận duyệt'),
+          ),
         ],
       ),
     );
@@ -1434,22 +1706,28 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
 
     setState(() => _loading = true);
     try {
-      await ref.read(staffActionsProvider.notifier).managerApproveQuotation(
+      await ref
+          .read(staffActionsProvider.notifier)
+          .managerApproveQuotation(
             widget.quotation.id.toString(),
             noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
           );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Đã duyệt báo giá!'),
-          backgroundColor: AppColors.successGreen,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã duyệt báo giá!'),
+            backgroundColor: AppColors.successGreen,
+          ),
+        );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Lỗi: $e'),
-          backgroundColor: AppColors.errorRed,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -1466,19 +1744,23 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
           controller: noteCtrl,
           maxLines: 3,
           decoration: const InputDecoration(
-              hintText: 'Lý do từ chối *',
-              border: OutlineInputBorder()),
+            hintText: 'Lý do từ chối *',
+            border: OutlineInputBorder(),
+          ),
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Hủy')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
           ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.errorRed,
-                  foregroundColor: Colors.white),
-              child: const Text('Xác nhận từ chối')),
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.errorRed,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Xác nhận từ chối'),
+          ),
         ],
       ),
     );
@@ -1486,22 +1768,28 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
 
     setState(() => _loading = true);
     try {
-      await ref.read(staffActionsProvider.notifier).managerRejectQuotation(
+      await ref
+          .read(staffActionsProvider.notifier)
+          .managerRejectQuotation(
             widget.quotation.id.toString(),
             noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
           );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Đã từ chối báo giá'),
-          backgroundColor: AppColors.warningAmber,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã từ chối báo giá'),
+            backgroundColor: AppColors.warningAmber,
+          ),
+        );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Lỗi: $e'),
-          backgroundColor: AppColors.errorRed,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: AppColors.errorRed,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);

@@ -31,7 +31,7 @@ class ManagementHubScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('Qu?n l�')),
+      appBar: AppBar(title: const Text('Quản lý')),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(staffMemberListProvider);
@@ -50,107 +50,123 @@ class ManagementHubScreen extends ConsumerWidget {
                   color: AppColors.primaryNavy.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                      color: AppColors.primaryNavy.withValues(alpha: 0.15)),
+                    color: AppColors.primaryNavy.withValues(alpha: 0.15),
+                  ),
                 ),
-                child: Row(children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundColor: AppColors.primaryNavy,
-                    backgroundImage: user.avatarUrl != null
-                        ? NetworkImage(user.avatarUrl!)
-                        : null,
-                    child: user.avatarUrl == null
-                        ? Text(
-                            user.fullName.isNotEmpty
-                                ? user.fullName[0].toUpperCase()
-                                : 'A',
-                            style: const TextStyle(
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppColors.primaryNavy,
+                      backgroundImage: user.avatarUrl != null
+                          ? NetworkImage(user.avatarUrl!)
+                          : null,
+                      child: user.avatarUrl == null
+                          ? Text(
+                              user.fullName.isNotEmpty
+                                  ? user.fullName[0].toUpperCase()
+                                  : 'A',
+                              style: const TextStyle(
                                 color: AppColors.textWhite,
-                                fontWeight: FontWeight.w700))
-                        : null,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(user.fullName,
-                            style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textDark)),
-                        Text(user.position ?? user.role.label,
-                            style: const TextStyle(
-                                fontSize: 12, color: AppColors.textGray)),
-                      ],
+                                fontWeight: FontWeight.w700,
+                              ),
+                            )
+                          : null,
                     ),
-                  ),
-                  _RoleBadge(role: user.role),
-                ]),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.fullName,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                          Text(
+                            user.position ?? user.role.label,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textGray,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _RoleBadge(role: user.role),
+                  ],
+                ),
               ),
             const SizedBox(height: 16),
 
-            // -- Stats row 1: Nh�n vi�n + Ph�ng ban ----------------------
-            Row(children: [
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.people_alt,
-                  label: 'Nh�n vi�n',
-                  value: staffAsync.isLoading ? '�' : '${staffList.length}',
-                  sub: staffAsync.isLoading
-                      ? ''
-                      : '$activeCount dang ho?t d?ng',
-                  color: AppColors.infoBlue,
+            // -- Stats row 1: Staff + departments ------------------------
+            Row(
+              children: [
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.people_alt,
+                    label: 'Nhân viên',
+                    value: staffAsync.isLoading ? '...' : '${staffList.length}',
+                    sub: staffAsync.isLoading
+                        ? ''
+                        : '$activeCount đang hoạt động',
+                    color: AppColors.infoBlue,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.business,
-                  label: 'Ph�ng ban',
-                  value: deptAsync.isLoading ? '�' : '$deptCount',
-                  sub: 'Co c?u t? ch?c',
-                  color: AppColors.primaryOrange,
-                ),
-              ),
-            ]),
-            const SizedBox(height: 12),
-
-            // -- Stats row 2: Kh�ch h�ng (+ S?n ph?m n?u l� admin) -------
-            Row(children: [
-              Expanded(
-                child: _StatCard(
-                  icon: Icons.person,
-                  label: 'Kh�ch h�ng',
-                  value: customersAsync.isLoading ? '�' : '$customerCount',
-                  sub: customersAsync.isLoading
-                      ? ''
-                      : '$activeCustomers dang ho?t d?ng',
-                  color: Colors.green,
-                ),
-              ),
-              if (isAdmin) ...[
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
-                    icon: Icons.inventory_2,
-                    label: 'S?n ph?m',
-                    value: productsAsync.isLoading ? '�' : '$productCount',
-                    sub: '�ang hi?n th?',
-                    color: Colors.purple,
+                    icon: Icons.business,
+                    label: 'Phòng ban',
+                    value: deptAsync.isLoading ? '...' : '$deptCount',
+                    sub: 'Cơ cấu tổ chức',
+                    color: AppColors.primaryOrange,
                   ),
                 ),
               ],
-            ]),
+            ),
+            const SizedBox(height: 12),
+
+            // -- Stats row 2: Customers + products for admin -------------
+            Row(
+              children: [
+                Expanded(
+                  child: _StatCard(
+                    icon: Icons.person,
+                    label: 'Khách hàng',
+                    value: customersAsync.isLoading ? '...' : '$customerCount',
+                    sub: customersAsync.isLoading
+                        ? ''
+                        : '$activeCustomers đang hoạt động',
+                    color: Colors.green,
+                  ),
+                ),
+                if (isAdmin) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _StatCard(
+                      icon: Icons.inventory_2,
+                      label: 'Sản phẩm',
+                      value: productsAsync.isLoading ? '...' : '$productCount',
+                      sub: 'Đang hiển thị',
+                      color: Colors.purple,
+                    ),
+                  ),
+                ],
+              ],
+            ),
             const SizedBox(height: 24),
 
             // -- HR section (MANAGER + ADMIN) -----------------------------
-            const _SectionHeader('Nh�n s?'),
+            const _SectionHeader('Nhân sự'),
             const SizedBox(height: 8),
             _NavCard(
               icon: Icons.people_alt_outlined,
-              title: 'Qu?n l� nh�n vi�n',
-              subtitle: 'T?o, ch?nh s?a, ph�n quy?n t�i kho?n',
+              title: 'Quản lý nhân viên',
+              subtitle: 'Tạo, chỉnh sửa, phân quyền tài khoản',
               badge: staffAsync.isLoading ? null : '${staffList.length} NV',
               color: AppColors.infoBlue,
               onTap: () => context.push(StaffRoutes.staffMembers),
@@ -158,21 +174,21 @@ class ManagementHubScreen extends ConsumerWidget {
             const SizedBox(height: 10),
             _NavCard(
               icon: Icons.business_outlined,
-              title: 'Ph�ng ban',
-              subtitle: 'T? ch?c co c?u ph�ng ban trong c�ng ty',
+              title: 'Phòng ban',
+              subtitle: 'Tổ chức cơ cấu phòng ban trong công ty',
               badge: deptAsync.isLoading ? null : '$deptCount PB',
               color: AppColors.primaryNavy,
               onTap: () => context.push(StaffRoutes.departments),
             ),
             const SizedBox(height: 24),
 
-            // -- Customer section (t?t c? staff) -------------------------
-            const _SectionHeader('Kh�ch h�ng'),
+            // -- Customer section ----------------------------------------
+            const _SectionHeader('Khách hàng'),
             const SizedBox(height: 8),
             _NavCard(
               icon: Icons.person_search_outlined,
-              title: 'Qu?n l� kh�ch h�ng',
-              subtitle: 'T?o TK sau khi ch?t h?p d?ng, xem ti?n d? don h�ng',
+              title: 'Quản lý khách hàng',
+              subtitle: 'Tạo TK sau khi chốt hợp đồng, xem tiến độ đơn hàng',
               badge: customersAsync.isLoading ? null : '$customerCount KH',
               color: Colors.green,
               onTap: () => context.push(StaffRoutes.customerManagement),
@@ -181,12 +197,12 @@ class ManagementHubScreen extends ConsumerWidget {
             // -- Product section (ADMIN only) -----------------------------
             if (isAdmin) ...[
               const SizedBox(height: 24),
-              const _SectionHeader('S?n ph?m & Danh m?c'),
+              const _SectionHeader('Sản phẩm & Danh mục'),
               const SizedBox(height: 8),
               _NavCard(
                 icon: Icons.inventory_2_outlined,
-                title: 'Qu?n l� s?n ph?m',
-                subtitle: 'Th�m, ch?nh s?a, ?n/hi?n s?n ph?m',
+                title: 'Quản lý sản phẩm',
+                subtitle: 'Thêm, chỉnh sửa, ẩn/hiện sản phẩm',
                 badge: productsAsync.isLoading ? null : '$productCount SP',
                 color: Colors.purple,
                 onTap: () => context.push(StaffRoutes.productManagement),
@@ -238,22 +254,29 @@ class _StatCard extends StatelessWidget {
             child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(height: 10),
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textDark,
-                  height: 1)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textDark,
+              height: 1,
+            ),
+          ),
           const SizedBox(height: 3),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark)),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+            ),
+          ),
           if (sub.isNotEmpty)
-            Text(sub,
-                style:
-                    const TextStyle(fontSize: 11, color: AppColors.textGray)),
+            Text(
+              sub,
+              style: const TextStyle(fontSize: 11, color: AppColors.textGray),
+            ),
         ],
       ),
     );
@@ -269,10 +292,11 @@ class _SectionHeader extends StatelessWidget {
     return Text(
       title.toUpperCase(),
       style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textGray,
-          letterSpacing: 0.8),
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textGray,
+        letterSpacing: 0.8,
+      ),
     );
   }
 }
@@ -306,51 +330,67 @@ class _NavCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.borderLight),
         ),
-        child: Row(children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textDark)),
-                const SizedBox(height: 2),
-                Text(subtitle,
-                    style: const TextStyle(
-                        fontSize: 12, color: AppColors.textGray)),
-              ],
-            ),
-          ),
-          if (badge != null) ...[
-            const SizedBox(width: 8),
+        child: Row(
+          children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(20),
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(badge!,
-                  style: TextStyle(
-                      fontSize: 11,
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: color)),
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textGray,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (badge != null) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  badge!,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.textGray,
+              size: 20,
             ),
           ],
-          const SizedBox(width: 8),
-          const Icon(Icons.chevron_right, color: AppColors.textGray, size: 20),
-        ]),
+        ),
       ),
     );
   }
@@ -373,9 +413,14 @@ class _RoleBadge extends StatelessWidget {
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(label,
-          style: TextStyle(
-              fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
     );
   }
 }

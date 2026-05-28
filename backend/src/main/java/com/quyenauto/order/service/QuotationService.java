@@ -68,7 +68,9 @@ public class QuotationService {
         return qs == Quotation.QuotationStatus.DRAFT
                 || qs == Quotation.QuotationStatus.PENDING_APPROVAL
                 || qs == Quotation.QuotationStatus.APPROVED
-                || qs == Quotation.QuotationStatus.SENT;
+                || qs == Quotation.QuotationStatus.SENT
+                || qs == Quotation.QuotationStatus.CONTRACT_PENDING
+                || qs == Quotation.QuotationStatus.CUSTOMER_REJECTED;
     }
 
     public Page<QuotationResponse> getAll(Pageable pageable) {
@@ -405,15 +407,56 @@ public class QuotationService {
         quotation.setSentAt(LocalDateTime.now());
         quotation.setStatus(Quotation.QuotationStatus.SENT);
 
-        // Thông báo KH
-        notificationService.createNotification(
-                quotation.getCustomer().getId(),
-                "Báo giá đã được gửi",
-                "Nhân viên Quyen Auto đã gửi báo giá cho bạn. Vui lòng kiểm tra.",
-                "QUOTATION_SENT",
-                id.toString()
-        );
+        // Khách vãng lai chưa có tài khoản app nên chỉ đánh dấu đã gửi.
+        // Khi có customer account thì mới tạo notification trong app.
+        if (quotation.getCustomer() != null) {
+            notificationService.createNotification(
+                    quotation.getCustomer().getId(),
+                    "Báo giá đã được gửi",
+                    "Nhân viên Quyen Auto đã gửi báo giá cho bạn. Vui lòng kiểm tra.",
+                    "QUOTATION_SENT",
+                    id.toString()
+            );
+        }
 
+        return QuotationResponse.from(quotationRepository.save(quotation));
+    }
+
+    /**
+     * NV xác nhận khách đã đồng ý báo giá.
+     * SENT → CONTRACT_PENDING
+     */
+    @Transactional
+    public QuotationResponse staffConfirmCustomerAgreed(Long id, Long staffId) {
+        Quotation quotation = findById(id);
+
+        if (quotation.getStatus() != Quotation.QuotationStatus.SENT) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể xác nhận KH đồng ý sau khi đã gửi báo giá");
+        }
+        if (quotation.getStaff() == null || !quotation.getStaff().getId().equals(staffId)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thao tác báo giá này");
+        }
+
+        quotation.setStatus(Quotation.QuotationStatus.CONTRACT_PENDING);
+        return QuotationResponse.from(quotationRepository.save(quotation));
+    }
+
+    /**
+     * NV ghi nhận khách từ chối báo giá.
+     * SENT → CUSTOMER_REJECTED
+     */
+    @Transactional
+    public QuotationResponse staffMarkCustomerRejected(Long id, Long staffId) {
+        Quotation quotation = findById(id);
+
+        if (quotation.getStatus() != Quotation.QuotationStatus.SENT) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể ghi nhận KH từ chối sau khi đã gửi báo giá");
+        }
+        if (quotation.getStaff() == null || !quotation.getStaff().getId().equals(staffId)) {
+            throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thao tác báo giá này");
+        }
+
+        quotation.setStatus(Quotation.QuotationStatus.CUSTOMER_REJECTED);
         return QuotationResponse.from(quotationRepository.save(quotation));
     }
 

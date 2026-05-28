@@ -67,14 +67,17 @@ abstract final class ApiConstants {
   static const String staffSubmitApproval =
       'staff/quotations/{id}/submit-approval';
   static const String staffSendQuotation = 'staff/quotations/{id}/send';
+  static const String staffCustomerConfirm =
+      'staff/quotations/{id}/customer-confirm';
+  static const String staffCustomerReject =
+      'staff/quotations/{id}/customer-reject';
 
   // ─── Manager: Duyệt BG ───────────────────────────────────────────────────
   static const String managerPendingApproval =
       'manager/quotations/pending-approval';
   static const String managerApproveQuotation =
       'manager/quotations/{id}/approve';
-  static const String managerRejectQuotation =
-      'manager/quotations/{id}/reject';
+  static const String managerRejectQuotation = 'manager/quotations/{id}/reject';
 
   // ─── Staff: Warranty ──────────────────────────────────────────────────────
   static const String staffWarrantyList = 'staff/warranty';

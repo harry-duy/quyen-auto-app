@@ -30,14 +30,14 @@ final staffDashboardProvider = FutureProvider.autoDispose<Map<String, dynamic>>(
 // ─── Staff Order Management ──────────────────────────────────────────────────
 
 final staffOrderStatusFilter = StateProvider<String?>((ref) => null);
-final staffOrderPhoneFilter  = StateProvider<String>((ref) => '');
+final staffOrderPhoneFilter = StateProvider<String>((ref) => '');
 
 final staffOrderListProvider = FutureProvider.autoDispose<List<Order>>((
   ref,
 ) async {
-  final api    = ref.watch(apiServiceProvider);
+  final api = ref.watch(apiServiceProvider);
   final status = ref.watch(staffOrderStatusFilter);
-  final phone  = ref.watch(staffOrderPhoneFilter).trim();
+  final phone = ref.watch(staffOrderPhoneFilter).trim();
 
   final Map<String, dynamic> params = {'page': 0, 'size': 50};
   if (phone.isNotEmpty) {
@@ -258,7 +258,8 @@ class StaffActionsNotifier extends Notifier<void> {
   // ── Flow mới: NV tạo BG → Manager duyệt → NV gửi KH ─────────────────────
 
   Future<StaffQuotationResponse> staffCreateQuotation(
-      Map<String, dynamic> data) async {
+    Map<String, dynamic> data,
+  ) async {
     final res = await _api.post(
       ApiConstants.staffCreateQuotation,
       data: data,
@@ -271,8 +272,9 @@ class StaffActionsNotifier extends Notifier<void> {
 
   Future<void> submitForApproval(String quotationId) async {
     await _api.patch(
-      ApiConstants.resolve(
-          ApiConstants.staffSubmitApproval, {'id': quotationId}),
+      ApiConstants.resolve(ApiConstants.staffSubmitApproval, {
+        'id': quotationId,
+      }),
     );
     ref.invalidate(staffQuotationListProvider);
     ref.invalidate(staffOwnPendingApprovalProvider);
@@ -281,17 +283,36 @@ class StaffActionsNotifier extends Notifier<void> {
 
   Future<void> sendQuotationToCustomer(String quotationId) async {
     await _api.patch(
-      ApiConstants.resolve(
-          ApiConstants.staffSendQuotation, {'id': quotationId}),
+      ApiConstants.resolve(ApiConstants.staffSendQuotation, {
+        'id': quotationId,
+      }),
     );
     ref.invalidate(staffQuotationListProvider);
   }
 
-  Future<void> managerApproveQuotation(
-      String quotationId, String? note) async {
+  Future<void> confirmCustomerAgreed(String quotationId) async {
     await _api.patch(
-      ApiConstants.resolve(
-          ApiConstants.managerApproveQuotation, {'id': quotationId}),
+      ApiConstants.resolve(ApiConstants.staffCustomerConfirm, {
+        'id': quotationId,
+      }),
+    );
+    ref.invalidate(staffQuotationListProvider);
+  }
+
+  Future<void> rejectByCustomer(String quotationId) async {
+    await _api.patch(
+      ApiConstants.resolve(ApiConstants.staffCustomerReject, {
+        'id': quotationId,
+      }),
+    );
+    ref.invalidate(staffQuotationListProvider);
+  }
+
+  Future<void> managerApproveQuotation(String quotationId, String? note) async {
+    await _api.patch(
+      ApiConstants.resolve(ApiConstants.managerApproveQuotation, {
+        'id': quotationId,
+      }),
       data: {'managerNote': note},
     );
     ref.invalidate(managerPendingApprovalProvider);
@@ -301,8 +322,9 @@ class StaffActionsNotifier extends Notifier<void> {
 
   Future<void> managerRejectQuotation(String quotationId, String? note) async {
     await _api.patch(
-      ApiConstants.resolve(
-          ApiConstants.managerRejectQuotation, {'id': quotationId}),
+      ApiConstants.resolve(ApiConstants.managerRejectQuotation, {
+        'id': quotationId,
+      }),
       data: {'managerNote': note},
     );
     ref.invalidate(managerPendingApprovalProvider);
