@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -199,7 +199,7 @@ class _QuotationListTab extends ConsumerWidget {
                       ),
                       SizedBox(height: 12),
                       Text(
-                        'Chua c� y�u c?u b�o gi�',
+                        'Chưa có yêu cầu báo giá',
                         style: TextStyle(
                           color: AppColors.textGray,
                           fontSize: 14,
@@ -247,7 +247,7 @@ class _QuotationListTab extends ConsumerWidget {
                     ElevatedButton(
                       onPressed: () =>
                           ref.invalidate(staffQuotationListProvider),
-                      child: const Text('Th? l?i'),
+                      child: const Text('Thử lại'),
                     ),
                   ],
                 ),
@@ -363,7 +363,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'B�o gi� #${q.id}',
+                        'Báo giá #${q.id}',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
@@ -413,64 +413,64 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 // Customer info
                 _InfoRow(
                   icon: Icons.person_outline,
-                  label: 'Kh�ch h�ng',
+                  label: 'Khách hàng',
                   value: q.customerName ?? 'KH #${q.customerId}',
                 ),
                 if (q.customerPhone != null)
                   _InfoRow(
                     icon: Icons.phone_outlined,
-                    label: '�i?n tho?i',
+                    label: 'Điện thoại',
                     value: q.customerPhone!,
                     valueColor: AppColors.infoBlue,
                   ),
                 if (q.vehicleModel != null)
                   _InfoRow(
                     icon: Icons.local_shipping_outlined,
-                    label: 'Lo?i xe',
+                    label: 'Loại xe',
                     value: q.vehicleModel!,
                   ),
                 if (q.productName != null)
                   _InfoRow(
                     icon: Icons.inventory_2_outlined,
-                    label: 'S?n ph?m',
+                    label: 'Sản phẩm',
                     value: q.productName!,
                   ),
                 if (q.boxType != null)
                   _InfoRow(
                     icon: Icons.category_outlined,
-                    label: 'Lo?i th�ng',
+                    label: 'Loại thùng',
                     value:
                         '${q.boxType}${q.boxCode != null ? ' (${q.boxCode})' : ''}',
                   ),
                 if (q.chassisWidth != null)
                   _InfoRow(
                     icon: Icons.straighten_outlined,
-                    label: 'Chi?u r?ng',
+                    label: 'Chiều rộng',
                     value: '${q.chassisWidth} mm',
                   ),
                 if (q.weightRange != null)
                   _InfoRow(
                     icon: Icons.scale_outlined,
-                    label: 'T?i tr?ng',
+                    label: 'Tải trọng',
                     value: q.weightRange!,
                   ),
                 if (q.quantity != null && q.quantity! > 1)
                   _InfoRow(
                     icon: Icons.format_list_numbered,
-                    label: 'S? lu?ng',
+                    label: 'Số lượng',
                     value: '${q.quantity} xe',
                   ),
                 if (q.note != null && q.note!.isNotEmpty)
                   _InfoRow(
                     icon: Icons.notes_outlined,
-                    label: 'Ghi ch�',
+                    label: 'Ghi chú',
                     value: q.note!,
                   ),
                 if (q.quotedPrice != null)
                   _InfoRow(
                     icon: Icons.price_check,
-                    label: 'B�o gi�',
-                    value: '${currFmt.format(q.quotedPrice!)} ?',
+                    label: 'Báo giá',
+                    value: '${currFmt.format(q.quotedPrice!)} ₫',
                     valueColor: AppColors.successGreen,
                     bold: true,
                   ),
@@ -652,7 +652,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('�� nh?n x? l� b�o gi�'),
+            content: Text('Đã nhận xử lý báo giá'),
             backgroundColor: AppColors.successGreen,
           ),
         );
@@ -661,7 +661,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('L?i: $e'),
+            content: Text('Lỗi: $e'),
             backgroundColor: AppColors.errorRed,
           ),
         );
@@ -682,7 +682,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Ch?t don #${widget.quotation.id}'),
+        title: Text('Chốt đơn #${widget.quotation.id}'),
         content: Form(
           key: formKey,
           child: Column(
@@ -692,15 +692,15 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 controller: priceCtrl,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Gi� ch?t (VN�) *',
-                  prefixText: '? ',
+                  labelText: 'Giá chốt (VNĐ) *',
+                  prefixText: '₫ ',
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Vui l�ng nh?p gi�';
+                  if (v == null || v.isEmpty) return 'Vui lòng nhập giá';
                   final cleaned = v.replaceAll(',', '').replaceAll('.', '');
                   if (double.tryParse(cleaned) == null)
-                    return 'Gi� kh�ng h?p l?';
+                    return 'Giá không hợp lệ';
                   return null;
                 },
               ),
@@ -709,15 +709,15 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 controller: depositCtrl,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Ti?n c?c (VN�)',
-                  prefixText: '? ',
+                  labelText: 'Tiền cọc (VNĐ)',
+                  prefixText: '₫ ',
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return null;
                   final cleaned = v.replaceAll(',', '').replaceAll('.', '');
                   if (double.tryParse(cleaned) == null)
-                    return 'Ti?n c?c kh�ng h?p l?';
+                    return 'Tiền cọc không hợp lệ';
                   return null;
                 },
               ),
@@ -726,14 +726,14 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 controller: estimatedDateCtrl,
                 keyboardType: TextInputType.datetime,
                 decoration: const InputDecoration(
-                  labelText: 'Ng�y d? ki?n ho�n th�nh',
+                  labelText: 'Ngày dự kiến hoàn thành',
                   hintText: 'yyyy-mm-dd',
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) return null;
                   if (DateTime.tryParse(v.trim()) == null) {
-                    return 'Ng�y kh�ng h?p l?';
+                    return 'Ngày không hợp lệ';
                   }
                   return null;
                 },
@@ -743,7 +743,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 controller: noteCtrl,
                 maxLines: 3,
                 decoration: const InputDecoration(
-                  hintText: 'Ghi ch� th?a thu?n (t�y ch?n)',
+                  hintText: 'Ghi chú thỏa thuận (tùy chọn)',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -753,7 +753,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('H?y'),
+            child: const Text('Huỷ'),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -786,7 +786,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('�� ch?t don ${currFmt.format(price)} ?'),
+                      content: Text('Đã chốt đơn ${currFmt.format(price)} ₫'),
                       backgroundColor: AppColors.successGreen,
                     ),
                   );
@@ -795,14 +795,14 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('L?i: $e'),
+                      content: Text('Lỗi: $e'),
                       backgroundColor: AppColors.errorRed,
                     ),
                   );
                 }
               }
             },
-            child: const Text('Ch?t don'),
+            child: const Text('Chốt đơn'),
           ),
         ],
       ),
@@ -840,7 +840,7 @@ class _ContactSection extends StatelessWidget {
             SizedBox(width: 6),
             Expanded(
               child: Text(
-                'Chua c� nh�n vi�n nh?n x? l�',
+                'Chưa có nhân viên nhận xử lý',
                 style: TextStyle(
                   fontSize: 12,
                   color: AppColors.warningAmber,
@@ -874,8 +874,8 @@ class _ContactSection extends StatelessWidget {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              '${quotation.contactedByName ?? 'Nh�n vi�n'} d� li�n h?'
-              '${quotation.contactedAt != null ? ' � ${dateFmt.format(quotation.contactedAt!)}' : ''}',
+              '${quotation.contactedByName ?? 'Nhân viên'} đã liên hệ'
+              '${quotation.contactedAt != null ? ' lúc ${dateFmt.format(quotation.contactedAt!)}' : ''}',
               style: const TextStyle(
                 fontSize: 12,
                 color: AppColors.successGreen,

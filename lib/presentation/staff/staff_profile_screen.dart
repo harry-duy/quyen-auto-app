@@ -26,7 +26,7 @@ class StaffProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(title: const Text('T�i kho?n')),
+      appBar: AppBar(title: const Text('Tài khoản')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -94,7 +94,7 @@ class StaffProfileScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            user?.role.label ?? 'Nh�n vi�n',
+                            user?.role.label ?? 'Nhân viên',
                             style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w700,
@@ -117,17 +117,17 @@ class StaffProfileScreen extends ConsumerWidget {
                   if (user?.employeeCode != null)
                     _DetailRow(
                         icon: Icons.badge_outlined,
-                        label: 'M� NV',
+                        label: 'Mã NV',
                         value: user!.employeeCode!),
                   if (user?.departmentName != null)
                     _DetailRow(
                         icon: Icons.business_outlined,
-                        label: 'Ph�ng ban',
+                        label: 'Phòng ban',
                         value: user!.departmentName!),
                   if (user?.position != null)
                     _DetailRow(
                         icon: Icons.work_outline,
-                        label: 'Ch?c v?',
+                        label: 'Chức vụ',
                         value: user!.position!),
                 ],
               ],
@@ -137,44 +137,44 @@ class StaffProfileScreen extends ConsumerWidget {
 
           // Management menu (MANAGER/ADMIN only)
           if (user?.role.isManagerOrAbove == true) ...[
-            _SectionTitle(title: 'QU?N L�'),
+            const _SectionTitle(title: 'QUẢN LÝ'),
             const SizedBox(height: 8),
             _MenuTile(
               icon: Icons.business,
-              title: 'Qu?n l� ph�ng ban',
-              subtitle: 'T?o v� ch?nh s?a ph�ng ban',
+              title: 'Quản lý phòng ban',
+              subtitle: 'Tạo và chỉnh sửa phòng ban',
               onTap: () => context.push(StaffRoutes.departments),
             ),
             _MenuTile(
               icon: Icons.people,
-              title: 'Qu?n l� nh�n vi�n',
-              subtitle: 'T?o t�i kho?n, ph�n quy?n',
+              title: 'Quản lý nhân viên',
+              subtitle: 'Tạo tài khoản, phân quyền',
               onTap: () => context.push(StaffRoutes.staffMembers),
             ),
             const SizedBox(height: 16),
           ],
 
           // Settings menu
-          _SectionTitle(title: 'C�I �?T'),
+          const _SectionTitle(title: 'CÀI ĐẶT'),
           const SizedBox(height: 8),
           _MenuTile(
             icon: Icons.person_outline,
-            title: 'Th�ng tin c� nh�n',
+            title: 'Thông tin cá nhân',
             onTap: () {},
           ),
           _MenuTile(
             icon: Icons.notifications_outlined,
-            title: 'C�i d?t th�ng b�o',
+            title: 'Cài đặt thông báo',
             onTap: () {},
           ),
           _MenuTile(
             icon: Icons.security_outlined,
-            title: '�?i m?t kh?u',
+            title: 'Đổi mật khẩu',
             onTap: () {},
           ),
           _MenuTile(
             icon: Icons.help_outline,
-            title: 'Tr? gi�p',
+            title: 'Trợ giúp',
             onTap: () {},
           ),
           const SizedBox(height: 24),
@@ -187,19 +187,19 @@ class StaffProfileScreen extends ConsumerWidget {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                    title: const Text('�ang xu?t'),
-                    content: const Text('B?n c� ch?c mu?n dang xu?t?'),
+                    title: const Text('Đăng xuất'),
+                    content: const Text('Bạn có chắc muốn đăng xuất?'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(ctx, false),
-                        child: const Text('H?y'),
+                        child: const Text('Huỷ'),
                       ),
                       ElevatedButton(
                         onPressed: () => Navigator.pop(ctx, true),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.errorRed,
                         ),
-                        child: const Text('�ang xu?t'),
+                        child: const Text('Đăng xuất'),
                       ),
                     ],
                   ),
@@ -210,7 +210,7 @@ class StaffProfileScreen extends ConsumerWidget {
                 }
               },
               icon: const Icon(Icons.logout, color: AppColors.errorRed),
-              label: const Text('�ang xu?t',
+              label: const Text('Đăng xuất',
                   style: TextStyle(color: AppColors.errorRed)),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.errorRed),
