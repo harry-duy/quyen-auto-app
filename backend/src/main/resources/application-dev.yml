@@ -10,6 +10,9 @@ spring:
 
   flyway:
     clean-on-validate-error: true
+    # DB dùng chung (192.168.0.140) đã có V16/V17 (báo giá) từ nhánh khác mà nhánh này
+    # không có file. Bỏ qua các migration thiếu/tương lai để Flyway vẫn áp dụng được V18.
+    ignore-migration-patterns: "*:missing,*:future"
 
   jpa:
     show-sql: true

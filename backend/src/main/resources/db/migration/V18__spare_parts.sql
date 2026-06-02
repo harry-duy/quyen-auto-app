@@ -1,0 +1,20 @@
+CREATE TABLE spare_parts (
+    id          BIGINT NOT NULL AUTO_INCREMENT,
+    name        VARCHAR(200) NOT NULL,
+    part_number VARCHAR(100) NOT NULL,
+    category    VARCHAR(100) NOT NULL,
+    brand       VARCHAR(100),
+    description TEXT,
+    unit        VARCHAR(50),
+    quantity_in_stock INT DEFAULT 0,
+    price       DECIMAL(15,2),
+    image_url   TEXT,
+    qr_code_url TEXT,
+    is_active   BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_spare_parts_part_number (part_number),
+    INDEX idx_spare_parts_active (is_active),
+    INDEX idx_spare_parts_category (category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

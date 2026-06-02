@@ -7,6 +7,11 @@ spring:
   profiles:
     active: dev
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -40,6 +45,9 @@ app:
 
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000,http://localhost:8080}
+
+  spare-parts:
+    excel-file-path: ${SPARE_PARTS_EXCEL_PATH:./data/spare-parts.xlsx}
 
   firebase:
     credentials-path: ${FIREBASE_CREDENTIALS_PATH:firebase-service-account.json}

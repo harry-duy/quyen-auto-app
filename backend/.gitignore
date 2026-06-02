@@ -38,3 +38,6 @@ build/
 ### Env ###
 *.env
 application-local.yml
+
+### Generated spare-parts Excel (auto-synced on disk) ###
+/data/
