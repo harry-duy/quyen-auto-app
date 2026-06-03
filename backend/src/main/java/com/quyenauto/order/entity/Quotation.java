@@ -8,6 +8,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "quotations")
@@ -33,6 +35,10 @@ public class Quotation extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "quotation_template_id")
+    private QuotationTemplate quotationTemplate;
 
     @Column(name = "weight_range", length = 50)
     private String weightRange;
@@ -72,6 +78,42 @@ public class Quotation extends BaseEntity {
 
     @Column(name = "quoted_price", precision = 15, scale = 2)
     private BigDecimal quotedPrice;
+
+    @Builder.Default
+    @Column(name = "base_price", nullable = false, precision = 15, scale = 2)
+    private BigDecimal basePrice = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(name = "option_total", nullable = false, precision = 15, scale = 2)
+    private BigDecimal optionTotal = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(name = "estimated_total", nullable = false, precision = 15, scale = 2)
+    private BigDecimal estimatedTotal = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(name = "adjustment_fee", nullable = false, precision = 15, scale = 2)
+    private BigDecimal adjustmentFee = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(name = "discount_amount", nullable = false, precision = 15, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @Column(name = "approved_total", precision = 15, scale = 2)
+    private BigDecimal approvedTotal;
+
+    @Column(name = "price_note", columnDefinition = "TEXT")
+    private String priceNote;
+
+    @Column(name = "technical_note", columnDefinition = "TEXT")
+    private String technicalNote;
+
+    @Column(name = "revision_note", columnDefinition = "TEXT")
+    private String revisionNote;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "quotation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuotationSelectedOption> selectedOptions = new ArrayList<>();
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -124,6 +166,7 @@ public class Quotation extends BaseEntity {
         // ── Flow cũ (KH tự gửi) ──
         PENDING, QUOTED, ACCEPTED, REJECTED, EXPIRED,
         // ── Flow mới (NV tạo) ────
-        DRAFT, PENDING_APPROVAL, APPROVED, SENT, CONTRACT_PENDING, CUSTOMER_REJECTED
+        DRAFT, PENDING_APPROVAL, WAITING_TECHNICAL_REVIEW, NEED_REVISION,
+        APPROVED, SENT, CONTRACT_PENDING, CUSTOMER_REJECTED
     }
 }

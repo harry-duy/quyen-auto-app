@@ -6,11 +6,17 @@ import com.quyenauto.order.dto.*;
 import com.quyenauto.order.entity.Order;
 import com.quyenauto.order.entity.OrderStatusLog;
 import com.quyenauto.order.entity.Quotation;
+import com.quyenauto.order.entity.QuotationOption;
+import com.quyenauto.order.entity.QuotationSelectedOption;
+import com.quyenauto.order.entity.QuotationTemplate;
 import com.quyenauto.order.repository.OrderRepository;
+import com.quyenauto.order.repository.QuotationOptionRepository;
 import com.quyenauto.order.repository.QuotationRepository;
+import com.quyenauto.order.repository.QuotationTemplateRepository;
 import com.quyenauto.product.entity.Product;
 import com.quyenauto.product.repository.ProductRepository;
 import com.quyenauto.user.entity.User;
+import com.quyenauto.user.entity.UserRole;
 import com.quyenauto.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,7 +25,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,6 +40,8 @@ public class QuotationService {
     private final OrderService orderService;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
+    private final QuotationTemplateRepository quotationTemplateRepository;
+    private final QuotationOptionRepository quotationOptionRepository;
     private final NotificationService notificationService;
 
     public Page<QuotationResponse> getByCustomer(Long customerId, Pageable pageable) {
@@ -44,11 +54,18 @@ public class QuotationService {
     }
 
     public Page<QuotationResponse> getVisibleForStaff(Long staffId, String status, Pageable pageable) {
+        User currentUser = userRepository.findById(staffId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng"));
+        boolean managerView = currentUser.getRole() == UserRole.MANAGER
+                || currentUser.getRole() == UserRole.ADMIN;
+
         if (status != null) {
             Quotation.QuotationStatus qs = Quotation.QuotationStatus.valueOf(status.toUpperCase());
-            // Staff-created flow statuses: chỉ hiện BG của chính NV đó tạo ra.
-            // Dùng field `staff` thay vì `contactedBy` vì staff-created BG không có contactedBy.
             if (isStaffCreatedStatus(qs)) {
+                if (managerView) {
+                    return quotationRepository.findStaffCreatedByStatus(qs, pageable)
+                            .map(QuotationResponse::from);
+                }
                 return quotationRepository.findByStaffIdAndStatus(staffId, qs, pageable)
                         .map(QuotationResponse::from);
             }
@@ -56,8 +73,9 @@ public class QuotationService {
                     .map(QuotationResponse::from);
         }
 
-        return quotationRepository.findVisibleActiveForStaff(
+        return quotationRepository.findDefaultVisibleForStaff(
                 staffId,
+                managerView,
                 List.of(Quotation.QuotationStatus.PENDING, Quotation.QuotationStatus.QUOTED),
                 pageable
         ).map(QuotationResponse::from);
@@ -67,6 +85,8 @@ public class QuotationService {
     private static boolean isStaffCreatedStatus(Quotation.QuotationStatus qs) {
         return qs == Quotation.QuotationStatus.DRAFT
                 || qs == Quotation.QuotationStatus.PENDING_APPROVAL
+                || qs == Quotation.QuotationStatus.WAITING_TECHNICAL_REVIEW
+                || qs == Quotation.QuotationStatus.NEED_REVISION
                 || qs == Quotation.QuotationStatus.APPROVED
                 || qs == Quotation.QuotationStatus.SENT
                 || qs == Quotation.QuotationStatus.CONTRACT_PENDING
@@ -223,7 +243,7 @@ public class QuotationService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Flow mới: NV tạo BG → Manager duyệt → NV gửi KH
+    // Flow mới: NV tạo BG → Manager duyệt → NV liên hệ KH ngoài app
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
@@ -246,15 +266,23 @@ public class QuotationService {
                     "Vui lòng chọn khách hàng hoặc nhập tên/SĐT khách vãng lai");
         }
 
+        QuotationTemplate template = null;
+        if (request.getTemplateId() != null) {
+            template = quotationTemplateRepository.findById(request.getTemplateId())
+                    .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy mẫu báo giá"));
+        }
+
         Product product = null;
         Boolean isNewProduct = Boolean.TRUE.equals(request.getIsNewProductRequest());
 
         if (!isNewProduct) {
-            if (request.getProductId() == null) {
+            if (request.getProductId() == null && (template == null || template.getProduct() == null)) {
                 throw new BusinessException(HttpStatus.BAD_REQUEST, "Vui lòng chọn sản phẩm hoặc chọn 'Sản phẩm mới'");
             }
-            product = productRepository.findById(request.getProductId())
-                    .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
+            product = request.getProductId() != null
+                    ? productRepository.findById(request.getProductId())
+                    .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"))
+                    : template.getProduct();
         } else if (request.getNewProductDescription() == null || request.getNewProductDescription().isBlank()) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Vui lòng mô tả yêu cầu sản phẩm mới");
         }
@@ -263,17 +291,18 @@ public class QuotationService {
                 .customer(customer)
                 .guestName(request.getGuestName())
                 .guestPhone(request.getGuestPhone())
+                .quotationTemplate(template)
                 .product(product)
                 .staff(staff)
-                .vehicleModel(request.getVehicleModel())
+                .vehicleModel(firstNonBlank(request.getVehicleModel(), template != null ? template.getVehicleModel() : null))
                 .quantity(request.getQuantity() != null ? request.getQuantity() : 1)
-                .chassisWidth(request.getChassisWidth())
+                .chassisWidth(request.getChassisWidth() != null ? request.getChassisWidth() : template != null ? template.getChassisWidth() : null)
                 .boxCode(request.getBoxCode())
-                .boxType(request.getBoxType())
-                .acType(request.getAcType())
-                .acModel(request.getAcModel())
+                .boxType(firstNonBlank(request.getBoxType(), template != null ? template.getBoxType() : null))
+                .acType(firstNonBlank(request.getAcType(), template != null ? template.getAcType() : null))
+                .acModel(firstNonBlank(request.getAcModel(), template != null ? template.getAcModel() : null))
                 .innerWallInsulated(request.getInnerWallInsulated())
-                .specifications(request.getSpecifications())
+                .specifications(firstNonBlank(request.getSpecifications(), template != null ? template.getSpecifications() : null))
                 .weightRange(request.getWeightRange())
                 .cargoType(request.getCargoType())
                 .note(request.getNote())
@@ -282,6 +311,22 @@ public class QuotationService {
                 .newProductDescription(request.getNewProductDescription())
                 .status(Quotation.QuotationStatus.DRAFT)
                 .build();
+
+        BigDecimal basePrice = template != null && template.getBasePrice() != null
+                ? template.getBasePrice()
+                : BigDecimal.ZERO;
+        List<QuotationSelectedOption> selectedOptions = buildSelectedOptions(quotation, request.getSelectedOptions());
+        BigDecimal optionTotal = selectedOptions.stream()
+                .map(QuotationSelectedOption::getTotalPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal estimatedTotal = basePrice.add(optionTotal);
+
+        quotation.setBasePrice(basePrice);
+        quotation.setOptionTotal(optionTotal);
+        quotation.setEstimatedTotal(estimatedTotal);
+        quotation.setQuotedPrice(estimatedTotal);
+        quotation.getSelectedOptions().clear();
+        quotation.getSelectedOptions().addAll(selectedOptions);
 
         return QuotationResponse.from(quotationRepository.save(quotation));
     }
@@ -300,20 +345,86 @@ public class QuotationService {
         if (quotation.getStaff() == null || !quotation.getStaff().getId().equals(staffId)) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thao tác báo giá này");
         }
-        if (quotation.getStatus() != Quotation.QuotationStatus.DRAFT) {
+        if (quotation.getStatus() != Quotation.QuotationStatus.DRAFT
+                && quotation.getStatus() != Quotation.QuotationStatus.NEED_REVISION) {
             throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể gửi duyệt báo giá đang ở trạng thái DRAFT");
         }
 
         quotation.setStatus(Quotation.QuotationStatus.PENDING_APPROVAL);
+        quotation.setRevisionNote(null);
         Quotation saved = quotationRepository.save(quotation);
 
         // Thông báo đến Manager
         notificationService.notifyAllManagers(
                 "Báo giá chờ duyệt",
-                (quotation.getStaff().getFullName()) + " đã gửi báo giá #" + id + " cho KH " + (quotation.getCustomer() != null ? quotation.getCustomer().getFullName() : quotation.getGuestName()),
+                (quotation.getStaff().getFullName()) + " đã gửi báo giá #" + id + " chờ duyệt cho KH " + (quotation.getCustomer() != null ? quotation.getCustomer().getFullName() : quotation.getGuestName()),
                 "QUOTATION_APPROVAL_REQUEST",
                 id.toString()
         );
+
+        return QuotationResponse.from(saved);
+    }
+
+    @Transactional
+    public QuotationResponse managerRequestRevision(Long id, Long managerId, ManagerApprovalRequest request) {
+        Quotation quotation = findById(id);
+
+        if (quotation.getStatus() != Quotation.QuotationStatus.PENDING_APPROVAL
+                && quotation.getStatus() != Quotation.QuotationStatus.WAITING_TECHNICAL_REVIEW) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chi co the tra lai bao gia dang cho duyet hoac cho ky thuat");
+        }
+
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Khong tim thay manager"));
+
+        quotation.setApprovedBy(manager);
+        quotation.setApprovedAt(LocalDateTime.now());
+        quotation.setRevisionNote(firstNonBlank(request.getRevisionNote(), request.getManagerNote()));
+        quotation.setStaffNote(request.getManagerNote());
+        quotation.setStatus(Quotation.QuotationStatus.NEED_REVISION);
+        Quotation saved = quotationRepository.save(quotation);
+
+        if (quotation.getStaff() != null) {
+            notificationService.createNotification(
+                    quotation.getStaff().getId(),
+                    "Bao gia can bo sung",
+                    "Manager tra lai bao gia #" + id
+                            + (quotation.getRevisionNote() != null ? ": " + quotation.getRevisionNote() : ""),
+                    "QUOTATION_NEED_REVISION",
+                    id.toString()
+            );
+        }
+
+        return QuotationResponse.from(saved);
+    }
+
+    @Transactional
+    public QuotationResponse managerMarkTechnicalReview(Long id, Long managerId, ManagerApprovalRequest request) {
+        Quotation quotation = findById(id);
+
+        if (quotation.getStatus() != Quotation.QuotationStatus.PENDING_APPROVAL) {
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chi co the dua bao gia dang cho duyet sang cho ky thuat");
+        }
+
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Khong tim thay manager"));
+
+        quotation.setApprovedBy(manager);
+        quotation.setApprovedAt(LocalDateTime.now());
+        quotation.setTechnicalNote(firstNonBlank(request.getTechnicalNote(), request.getManagerNote()));
+        quotation.setStaffNote(request.getManagerNote());
+        quotation.setStatus(Quotation.QuotationStatus.WAITING_TECHNICAL_REVIEW);
+        Quotation saved = quotationRepository.save(quotation);
+
+        if (quotation.getStaff() != null) {
+            notificationService.createNotification(
+                    quotation.getStaff().getId(),
+                    "Bao gia cho ky thuat xac nhan",
+                    "Manager tam giu bao gia #" + id + " de xac nhan ky thuat",
+                    "QUOTATION_TECHNICAL_REVIEW",
+                    id.toString()
+            );
+        }
 
         return QuotationResponse.from(saved);
     }
@@ -333,9 +444,21 @@ public class QuotationService {
         User manager = userRepository.findById(managerId)
                 .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Không tìm thấy manager"));
 
+        BigDecimal adjustmentFee = zeroIfNull(request.getAdjustmentFee());
+        BigDecimal discountAmount = zeroIfNull(request.getDiscountAmount());
+        BigDecimal approvedTotal = request.getApprovedTotal() != null
+                ? request.getApprovedTotal()
+                : quotation.getEstimatedTotal().add(adjustmentFee).subtract(discountAmount);
+
         quotation.setApprovedBy(manager);
         quotation.setApprovedAt(LocalDateTime.now());
         quotation.setStaffNote(request.getManagerNote());
+        quotation.setAdjustmentFee(adjustmentFee);
+        quotation.setDiscountAmount(discountAmount);
+        quotation.setApprovedTotal(approvedTotal);
+        quotation.setQuotedPrice(approvedTotal);
+        quotation.setPriceNote(blankToNull(request.getPriceNote()));
+        quotation.setTechnicalNote(blankToNull(request.getTechnicalNote()));
         quotation.setStatus(Quotation.QuotationStatus.APPROVED);
         Quotation saved = quotationRepository.save(quotation);
 
@@ -390,7 +513,7 @@ public class QuotationService {
     }
 
     /**
-     * NV đánh dấu đã gửi BG cho KH.
+     * NV đánh dấu đã liên hệ và trao đổi báo giá với KH ngoài app.
      * APPROVED → SENT
      */
     @Transactional
@@ -398,7 +521,7 @@ public class QuotationService {
         Quotation quotation = findById(id);
 
         if (quotation.getStatus() != Quotation.QuotationStatus.APPROVED) {
-            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể gửi báo giá đã được Manager duyệt");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể đánh dấu đã liên hệ sau khi Manager duyệt báo giá");
         }
         if (quotation.getStaff() == null || !quotation.getStaff().getId().equals(staffId)) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thao tác báo giá này");
@@ -407,17 +530,8 @@ public class QuotationService {
         quotation.setSentAt(LocalDateTime.now());
         quotation.setStatus(Quotation.QuotationStatus.SENT);
 
-        // Khách vãng lai chưa có tài khoản app nên chỉ đánh dấu đã gửi.
-        // Khi có customer account thì mới tạo notification trong app.
-        if (quotation.getCustomer() != null) {
-            notificationService.createNotification(
-                    quotation.getCustomer().getId(),
-                    "Báo giá đã được gửi",
-                    "Nhân viên Quyen Auto đã gửi báo giá cho bạn. Vui lòng kiểm tra.",
-                    "QUOTATION_SENT",
-                    id.toString()
-            );
-        }
+        // Báo giá là dữ liệu nội bộ staff/manager. KH được liên hệ ngoài app,
+        // không nhận notification báo giá để tránh hiểu rằng giá đã hiển thị trong app.
 
         return QuotationResponse.from(quotationRepository.save(quotation));
     }
@@ -431,7 +545,7 @@ public class QuotationService {
         Quotation quotation = findById(id);
 
         if (quotation.getStatus() != Quotation.QuotationStatus.SENT) {
-            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể xác nhận KH đồng ý sau khi đã gửi báo giá");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể xác nhận KH đồng ý sau khi đã liên hệ khách");
         }
         if (quotation.getStaff() == null || !quotation.getStaff().getId().equals(staffId)) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thao tác báo giá này");
@@ -450,7 +564,7 @@ public class QuotationService {
         Quotation quotation = findById(id);
 
         if (quotation.getStatus() != Quotation.QuotationStatus.SENT) {
-            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể ghi nhận KH từ chối sau khi đã gửi báo giá");
+            throw new BusinessException(HttpStatus.BAD_REQUEST, "Chỉ có thể ghi nhận KH từ chối sau khi đã liên hệ khách");
         }
         if (quotation.getStaff() == null || !quotation.getStaff().getId().equals(staffId)) {
             throw new BusinessException(HttpStatus.FORBIDDEN, "Bạn không có quyền thao tác báo giá này");
@@ -487,5 +601,81 @@ public class QuotationService {
         if (quotation.getContactedBy() != null && !quotation.getContactedBy().getId().equals(staffId)) {
             throw new BusinessException("Bao gia nay da co nhan vien khac nhan xu ly");
         }
+    }
+
+    private String firstNonBlank(String primary, String fallback) {
+        return primary != null && !primary.isBlank() ? primary : fallback;
+    }
+
+    private List<QuotationSelectedOption> buildSelectedOptions(
+            Quotation quotation,
+            List<SelectedQuotationOptionRequest> requests) {
+        if (requests == null || requests.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<QuotationSelectedOption> options = new ArrayList<>();
+        for (SelectedQuotationOptionRequest request : requests) {
+            if (request == null) continue;
+            int quantity = request.getQuantity() != null && request.getQuantity() > 0
+                    ? request.getQuantity()
+                    : 1;
+
+            QuotationOption catalogOption = null;
+            String name = blankToNull(request.getName());
+            String position = blankToNull(request.getPosition());
+            String unit = blankToNull(request.getUnit());
+            BigDecimal unitPrice = request.getUnitPrice();
+            boolean isCustom = request.getOptionId() == null || Boolean.TRUE.equals(request.getIsCustom());
+
+            if (request.getOptionId() != null) {
+                catalogOption = quotationOptionRepository.findById(request.getOptionId())
+                        .orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "Khong tim thay option bao gia"));
+                if (!Boolean.TRUE.equals(catalogOption.getIsActive())) {
+                    throw new BusinessException(HttpStatus.BAD_REQUEST, "Option bao gia da bi tat: " + catalogOption.getName());
+                }
+                name = catalogOption.getName();
+                position = catalogOption.getPosition();
+                unit = catalogOption.getUnit();
+                unitPrice = catalogOption.getDefaultPrice();
+                isCustom = false;
+            }
+
+            if (name == null) {
+                throw new BusinessException(HttpStatus.BAD_REQUEST, "Vui long nhap ten option ngoai danh muc");
+            }
+            if (position == null) {
+                position = "OTHER";
+            }
+            if (unit == null) {
+                unit = "cai";
+            }
+            if (unitPrice == null) {
+                unitPrice = BigDecimal.ZERO;
+            }
+
+            BigDecimal total = unitPrice.multiply(BigDecimal.valueOf(quantity));
+            options.add(QuotationSelectedOption.builder()
+                    .quotation(quotation)
+                    .option(catalogOption)
+                    .nameSnapshot(name)
+                    .positionSnapshot(position.toUpperCase())
+                    .unitSnapshot(unit)
+                    .unitPriceSnapshot(unitPrice)
+                    .quantity(quantity)
+                    .totalPrice(total)
+                    .note(blankToNull(request.getNote()))
+                    .isCustom(isCustom)
+                    .build());
+        }
+        return options;
+    }
+
+    private BigDecimal zeroIfNull(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
+    }
+
+    private String blankToNull(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

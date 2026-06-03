@@ -151,3 +151,28 @@ build\app\outputs\flutter-apk\app-customer-debug.apk
 - Dùng branch riêng, ví dụ `fix/develop` hoặc tên khác nếu Git không cho tạo `develop/fix`.
 - Git không cho tạo `develop/fix` khi đã có branch `develop` local, vì vậy nhánh hiện tại là `fix/develop`.
 - Trước khi sửa tiếp, đọc file này và kiểm tra `git status`.
+## Workflow update - quotation templates and shared options
+
+- Quotation templates now represent the size/spec baseline: vehicle/body dimensions, panel/foam, standard materials and base price.
+- Shared quotation options are stored separately from templates. Options are grouped by position:
+  - `FLOOR`
+  - `DOOR`
+  - `WALL`
+  - `AC`
+  - `LIGHT`
+  - `ACCESSORY`
+  - `OTHER`
+- Staff creates a quotation by selecting a customer, selecting a template, then adding options by position.
+- If the customer asks for something outside the shared option catalog, staff can add it as a custom option. Manager prices it during approval.
+- The backend snapshots selected option name, position, unit, unit price and quantity into the quotation. Later changes in the shared option catalog do not mutate old quotations.
+- Quotation price fields added:
+  - `base_price`
+  - `option_total`
+  - `estimated_total`
+  - `adjustment_fee`
+  - `discount_amount`
+  - `approved_total`
+- Manager fallback states added:
+  - `NEED_REVISION`: return to staff for missing/unclear info.
+  - `WAITING_TECHNICAL_REVIEW`: internal hold while manager/staff asks technical team outside the app.
+- Customer still should not see internal quotation pricing. Staff contacts the customer outside the app after manager approval.

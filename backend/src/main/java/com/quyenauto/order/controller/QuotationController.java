@@ -87,7 +87,7 @@ public class QuotationController {
         return ResponseEntity.ok(ApiResponse.ok(quotationService.confirmOrder(id, staffId, request)));
     }
 
-    // ─── Flow mới: NV tạo BG → Manager duyệt → NV gửi KH ────────────────────
+    // ─── Flow mới: NV tạo BG → Manager duyệt → NV liên hệ KH ngoài app ──────
 
     @PostMapping("/staff/quotations/create")
     @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
@@ -136,9 +136,29 @@ public class QuotationController {
         return ResponseEntity.ok(ApiResponse.ok(quotationService.managerRejectQuotation(id, managerId, request)));
     }
 
+    @PatchMapping("/manager/quotations/{id}/request-revision")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Manager tra lai staff bo sung thong tin")
+    public ResponseEntity<ApiResponse<QuotationResponse>> managerRequestRevision(
+            @PathVariable Long id, Authentication auth,
+            @RequestBody ManagerApprovalRequest request) {
+        Long managerId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(quotationService.managerRequestRevision(id, managerId, request)));
+    }
+
+    @PatchMapping("/manager/quotations/{id}/technical-review")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @Operation(summary = "Manager tam giu bao gia de hoi ky thuat ngoai app")
+    public ResponseEntity<ApiResponse<QuotationResponse>> managerTechnicalReview(
+            @PathVariable Long id, Authentication auth,
+            @RequestBody ManagerApprovalRequest request) {
+        Long managerId = Long.parseLong(auth.getName());
+        return ResponseEntity.ok(ApiResponse.ok(quotationService.managerMarkTechnicalReview(id, managerId, request)));
+    }
+
     @PatchMapping("/staff/quotations/{id}/send")
     @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'ADMIN')")
-    @Operation(summary = "NV gửi BG cho KH sau khi Manager duyệt (APPROVED → SENT)")
+    @Operation(summary = "NV đánh dấu đã liên hệ KH sau khi Manager duyệt (APPROVED → SENT)")
     public ResponseEntity<ApiResponse<QuotationResponse>> sendToCustomer(
             @PathVariable Long id, Authentication auth) {
         Long staffId = Long.parseLong(auth.getName());

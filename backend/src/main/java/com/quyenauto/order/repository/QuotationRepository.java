@@ -35,6 +35,23 @@ public interface QuotationRepository extends JpaRepository<Quotation, Long> {
     /** DS báo giá do NV tạo — cho Staff xem BG của mình */
     Page<Quotation> findByStaffIdAndIsStaffCreatedTrue(Long staffId, Pageable pageable);
 
+    @Query("""
+            select q from Quotation q
+            where (
+                q.isStaffCreated = true
+                and (:managerView = true or q.staff.id = :staffId)
+            ) or (
+                q.status in :statuses
+                and (q.contactedBy is null or q.contactedBy.id = :staffId)
+            )
+            order by q.createdAt desc
+            """)
+    Page<Quotation> findDefaultVisibleForStaff(
+            @org.springframework.data.repository.query.Param("staffId") Long staffId,
+            @org.springframework.data.repository.query.Param("managerView") boolean managerView,
+            @org.springframework.data.repository.query.Param("statuses") Collection<Quotation.QuotationStatus> statuses,
+            Pageable pageable);
+
     /** DS báo giá chờ Manager duyệt (toàn bộ) */
     Page<Quotation> findByStatusOrderByCreatedAtDesc(Quotation.QuotationStatus status, Pageable pageable);
 

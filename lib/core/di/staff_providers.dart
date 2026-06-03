@@ -255,7 +255,7 @@ class StaffActionsNotifier extends Notifier<void> {
     ref.invalidate(staffUncontactedCountProvider);
   }
 
-  // ── Flow mới: NV tạo BG → Manager duyệt → NV gửi KH ─────────────────────
+  // ── Flow mới: NV tạo BG → Manager duyệt → NV liên hệ KH ngoài app ───────
 
   Future<StaffQuotationResponse> staffCreateQuotation(
     Map<String, dynamic> data,
@@ -308,12 +308,54 @@ class StaffActionsNotifier extends Notifier<void> {
     ref.invalidate(staffQuotationListProvider);
   }
 
-  Future<void> managerApproveQuotation(String quotationId, String? note) async {
+  Future<void> managerApproveQuotation(
+    String quotationId, {
+    String? note,
+    double? adjustmentFee,
+    double? discountAmount,
+    double? approvedTotal,
+    String? priceNote,
+    String? technicalNote,
+  }) async {
     await _api.patch(
       ApiConstants.resolve(ApiConstants.managerApproveQuotation, {
         'id': quotationId,
       }),
-      data: {'managerNote': note},
+      data: {
+        'managerNote': note,
+        'adjustmentFee': ?adjustmentFee,
+        'discountAmount': ?discountAmount,
+        'approvedTotal': ?approvedTotal,
+        'priceNote': ?priceNote,
+        'technicalNote': ?technicalNote,
+      },
+    );
+    ref.invalidate(managerPendingApprovalProvider);
+    ref.invalidate(staffOwnPendingApprovalProvider);
+    ref.invalidate(staffQuotationListProvider);
+  }
+
+  Future<void> managerRequestRevision(String quotationId, String? note) async {
+    await _api.patch(
+      ApiConstants.resolve(ApiConstants.managerQuotationRevision, {
+        'id': quotationId,
+      }),
+      data: {'managerNote': note, 'revisionNote': note},
+    );
+    ref.invalidate(managerPendingApprovalProvider);
+    ref.invalidate(staffOwnPendingApprovalProvider);
+    ref.invalidate(staffQuotationListProvider);
+  }
+
+  Future<void> managerMarkTechnicalReview(
+    String quotationId,
+    String? note,
+  ) async {
+    await _api.patch(
+      ApiConstants.resolve(ApiConstants.managerQuotationTechnicalReview, {
+        'id': quotationId,
+      }),
+      data: {'managerNote': note, 'technicalNote': note},
     );
     ref.invalidate(managerPendingApprovalProvider);
     ref.invalidate(staffOwnPendingApprovalProvider);

@@ -123,7 +123,7 @@ class _QuotationListTab extends ConsumerWidget {
     'Nháp',
     'Chờ duyệt',
     'Đã duyệt',
-    'Đã gửi KH',
+    'Đã liên hệ KH',
     'Chờ ký HĐ',
     'Chờ xử lý',
     'Đã chốt',
@@ -312,7 +312,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
     'DRAFT' => 'Nháp',
     'PENDING_APPROVAL' => 'Chờ Manager duyệt',
     'APPROVED' => 'Đã duyệt',
-    'SENT' => 'Đã gửi KH',
+    'SENT' => 'Đã liên hệ KH',
     'CONTRACT_PENDING' => 'Chờ ký HĐ',
     'PENDING' => 'Chờ xử lý',
     'QUOTED' => 'Đã báo giá',
@@ -581,7 +581,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
                       : () => _sendToCustomer(context, ref),
                   icon: const Icon(Icons.forward_to_inbox, size: 16),
                   label: const Text(
-                    'Gửi Báo Giá cho KH',
+                    'Đã liên hệ KH',
                     style: TextStyle(fontSize: 13),
                   ),
                   style: ElevatedButton.styleFrom(
@@ -673,10 +673,10 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Gửi Báo Giá cho KH?'),
+        title: const Text('Đã liên hệ khách?'),
         content: Text(
-          'Xác nhận đã gửi báo giá #${widget.quotation.id} cho KH '
-          '${widget.quotation.customerName ?? ''} qua App/Zalo/Email?',
+          'Xác nhận đã liên hệ và trao đổi báo giá #${widget.quotation.id} '
+          'với KH ${widget.quotation.customerName ?? ''} qua Zalo/điện thoại/trực tiếp?',
         ),
         actions: [
           TextButton(
@@ -685,7 +685,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xác nhận đã gửi'),
+            child: const Text('Xác nhận'),
           ),
         ],
       ),
@@ -701,7 +701,7 @@ class _QuotationCardState extends ConsumerState<_QuotationCard> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Đã đánh dấu gửi KH!'),
+            content: Text('Đã đánh dấu đã liên hệ KH!'),
             backgroundColor: AppColors.successGreen,
           ),
         );
@@ -1617,6 +1617,52 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
                     label: 'Ghi chú',
                     value: q.note!,
                   ),
+                if (q.estimatedTotal != null)
+                  _InfoRow(
+                    icon: Icons.calculate_outlined,
+                    label: 'Tạm tính',
+                    value:
+                        '${NumberFormat('#,###', 'vi_VN').format(q.estimatedTotal)} đ',
+                    valueColor: AppColors.primaryOrange,
+                  ),
+                if (q.selectedOptions.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Option đã chọn',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  ...q.selectedOptions.map(
+                    (option) => Padding(
+                      padding: const EdgeInsets.only(bottom: 3),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '${option.name} x${option.quantity}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textGray,
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${NumberFormat('#,###', 'vi_VN').format(option.totalPrice)} đ',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -1710,12 +1756,14 @@ class _ApprovalCardState extends ConsumerState<_ApprovalCard> {
           .read(staffActionsProvider.notifier)
           .managerApproveQuotation(
             widget.quotation.id.toString(),
-            noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
+            note: noteCtrl.text.trim().isEmpty ? null : noteCtrl.text.trim(),
           );
       if (context.mounted) {
+        ref.read(staffQuotationStatusFilter.notifier).state = 'APPROVED';
+        DefaultTabController.of(context).animateTo(0);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Đã duyệt báo giá!'),
+            content: Text('Đã duyệt báo giá. Đã chuyển sang tab Đã duyệt.'),
             backgroundColor: AppColors.successGreen,
           ),
         );

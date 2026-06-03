@@ -1107,11 +1107,19 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                 ),
                 child: const Row(
                   children: [
-                    SizedBox(width: 52, child: _TableCell(text: 'Bề mặt')),
+                    SizedBox(
+                      width: 52,
+                      child: _TableCell(text: 'Bề mặt', header: true),
+                    ),
                     SizedBox(width: 8),
-                    Expanded(child: _TableCell(text: 'Loại Panel')),
+                    Expanded(
+                      child: _TableCell(text: 'Loại Panel', header: true),
+                    ),
                     SizedBox(width: 8),
-                    SizedBox(width: 74, child: _TableCell(text: 'Foam')),
+                    SizedBox(
+                      width: 74,
+                      child: _TableCell(text: 'Foam', header: true),
+                    ),
                   ],
                 ),
               ),
@@ -1230,7 +1238,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
-                    'Để lại số điện thoại để nhân viên liên hệ gửi báo giá',
+                    'Để lại số điện thoại để nhân viên liên hệ tư vấn',
                     style: TextStyle(fontSize: 13, color: AppColors.textDark),
                   ),
                 ),
@@ -1357,7 +1365,7 @@ class _QuotationFormScreenState extends ConsumerState<QuotationFormScreen> {
                   )
                 : const Icon(Icons.send_rounded, size: 20),
             label: Text(
-              isLoggedIn ? 'Gửi báo giá' : 'Gửi yêu cầu',
+              'Gửi yêu cầu báo giá',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
           ),

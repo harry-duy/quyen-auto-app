@@ -3,6 +3,8 @@ package com.quyenauto.order.dto;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Request DTO khi NV tạo báo giá cho khách hàng (flow mới).
  * Giống CreateQuotationRequest nhưng thêm customerId và hỗ trợ "Sản phẩm mới".
@@ -12,6 +14,9 @@ public class StaffCreateQuotationRequest {
 
     /** ID khách hàng có sẵn trong hệ thống (null nếu là khách vãng lai) */
     private Long customerId;
+
+    /** Mẫu báo giá nội bộ do Manager cấu hình (nếu có) */
+    private Long templateId;
 
     /** Tên khách vãng lai — dùng khi customerId == null */
     private String guestName;
@@ -52,4 +57,7 @@ public class StaffCreateQuotationRequest {
     private String weightRange;
     private String cargoType;
     private String note;
+
+    /** Option/san pham staff chon tu kho dung chung, hoac yeu cau ngoai danh muc. */
+    private List<SelectedQuotationOptionRequest> selectedOptions;
 }

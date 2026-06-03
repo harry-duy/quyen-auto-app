@@ -9,23 +9,27 @@ import '../../presentation/staff/order_detail_staff_screen.dart';
 import '../../presentation/staff/dealer_map_screen.dart';
 import '../../presentation/staff/department_management_screen.dart';
 import '../../presentation/staff/product_management_screen.dart';
+import '../../presentation/staff/quotation_option_management_screen.dart';
+import '../../presentation/staff/quotation_template_management_screen.dart';
 import '../../presentation/staff/staff_member_management_screen.dart';
 import '../../presentation/staff/customer_management_screen.dart';
 import '../di/providers.dart';
 
 abstract final class StaffRoutes {
-  static const login             = '/login';
-  static const register          = '/register';
-  static const home              = '/home';
-  static const orderDetail       = '/order/:id';
-  static const chat              = '/chat/:roomId';
-  static const dealerMap         = '/dealers/map';
-  static const departments       = '/management/departments';
-  static const staffMembers      = '/management/staff';
-  static const productManagement  = '/management/products';
+  static const login = '/login';
+  static const register = '/register';
+  static const home = '/home';
+  static const orderDetail = '/order/:id';
+  static const chat = '/chat/:roomId';
+  static const dealerMap = '/dealers/map';
+  static const departments = '/management/departments';
+  static const staffMembers = '/management/staff';
+  static const productManagement = '/management/products';
+  static const quotationTemplates = '/management/quotation-templates';
+  static const quotationOptions = '/management/quotation-options';
   static const customerManagement = '/management/customers';
 
-  static String orderOf(String id)    => '/order/$id';
+  static String orderOf(String id) => '/order/$id';
   static String chatOf(String roomId) => '/chat/$roomId';
 }
 
@@ -38,19 +42,26 @@ final staffRouterProvider = Provider<GoRouter>((ref) {
     debugLogDiagnostics: true,
 
     redirect: (context, state) {
-      final isLoggedIn   = ref.read(isAuthenticatedProvider);
-      final loc          = state.matchedLocation;
-      final onAuthScreen = loc == StaffRoutes.login || loc == StaffRoutes.register;
+      final isLoggedIn = ref.read(isAuthenticatedProvider);
+      final loc = state.matchedLocation;
+      final onAuthScreen =
+          loc == StaffRoutes.login || loc == StaffRoutes.register;
 
       if (!isLoggedIn && !onAuthScreen) return StaffRoutes.login;
-      if (isLoggedIn  && onAuthScreen)  return StaffRoutes.home;
+      if (isLoggedIn && onAuthScreen) return StaffRoutes.home;
       return null;
     },
 
     routes: [
-      GoRoute(path: StaffRoutes.login,    builder: (_, _) => const LoginScreen()),
-      GoRoute(path: StaffRoutes.register, builder: (_, _) => const RegisterScreen()),
-      GoRoute(path: StaffRoutes.home,     builder: (_, _) => const StaffHomeScreen()),
+      GoRoute(path: StaffRoutes.login, builder: (_, _) => const LoginScreen()),
+      GoRoute(
+        path: StaffRoutes.register,
+        builder: (_, _) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: StaffRoutes.home,
+        builder: (_, _) => const StaffHomeScreen(),
+      ),
       GoRoute(
         path: StaffRoutes.orderDetail,
         builder: (_, s) => OrderDetailStaffScreen(id: s.pathParameters['id']!),
@@ -59,11 +70,34 @@ final staffRouterProvider = Provider<GoRouter>((ref) {
         path: StaffRoutes.chat,
         builder: (_, s) => ChatScreen(roomId: s.pathParameters['roomId']!),
       ),
-      GoRoute(path: StaffRoutes.dealerMap,          builder: (_, _) => const DealerMapScreen()),
-      GoRoute(path: StaffRoutes.departments,         builder: (_, _) => const DepartmentManagementScreen()),
-      GoRoute(path: StaffRoutes.staffMembers,        builder: (_, _) => const StaffMemberManagementScreen()),
-      GoRoute(path: StaffRoutes.productManagement,   builder: (_, _) => const ProductManagementScreen()),
-      GoRoute(path: StaffRoutes.customerManagement,  builder: (_, _) => const CustomerManagementScreen()),
+      GoRoute(
+        path: StaffRoutes.dealerMap,
+        builder: (_, _) => const DealerMapScreen(),
+      ),
+      GoRoute(
+        path: StaffRoutes.departments,
+        builder: (_, _) => const DepartmentManagementScreen(),
+      ),
+      GoRoute(
+        path: StaffRoutes.staffMembers,
+        builder: (_, _) => const StaffMemberManagementScreen(),
+      ),
+      GoRoute(
+        path: StaffRoutes.productManagement,
+        builder: (_, _) => const ProductManagementScreen(),
+      ),
+      GoRoute(
+        path: StaffRoutes.quotationTemplates,
+        builder: (_, _) => const QuotationTemplateManagementScreen(),
+      ),
+      GoRoute(
+        path: StaffRoutes.quotationOptions,
+        builder: (_, _) => const QuotationOptionManagementScreen(),
+      ),
+      GoRoute(
+        path: StaffRoutes.customerManagement,
+        builder: (_, _) => const CustomerManagementScreen(),
+      ),
     ],
   );
 });

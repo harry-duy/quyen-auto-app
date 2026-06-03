@@ -19,6 +19,8 @@ class ManagementHubScreen extends ConsumerWidget {
     final productsAsync = user?.role.isAdmin == true
         ? ref.watch(adminProductListProvider)
         : const AsyncData(<AdminProduct>[]);
+    final templatesAsync = ref.watch(quotationTemplateListProvider);
+    final optionsAsync = ref.watch(quotationOptionListProvider);
 
     final staffList = staffAsync.valueOrNull ?? [];
     final activeCount = staffList.where((s) => s.isActive).length;
@@ -27,6 +29,8 @@ class ManagementHubScreen extends ConsumerWidget {
     final activeCustomers =
         customersAsync.valueOrNull?.where((c) => c.isActive).length ?? 0;
     final productCount = productsAsync.valueOrNull?.length ?? 0;
+    final templateCount = templatesAsync.valueOrNull?.length ?? 0;
+    final optionCount = optionsAsync.valueOrNull?.length ?? 0;
     final isAdmin = user?.role.isAdmin ?? false;
 
     return Scaffold(
@@ -38,6 +42,8 @@ class ManagementHubScreen extends ConsumerWidget {
           ref.invalidate(departmentListProvider);
           ref.invalidate(customerListProvider);
           if (isAdmin) ref.invalidate(adminProductListProvider);
+          ref.invalidate(quotationTemplateListProvider);
+          ref.invalidate(quotationOptionListProvider);
         },
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -208,6 +214,25 @@ class ManagementHubScreen extends ConsumerWidget {
                 onTap: () => context.push(StaffRoutes.productManagement),
               ),
             ],
+            const SizedBox(height: 10),
+            _NavCard(
+              icon: Icons.fact_check_outlined,
+              title: 'Mẫu báo giá',
+              subtitle: 'Liên kết loại xe, mẫu xe, thông số và giá nền nội bộ',
+              badge: templatesAsync.isLoading ? null : '$templateCount mẫu',
+              color: AppColors.primaryOrange,
+              onTap: () => context.push(StaffRoutes.quotationTemplates),
+            ),
+            const SizedBox(height: 10),
+            _NavCard(
+              icon: Icons.tune_outlined,
+              title: 'Kho option báo giá',
+              subtitle:
+                  'Quản lý option dùng chung, vị trí, đơn vị và giá mặc định',
+              badge: optionsAsync.isLoading ? null : '$optionCount option',
+              color: AppColors.infoBlue,
+              onTap: () => context.push(StaffRoutes.quotationOptions),
+            ),
           ],
         ),
       ),

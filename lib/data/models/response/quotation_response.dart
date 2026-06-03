@@ -5,6 +5,8 @@ class StaffQuotationResponse {
   final String? customerPhone;
   final String? guestName;
   final String? guestPhone;
+  final int? templateId;
+  final String? templateName;
   final int? productId;
   final String? productName;
   final String? vehicleModel;
@@ -20,6 +22,16 @@ class StaffQuotationResponse {
   final String? cargoType;
   final String? note;
   final double? quotedPrice;
+  final double? basePrice;
+  final double? optionTotal;
+  final double? estimatedTotal;
+  final double? adjustmentFee;
+  final double? discountAmount;
+  final double? approvedTotal;
+  final String? priceNote;
+  final String? technicalNote;
+  final String? revisionNote;
+  final List<SelectedQuotationOptionResponse> selectedOptions;
   final String status;
   final int? staffId;
   final String? staffName;
@@ -46,6 +58,8 @@ class StaffQuotationResponse {
   // ── Flow mới ───────────────────────────────────────────────────────────
   bool get isDraft => status == 'DRAFT';
   bool get isPendingApproval => status == 'PENDING_APPROVAL';
+  bool get isWaitingTechnicalReview => status == 'WAITING_TECHNICAL_REVIEW';
+  bool get isNeedRevision => status == 'NEED_REVISION';
   bool get isApproved => status == 'APPROVED';
   bool get isSent => status == 'SENT';
   bool get isContractPending => status == 'CONTRACT_PENDING';
@@ -60,6 +74,8 @@ class StaffQuotationResponse {
     this.customerPhone,
     this.guestName,
     this.guestPhone,
+    this.templateId,
+    this.templateName,
     this.productId,
     this.productName,
     this.vehicleModel,
@@ -75,6 +91,16 @@ class StaffQuotationResponse {
     this.cargoType,
     this.note,
     this.quotedPrice,
+    this.basePrice,
+    this.optionTotal,
+    this.estimatedTotal,
+    this.adjustmentFee,
+    this.discountAmount,
+    this.approvedTotal,
+    this.priceNote,
+    this.technicalNote,
+    this.revisionNote,
+    this.selectedOptions = const [],
     required this.status,
     this.staffId,
     this.staffName,
@@ -101,6 +127,8 @@ class StaffQuotationResponse {
       customerPhone: json['customerPhone'] as String?,
       guestName: json['guestName'] as String?,
       guestPhone: json['guestPhone'] as String?,
+      templateId: json['templateId'] as int?,
+      templateName: json['templateName'] as String?,
       productId: json['productId'] as int?,
       productName: json['productName'] as String?,
       vehicleModel: json['vehicleModel'] as String?,
@@ -116,6 +144,24 @@ class StaffQuotationResponse {
       cargoType: json['cargoType'] as String?,
       note: json['note'] as String?,
       quotedPrice: (json['quotedPrice'] as num?)?.toDouble(),
+      basePrice: (json['basePrice'] as num?)?.toDouble(),
+      optionTotal: (json['optionTotal'] as num?)?.toDouble(),
+      estimatedTotal: (json['estimatedTotal'] as num?)?.toDouble(),
+      adjustmentFee: (json['adjustmentFee'] as num?)?.toDouble(),
+      discountAmount: (json['discountAmount'] as num?)?.toDouble(),
+      approvedTotal: (json['approvedTotal'] as num?)?.toDouble(),
+      priceNote: json['priceNote'] as String?,
+      technicalNote: json['technicalNote'] as String?,
+      revisionNote: json['revisionNote'] as String?,
+      selectedOptions:
+          (json['selectedOptions'] as List<dynamic>?)
+              ?.map(
+                (e) => SelectedQuotationOptionResponse.fromJson(
+                  e as Map<String, dynamic>,
+                ),
+              )
+              .toList() ??
+          const [],
       status: json['status'] as String,
       staffId: json['staffId'] as int?,
       staffName: json['staffName'] as String?,
@@ -140,6 +186,50 @@ class StaffQuotationResponse {
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
+    );
+  }
+}
+
+class SelectedQuotationOptionResponse {
+  final int id;
+  final int? optionId;
+  final String name;
+  final String position;
+  final String unit;
+  final double unitPrice;
+  final int quantity;
+  final double totalPrice;
+  final double? managerOverridePrice;
+  final String? note;
+  final bool isCustom;
+
+  const SelectedQuotationOptionResponse({
+    required this.id,
+    this.optionId,
+    required this.name,
+    required this.position,
+    required this.unit,
+    required this.unitPrice,
+    required this.quantity,
+    required this.totalPrice,
+    this.managerOverridePrice,
+    this.note,
+    required this.isCustom,
+  });
+
+  factory SelectedQuotationOptionResponse.fromJson(Map<String, dynamic> json) {
+    return SelectedQuotationOptionResponse(
+      id: json['id'] as int,
+      optionId: json['optionId'] as int?,
+      name: json['name'] as String? ?? '',
+      position: json['position'] as String? ?? 'OTHER',
+      unit: json['unit'] as String? ?? 'cai',
+      unitPrice: (json['unitPrice'] as num?)?.toDouble() ?? 0,
+      quantity: (json['quantity'] as num?)?.toInt() ?? 1,
+      totalPrice: (json['totalPrice'] as num?)?.toDouble() ?? 0,
+      managerOverridePrice: (json['managerOverridePrice'] as num?)?.toDouble(),
+      note: json['note'] as String?,
+      isCustom: json['isCustom'] as bool? ?? false,
     );
   }
 }

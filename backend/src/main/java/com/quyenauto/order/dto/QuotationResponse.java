@@ -7,6 +7,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -18,6 +19,8 @@ public class QuotationResponse {
     private String customerPhone;
     private String guestName;
     private String guestPhone;
+    private Long templateId;
+    private String templateName;
     private Long productId;
     private String productName;
 
@@ -38,6 +41,16 @@ public class QuotationResponse {
     private String note;
 
     private BigDecimal quotedPrice;
+    private BigDecimal basePrice;
+    private BigDecimal optionTotal;
+    private BigDecimal estimatedTotal;
+    private BigDecimal adjustmentFee;
+    private BigDecimal discountAmount;
+    private BigDecimal approvedTotal;
+    private String priceNote;
+    private String technicalNote;
+    private String revisionNote;
+    private List<SelectedQuotationOptionResponse> selectedOptions;
     private String status;
     private Long staffId;
     private String staffName;
@@ -68,6 +81,8 @@ public class QuotationResponse {
                 .customerPhone(q.getCustomer() != null ? q.getCustomer().getPhone() : q.getGuestPhone())
                 .guestName(q.getGuestName())
                 .guestPhone(q.getGuestPhone())
+                .templateId(q.getQuotationTemplate() != null ? q.getQuotationTemplate().getId() : null)
+                .templateName(q.getQuotationTemplate() != null ? q.getQuotationTemplate().getName() : null)
                 .productId(q.getProduct() != null ? q.getProduct().getId() : null)
                 .productName(q.getProduct() != null ? q.getProduct().getName() : null)
                 .vehicleModel(q.getVehicleModel())
@@ -83,6 +98,20 @@ public class QuotationResponse {
                 .cargoType(q.getCargoType())
                 .note(q.getNote())
                 .quotedPrice(q.getQuotedPrice())
+                .basePrice(q.getBasePrice())
+                .optionTotal(q.getOptionTotal())
+                .estimatedTotal(q.getEstimatedTotal())
+                .adjustmentFee(q.getAdjustmentFee())
+                .discountAmount(q.getDiscountAmount())
+                .approvedTotal(q.getApprovedTotal())
+                .priceNote(q.getPriceNote())
+                .technicalNote(q.getTechnicalNote())
+                .revisionNote(q.getRevisionNote())
+                .selectedOptions(q.getSelectedOptions() != null
+                        ? q.getSelectedOptions().stream()
+                        .map(SelectedQuotationOptionResponse::from)
+                        .toList()
+                        : List.of())
                 .status(q.getStatus().name())
                 .staffId(q.getStaff() != null ? q.getStaff().getId() : null)
                 .staffName(q.getStaff() != null ? q.getStaff().getFullName() : null)

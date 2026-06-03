@@ -78,6 +78,22 @@ abstract final class ApiConstants {
   static const String managerApproveQuotation =
       'manager/quotations/{id}/approve';
   static const String managerRejectQuotation = 'manager/quotations/{id}/reject';
+  static const String quotationTemplates = 'quotation-templates';
+  static const String managerQuotationTemplates = 'manager/quotation-templates';
+  static const String managerQuotationTemplateDetail =
+      'manager/quotation-templates/{id}';
+  static const String managerQuotationTemplateToggle =
+      'manager/quotation-templates/{id}/toggle-active';
+  static const String quotationOptions = 'quotation-options';
+  static const String managerQuotationOptions = 'manager/quotation-options';
+  static const String managerQuotationOptionDetail =
+      'manager/quotation-options/{id}';
+  static const String managerQuotationOptionToggle =
+      'manager/quotation-options/{id}/toggle-active';
+  static const String managerQuotationRevision =
+      'manager/quotations/{id}/request-revision';
+  static const String managerQuotationTechnicalReview =
+      'manager/quotations/{id}/technical-review';
 
   // ─── Staff: Warranty ──────────────────────────────────────────────────────
   static const String staffWarrantyList = 'staff/warranty';
